@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import { join } from "path";
+import { put } from "@vercel/blob";
 import { requireAuth } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 
@@ -35,18 +34,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     const ext = file.name.split(".").pop() || "jpg";
     const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
-    const path = join(process.cwd(), "public", "uploads", filename);
 
-    await writeFile(path, buffer);
+    // Vercel Blob Storage에 업로드
+    const blob = await put(filename, file, {
+      access: "public",
+      contentType: file.type,
+    });
 
-    const url = `/uploads/${filename}`;
-
-    return NextResponse.json({ data: { url } });
+    return NextResponse.json({ data: { url: blob.url } });
   } catch (error) {
     return handleApiError(error);
   }
