@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VoteSection } from "@/components/debate/VoteSection";
 import { OpinionSection } from "@/components/debate/OpinionSection";
+import { TopicShareButton } from "@/components/topics/TopicShareButton";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 
@@ -38,9 +39,35 @@ export async function generateMetadata({ params }: TopicDetailPageProps) {
     return { title: "토론을 찾을 수 없습니다" };
   }
 
+  const title = `${topic.title} - BothSides`;
+  const description = `${topic.optionA} vs ${topic.optionB} - ${topic.description || "당신의 선택은?"}`;
+  const url = `/topics/${id}`;
+  const ogImage = topic.imageUrl || "/og-default.png";
+
   return {
-    title: `${topic.title} - BothSides`,
-    description: `${topic.optionA} vs ${topic.optionB} - ${topic.description || "양자택일 토론에 참여해보세요"}`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "BothSides",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: topic.title,
+        },
+      ],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
   };
 }
 
@@ -63,6 +90,12 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
             <Badge variant="secondary">{CATEGORY_LABELS[topic.category]}</Badge>
             <h1 className="text-2xl font-bold md:text-3xl">{topic.title}</h1>
           </div>
+          <TopicShareButton
+            topicId={topic.id}
+            title={topic.title}
+            optionA={topic.optionA}
+            optionB={topic.optionB}
+          />
         </div>
 
         {topic.description && (

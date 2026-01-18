@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
 import { ImageIcon, MessageSquare, Users } from "lucide-react";
+import { ShareButton } from "@/components/ui/ShareButton";
 import type { Category } from "@prisma/client";
 
 export interface TopicCardProps {
@@ -34,19 +35,21 @@ export interface TopicCardProps {
 
 export function TopicCard({ topic }: TopicCardProps) {
   const authorName = topic.author.nickname || topic.author.name || "익명";
+  const shareDescription = `${topic.optionA} vs ${topic.optionB}`;
 
   return (
-    <Link href={`/topics/${topic.id}`}>
-      <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
-        <div className="relative aspect-video w-full overflow-hidden bg-muted">
-          {topic.imageUrl ? (
-            <Image src={topic.imageUrl} alt="" fill className="object-cover" />
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <ImageIcon className="h-10 w-10 text-muted-foreground/30" />
-            </div>
-          )}
-        </div>
+    <div className="relative h-full">
+      <Link href={`/topics/${topic.id}`}>
+        <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
+          <div className="relative aspect-video w-full overflow-hidden bg-muted">
+            {topic.imageUrl ? (
+              <Image src={topic.imageUrl} alt="" fill className="object-cover" />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <ImageIcon className="h-10 w-10 text-muted-foreground/30" />
+              </div>
+            )}
+          </div>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <h3 className="line-clamp-2 text-lg font-semibold leading-tight">
@@ -92,7 +95,17 @@ export function TopicCard({ topic }: TopicCardProps) {
             <span>{formatRelativeTime(topic.createdAt)}</span>
           </div>
         </CardFooter>
-      </Card>
-    </Link>
+        </Card>
+      </Link>
+      <div className="absolute right-2 top-2 z-10">
+        <ShareButton
+          url={`/topics/${topic.id}`}
+          title={topic.title}
+          description={shareDescription}
+          variant="icon"
+          className="bg-background/80 backdrop-blur-sm hover:bg-background"
+        />
+      </div>
+    </div>
   );
 }
