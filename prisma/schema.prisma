@@ -101,15 +101,19 @@ model User {
 }
 
 model Topic {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
-  description String?  @db.Text
+  description String?   @db.Text
   optionA     String
   optionB     String
   category    Category
   authorId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  imageUrl    String?
+  deadline    DateTime?
+  isFeatured  Boolean   @default(false)
+  featuredAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   votes    Vote[]
@@ -118,6 +122,8 @@ model Topic {
   @@index([authorId])
   @@index([category])
   @@index([createdAt])
+  @@index([isFeatured])
+  @@index([deadline])
 }
 
 model Vote {

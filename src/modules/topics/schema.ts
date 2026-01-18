@@ -6,6 +6,14 @@ export const createTopicSchema = z.object({
   optionA: z.string().min(1, "A 옵션을 입력해주세요.").max(50, "옵션은 50자 이하여야 합니다."),
   optionB: z.string().min(1, "B 옵션을 입력해주세요.").max(50, "옵션은 50자 이하여야 합니다."),
   category: z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH"]),
+  imageUrl: z
+    .string()
+    .refine(
+      (val) => val.startsWith("/") || z.string().url().safeParse(val).success,
+      { message: "올바른 URL 형식이 아닙니다." }
+    )
+    .optional(),
+  deadline: z.string().datetime().optional(),
 });
 
 export const getTopicsSchema = z.object({
@@ -13,7 +21,13 @@ export const getTopicsSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   category: z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH"]).optional(),
   sort: z.enum(["latest", "popular"]).default("latest"),
+  featured: z.coerce.boolean().optional(),
+});
+
+export const updateFeaturedSchema = z.object({
+  isFeatured: z.boolean(),
 });
 
 export type CreateTopicInput = z.infer<typeof createTopicSchema>;
 export type GetTopicsInput = z.infer<typeof getTopicsSchema>;
+export type UpdateFeaturedInput = z.infer<typeof updateFeaturedSchema>;
