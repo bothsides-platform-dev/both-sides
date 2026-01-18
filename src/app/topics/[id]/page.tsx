@@ -47,8 +47,8 @@ export async function generateMetadata({ params }: TopicDetailPageProps) {
     ? `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · ${topic.description.trim()}`
     : `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · 당신의 선택은?`;
 
-  // 공유용 썸네일은 별도로 "제작/생성"하지 않고, 업로드된 이미지(있으면) 또는 기본 OG 이미지를 사용합니다.
-  const ogImageUrl = topic.imageUrl || "/og-default.png";
+  const ogImageUrl = new URL(`/topics/${id}/opengraph-image`, siteUrl);
+  const twitterImageUrl = new URL(`/topics/${id}/twitter-image`, siteUrl);
 
   return {
     title,
@@ -75,7 +75,7 @@ export async function generateMetadata({ params }: TopicDetailPageProps) {
       card: "summary_large_image",
       title,
       description,
-      images: [ogImageUrl],
+      images: [twitterImageUrl],
     },
   };
 }
@@ -89,9 +89,30 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
   }
 
   const authorName = topic.author.nickname || topic.author.name || "익명";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club";
+  const canonicalUrl = new URL(`/topics/${topic.id}`, siteUrl).toString();
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "DiscussionForumPosting",
+    headline: topic.title,
+    description: topic.description ?? undefined,
+    datePublished: topic.createdAt.toISOString(),
+    dateModified: topic.updatedAt.toISOString(),
+    author: {
+      "@type": "Person",
+      name: authorName,
+    },
+    mainEntityOfPage: canonicalUrl,
+    url: canonicalUrl,
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Topic Header */}
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-4">
