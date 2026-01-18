@@ -38,9 +38,18 @@ export async function POST(request: NextRequest) {
     const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 
     // Vercel Blob Storage에 업로드
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) {
+      return NextResponse.json(
+        { error: "BLOB_READ_WRITE_TOKEN 환경 변수가 설정되지 않았습니다." },
+        { status: 500 }
+      );
+    }
+
     const blob = await put(filename, file, {
       access: "public",
       contentType: file.type,
+      token,
     });
 
     return NextResponse.json({ data: { url: blob.url } });
