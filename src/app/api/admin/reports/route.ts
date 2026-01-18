@@ -5,6 +5,8 @@ import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { getReports, updateReportStatus } from "@/modules/reports/service";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     await requireAdmin();
