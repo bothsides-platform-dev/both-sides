@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Side {
+  A
+  B
+}
+
+enum Category {
+  DAILY
+  POLITICS
+  SOCIAL
+  RELATIONSHIP
+  HISTORY
+  GAME
+  TECH
+}
+
+enum ReactionType {
+  LIKE
+  DISLIKE
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+}
+
+// NextAuth required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Application models
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  nickname      String?   @unique
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  topics    Topic[]
+  votes     Vote[]
+  opinions  Opinion[]
+  reactions Reaction[]
+  reports   Report[]
+}
+
+model Topic {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  optionA     String
+  optionB     String
+  category    Category
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes    Vote[]
+  opinions Opinion[]
+
+  @@index([authorId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  topicId   String
+  userId    String
+  side      Side
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([topicId, userId])
+  @@index([topicId])
+  @@index([userId])
+}
+
+model Opinion {
+  id        String   @id @default(cuid())
+  topicId   String
+  userId    String
+  side      Side
+  body      String   @db.Text
+  isBlinded Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  topic     Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
+  reports   Report[]
+
+  @@index([topicId])
+  @@index([userId])
+  @@index([topicId, side])
+}
+
+model Reaction {
+  id        String       @id @default(cuid())
+  opinionId String
+  userId    String
+  type      ReactionType
+  createdAt DateTime     @default(now())
+
+  opinion Opinion @relation(fields: [opinionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([opinionId, userId])
+  @@index([opinionId])
+  @@index([userId])
+}
+
+model Report {
+  id        String       @id @default(cuid())
+  opinionId String
+  userId    String
+  reason    String       @db.Text
+  status    ReportStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  opinion Opinion @relation(fields: [opinionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([opinionId])
+  @@index([userId])
+  @@index([status])
+}
