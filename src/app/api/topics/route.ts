@@ -3,16 +3,31 @@ import { requireAuth } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { createTopicSchema, getTopicsSchema } from "@/modules/topics/schema";
-import { createTopic, getTopics } from "@/modules/topics/service";
+import { createTopic, getTopics, getFeaturedTopics, getRecommendedTopics } from "@/modules/topics/service";
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
+
+    // Special endpoints for featured and recommended
+    const type = searchParams.get("type");
+    if (type === "featured") {
+      const limit = parseInt(searchParams.get("limit") || "2");
+      const topics = await getFeaturedTopics(limit);
+      return Response.json({ data: { topics } });
+    }
+    if (type === "recommended") {
+      const limit = parseInt(searchParams.get("limit") || "6");
+      const topics = await getRecommendedTopics(limit);
+      return Response.json({ data: { topics } });
+    }
+
     const input = await validateRequest(getTopicsSchema, {
       page: searchParams.get("page") || undefined,
       limit: searchParams.get("limit") || undefined,
       category: searchParams.get("category") || undefined,
       sort: searchParams.get("sort") || undefined,
+      featured: searchParams.get("featured") || undefined,
     });
 
     const result = await getTopics(input);
