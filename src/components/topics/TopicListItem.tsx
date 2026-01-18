@@ -56,7 +56,7 @@ export function TopicListItem({ topic }: TopicListItemProps) {
           <MessageSquare className="h-4 w-4" />
           {topic._count.opinions}
         </span>
-        <span className="w-16 text-right">
+        <span className="hidden md:block md:w-16 md:text-right">
           {formatRelativeTime(topic.createdAt)}
         </span>
       </div>
