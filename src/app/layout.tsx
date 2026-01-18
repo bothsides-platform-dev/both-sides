@@ -17,8 +17,33 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "BothSides - 양자택일 토론 플랫폼",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club"),
+  title: {
+    default: "BothSides - 양자택일 토론 플랫폼",
+    template: "%s - BothSides",
+  },
   description: "A vs B, 당신의 선택은? 양자택일 토론 플랫폼에서 의견을 나눠보세요.",
+  openGraph: {
+    type: "website",
+    siteName: "BothSides",
+    locale: "ko_KR",
+    title: "BothSides - 양자택일 토론 플랫폼",
+    description: "A vs B, 당신의 선택은? 양자택일 토론 플랫폼에서 의견을 나눠보세요.",
+    images: [
+      {
+        url: "/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "BothSides - 양자택일 토론 플랫폼",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BothSides - 양자택일 토론 플랫폼",
+    description: "A vs B, 당신의 선택은? 양자택일 토론 플랫폼에서 의견을 나눠보세요.",
+    images: ["/og-default.png"],
+  },
 };
 
 export default function RootLayout({

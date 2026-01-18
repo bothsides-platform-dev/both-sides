@@ -39,22 +39,31 @@ export async function generateMetadata({ params }: TopicDetailPageProps) {
     return { title: "토론을 찾을 수 없습니다" };
   }
 
-  const title = `${topic.title} - BothSides`;
-  const description = `${topic.optionA} vs ${topic.optionB} - ${topic.description || "당신의 선택은?"}`;
-  const url = `/topics/${id}`;
-  const ogImage = topic.imageUrl || "/og-default.png";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club";
+  const canonicalUrl = new URL(`/topics/${id}`, siteUrl);
+
+  const title = topic.title;
+  const description = topic.description?.trim()
+    ? `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · ${topic.description.trim()}`
+    : `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · 당신의 선택은?`;
+
+  // 공유용 썸네일은 별도로 "제작/생성"하지 않고, 업로드된 이미지(있으면) 또는 기본 OG 이미지를 사용합니다.
+  const ogImageUrl = topic.imageUrl || "/og-default.png";
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title,
       description,
-      url,
+      url: canonicalUrl,
       siteName: "BothSides",
       images: [
         {
-          url: ogImage,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: topic.title,
@@ -66,7 +75,7 @@ export async function generateMetadata({ params }: TopicDetailPageProps) {
       card: "summary_large_image",
       title,
       description,
-      images: [ogImage],
+      images: [ogImageUrl],
     },
   };
 }
