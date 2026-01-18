@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
@@ -90,6 +91,19 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
             <p className="mt-1 text-lg font-bold text-red-700">{topic.optionB}</p>
           </div>
         </div>
+
+        {/* Hero Image */}
+        {topic.imageUrl && (
+          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl">
+            <Image
+              src={topic.imageUrl}
+              alt={topic.title}
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
       </div>
 
       {/* Vote Section */}

@@ -1,12 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
-import { MessageSquare, Users } from "lucide-react";
+import { ImageIcon, MessageSquare, Users } from "lucide-react";
 import type { Category } from "@prisma/client";
 
 export interface TopicCardProps {
@@ -17,6 +18,7 @@ export interface TopicCardProps {
     optionB: string;
     category: Category;
     createdAt: string | Date;
+    imageUrl?: string | null;
     author: {
       id: string;
       nickname?: string | null;
@@ -35,7 +37,16 @@ export function TopicCard({ topic }: TopicCardProps) {
 
   return (
     <Link href={`/topics/${topic.id}`}>
-      <Card className="h-full transition-shadow hover:shadow-md">
+      <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
+        <div className="relative aspect-video w-full overflow-hidden bg-muted">
+          {topic.imageUrl ? (
+            <Image src={topic.imageUrl} alt="" fill className="object-cover" />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <ImageIcon className="h-10 w-10 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <h3 className="line-clamp-2 text-lg font-semibold leading-tight">

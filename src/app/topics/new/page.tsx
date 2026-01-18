@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { Loader2 } from "lucide-react";
 import type { Category } from "@prisma/client";
@@ -20,6 +21,7 @@ export default function NewTopicPage() {
   const { data: session, status } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
 
   if (status === "loading") {
     return (
@@ -40,12 +42,16 @@ export default function NewTopicPage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+    const deadlineValue = formData.get("deadline") as string;
+
     const data = {
       title: formData.get("title"),
       description: formData.get("description") || undefined,
       optionA: formData.get("optionA"),
       optionB: formData.get("optionB"),
       category: formData.get("category"),
+      imageUrl: imageUrl || undefined,
+      deadline: deadlineValue ? new Date(deadlineValue).toISOString() : undefined,
     };
 
     try {
@@ -151,6 +157,28 @@ export default function NewTopicPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>썸네일 이미지 (선택)</Label>
+              <ImageUpload
+                value={imageUrl}
+                onChange={setImageUrl}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="deadline">마감 기한 (선택)</Label>
+              <Input
+                id="deadline"
+                name="deadline"
+                type="datetime-local"
+                min={new Date().toISOString().slice(0, 16)}
+              />
+              <p className="text-xs text-muted-foreground">
+                비워두면 무기한 토론이 됩니다
+              </p>
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
