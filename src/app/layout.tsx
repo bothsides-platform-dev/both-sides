@@ -33,7 +33,7 @@ export default function RootLayout({
       >
         <SessionProvider>
           <Header />
-          <main className="flex-1 container py-6">{children}</main>
+          <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
           <Footer />
         </SessionProvider>
       </body>
