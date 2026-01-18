@@ -38,16 +38,21 @@ export function TopicListItem({ topic }: TopicListItemProps) {
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <h4 className="truncate font-medium">
-          {topic.title}
-        </h4>
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="min-w-0 flex-1 truncate font-medium">
+            {topic.title}
+          </h4>
+          <span className="shrink-0 text-xs text-muted-foreground md:hidden">
+            {topic._count.votes}표 · {topic._count.opinions}의견
+          </span>
+        </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">
           <span className="text-blue-600">{topic.optionA}</span>
           <span className="mx-1">vs</span>
           <span className="text-red-600">{topic.optionB}</span>
         </p>
       </div>
-      <div className="flex shrink-0 items-center gap-4 text-sm text-muted-foreground">
+      <div className="hidden shrink-0 items-center gap-4 text-sm text-muted-foreground md:flex">
         <span className="flex items-center gap-1">
           <Users className="h-4 w-4" />
           {topic._count.votes}
