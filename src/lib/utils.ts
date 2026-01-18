@@ -27,3 +27,27 @@ export function formatRelativeTime(date: Date | string): string {
   if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}일 전`;
   return formatDate(d);
 }
+
+export function formatDDay(date: Date | string | null): string | null {
+  if (!date) return null;
+
+  const d = typeof date === "string" ? new Date(date) : date;
+  const now = new Date();
+
+  // Reset time to midnight for accurate day calculation
+  const deadlineDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const diffInDays = Math.ceil((deadlineDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffInDays < 0) return "마감";
+  if (diffInDays === 0) return "D-Day";
+  return `D-${diffInDays}`;
+}
+
+export function formatNumber(num: number): string {
+  if (num >= 1000) {
+    return `${(num / 1000).toFixed(1).replace(/\.0$/, "")}K`;
+  }
+  return num.toLocaleString();
+}
