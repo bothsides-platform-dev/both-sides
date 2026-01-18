@@ -1,11 +1,81 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { buildChromeIntentUrl, isAndroid, isKakaoInAppBrowser } from "@/lib/inapp";
 
 export default function SignInPage() {
+  const [toast, setToast] = useState<string | null>(null);
+
+  const ua = useMemo(() => (typeof navigator !== "undefined" ? navigator.userAgent : ""), []);
+  const inKakaoInApp = useMemo(() => isKakaoInAppBrowser(ua), [ua]);
+  const inAndroid = useMemo(() => isAndroid(ua), [ua]);
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club";
+
+  const targetUrl = useMemo(() => {
+    if (typeof window === "undefined") return new URL("/auth/signin", siteUrl).toString();
+    try {
+      const path = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      return new URL(path, window.location.origin).toString();
+    } catch {
+      return new URL("/auth/signin", siteUrl).toString();
+    }
+  }, [siteUrl]);
+
+  const openInExternalBrowser = () => {
+    if (!inKakaoInApp) return;
+
+    // Android: try Chrome intent first (best chance to break out of in-app webview)
+    if (inAndroid) {
+      const intentUrl = buildChromeIntentUrl(targetUrl);
+      if (intentUrl) {
+        window.location.href = intentUrl;
+        // Fallback: if intent is blocked, at least keep a normal URL available
+        window.setTimeout(() => {
+          try {
+            window.location.href = targetUrl;
+          } catch {
+            // ignore
+          }
+        }, 800);
+        return;
+      }
+    }
+
+    // iOS or fallback: try opening a new tab
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(targetUrl);
+      setToast("링크를 복사했어요. Safari/Chrome에 붙여넣어 열어주세요.");
+    } catch {
+      try {
+        const el = document.createElement("textarea");
+        el.value = targetUrl;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+        setToast("링크를 복사했어요. Safari/Chrome에 붙여넣어 열어주세요.");
+      } catch {
+        setToast("링크 복사에 실패했어요. 주소창의 URL을 길게 눌러 복사해 주세요.");
+      }
+    } finally {
+      window.setTimeout(() => setToast(null), 2500);
+    }
+  };
+
   const handleGoogleSignIn = () => {
+    if (inKakaoInApp) {
+      setToast("카카오톡 인앱에서는 구글 로그인이 제한돼요. 외부 브라우저로 열어주세요.");
+      window.setTimeout(() => setToast(null), 2500);
+      return;
+    }
     signIn("google", { callbackUrl: "/" });
   };
 
@@ -19,6 +89,23 @@ export default function SignInPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {inKakaoInApp && (
+            <div className="space-y-3 rounded-md border bg-muted/30 p-3 text-sm">
+              <div className="font-medium">카카오톡 인앱에서는 구글 로그인이 막힐 수 있어요.</div>
+              <div className="text-muted-foreground">
+                아래 버튼으로 외부 브라우저(Safari/Chrome)에서 열어 로그인해 주세요.
+              </div>
+              <div className="flex gap-2">
+                <Button type="button" className="flex-1" onClick={openInExternalBrowser}>
+                  외부 브라우저에서 열기
+                </Button>
+                <Button type="button" variant="outline" className="flex-1" onClick={copyLink}>
+                  링크 복사
+                </Button>
+              </div>
+              {toast && <div className="text-xs text-muted-foreground">{toast}</div>}
+            </div>
+          )}
           <Button
             onClick={handleGoogleSignIn}
             className="w-full"
@@ -44,6 +131,9 @@ export default function SignInPage() {
             </svg>
             Google로 로그인
           </Button>
+          {!inKakaoInApp && toast && (
+            <div className="text-center text-xs text-muted-foreground">{toast}</div>
+          )}
         </CardContent>
       </Card>
     </div>

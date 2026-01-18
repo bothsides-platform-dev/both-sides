@@ -35,6 +35,23 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Auth (NextAuth + Google) 설정 체크
+
+### 필수 환경 변수 (Vercel)
+- `NEXTAUTH_URL`: 프로덕션 도메인 (예: `https://bothsides.club`)
+- `NEXTAUTH_SECRET`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+
+### Google Cloud Console (OAuth Client) Redirect URI
+- 아래 Redirect URI가 **반드시** 등록되어 있어야 합니다.
+  - `https://bothsides.club/api/auth/callback/google`
+  - (도메인이 다르면 해당 도메인으로 교체)
+
+### 참고: 카카오톡 인앱 브라우저에서 구글 로그인
+- 카카오톡 인앱 브라우저(WebView)에서는 Google 정책(embedded webview)으로 인해 로그인이 **차단**될 수 있습니다.
+- 이 프로젝트는 인앱 감지 시 외부 브라우저(Safari/Chrome)로 열도록 안내합니다.
+
 ### 이미지 업로드 설정 (Vercel Blob Storage)
 
 이 프로젝트는 Vercel Blob Storage를 사용하여 이미지를 저장합니다.
