@@ -28,7 +28,12 @@ export function KakaoProvider({ children }: KakaoProviderProps) {
   const handleScriptLoad = useCallback(() => {
     const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
 
-    if (window.Kakao && kakaoKey) {
+    if (!kakaoKey) {
+      console.error('[KakaoProvider] NEXT_PUBLIC_KAKAO_JS_KEY is not set');
+      return;
+    }
+
+    if (window.Kakao) {
       if (!window.Kakao.isInitialized()) {
         window.Kakao.init(kakaoKey);
       }
