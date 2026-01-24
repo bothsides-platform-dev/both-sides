@@ -3,11 +3,10 @@
 import useSWR from "swr";
 import { FeaturedTopicCard, type FeaturedTopicCardProps } from "./FeaturedTopicCard";
 import { Loader2, Sparkles } from "lucide-react";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { fetcher } from "@/lib/fetcher";
 
 export function FeaturedSection() {
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading } = useSWR<{ data: { topics: FeaturedTopicCardProps["topic"][] } }>(
     "/api/topics?type=featured&limit=2",
     fetcher
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatRelativeTime } from "@/lib/utils";
@@ -23,7 +24,7 @@ export interface TopicListItemProps {
   };
 }
 
-export function TopicListItem({ topic }: TopicListItemProps) {
+export const TopicListItem = memo(function TopicListItem({ topic }: TopicListItemProps) {
   return (
     <Link
       href={`/topics/${topic.id}`}
@@ -72,4 +73,4 @@ export function TopicListItem({ topic }: TopicListItemProps) {
       </div>
     </Link>
   );
-}
+});

@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { KakaoProvider } from "@/components/providers/KakaoProvider";
+import { SWRProvider } from "@/components/providers/SWRProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
@@ -70,9 +71,11 @@ export default function RootLayout({
         </Script>
         <KakaoProvider>
           <SessionProvider>
-            <Header />
-            <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
-            <Footer />
+            <SWRProvider>
+              <Header />
+              <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
+              <Footer />
+            </SWRProvider>
           </SessionProvider>
         </KakaoProvider>
       </body>

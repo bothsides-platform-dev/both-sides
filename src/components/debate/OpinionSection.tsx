@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, memo } from "react";
 import { useSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatRelativeTime } from "@/lib/utils";
 import { Loader2, ThumbsUp, ThumbsDown, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fetcher } from "@/lib/fetcher";
 import type { Side, ReactionType } from "@prisma/client";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface Opinion {
   id: string;
@@ -47,27 +46,34 @@ interface OpinionSectionProps {
 
 export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProps) {
   const { data: session } = useSession();
-  const [sideFilter, setSideFilter] = useState<Side | "ALL">("ALL");
-  const [sort, setSort] = useState<"latest" | "hot">("latest");
+  const [filters, setFilters] = useState<{ sideFilter: Side | "ALL"; sort: "latest" | "hot" }>({
+    sideFilter: "ALL",
+    sort: "latest",
+  });
   const [newOpinion, setNewOpinion] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitState, setSubmitState] = useState<{ isSubmitting: boolean; error: string | null }>({
+    isSubmitting: false,
+    error: null,
+  });
 
-  // Fetch user's vote to know if they can post opinions
-  const { data: myVoteData } = useSWR(
-    session?.user ? `/api/topics/${topicId}/my-vote` : null,
+  // Use combined vote-info endpoint
+  const { data: voteInfoData } = useSWR<{ data: { myVote: Side | null } }>(
+    session?.user ? `/api/topics/${topicId}/vote-info?includeMyVote=true` : null,
     fetcher
   );
 
-  const myVote = myVoteData?.data?.side as Side | undefined;
+  const myVote = voteInfoData?.data?.myVote ?? undefined;
 
-  // Build query params
-  const params = new URLSearchParams();
-  if (sideFilter !== "ALL") params.set("side", sideFilter);
-  params.set("sort", sort);
+  // Memoize query params to prevent unnecessary recalculations
+  const queryParams = useMemo(() => {
+    const params = new URLSearchParams();
+    if (filters.sideFilter !== "ALL") params.set("side", filters.sideFilter);
+    params.set("sort", filters.sort);
+    return params.toString();
+  }, [filters.sideFilter, filters.sort]);
 
-  const { data: opinionsData, isLoading } = useSWR(
-    `/api/topics/${topicId}/opinions?${params.toString()}`,
+  const { data: opinionsData, isLoading } = useSWR<{ data: { opinions: Opinion[] } }>(
+    `/api/topics/${topicId}/opinions?${queryParams}`,
     fetcher
   );
 
@@ -76,8 +82,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
   const handleSubmit = async () => {
     if (!newOpinion.trim() || !session?.user) return;
 
-    setIsSubmitting(true);
-    setError(null);
+    setSubmitState({ isSubmitting: true, error: null });
 
     try {
       const res = await fetch(`/api/topics/${topicId}/opinions`, {
@@ -93,11 +98,13 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
       }
 
       setNewOpinion("");
-      mutate(`/api/topics/${topicId}/opinions?${params.toString()}`);
+      setSubmitState({ isSubmitting: false, error: null });
+      mutate(`/api/topics/${topicId}/opinions?${queryParams}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "의견 작성에 실패했습니다.");
-    } finally {
-      setIsSubmitting(false);
+      setSubmitState({
+        isSubmitting: false,
+        error: err instanceof Error ? err.message : "의견 작성에 실패했습니다.",
+      });
     }
   };
 
@@ -114,7 +121,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
         body: JSON.stringify({ type }),
       });
 
-      mutate(`/api/topics/${topicId}/opinions?${params.toString()}`);
+      mutate(`/api/topics/${topicId}/opinions?${queryParams}`);
     } catch (error) {
       console.error("Reaction failed:", error);
     }
@@ -126,14 +133,14 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">의견</CardTitle>
           <div className="flex items-center gap-2">
-            <Tabs value={sideFilter} onValueChange={(v) => setSideFilter(v as Side | "ALL")}>
+            <Tabs value={filters.sideFilter} onValueChange={(v) => setFilters((prev) => ({ ...prev, sideFilter: v as Side | "ALL" }))}>
               <TabsList className="h-8">
                 <TabsTrigger value="ALL" className="text-xs px-2">전체</TabsTrigger>
                 <TabsTrigger value="A" className="text-xs px-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">A</TabsTrigger>
                 <TabsTrigger value="B" className="text-xs px-2 data-[state=active]:bg-red-500 data-[state=active]:text-white">B</TabsTrigger>
               </TabsList>
             </Tabs>
-            <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "hot")}>
+            <Tabs value={filters.sort} onValueChange={(v) => setFilters((prev) => ({ ...prev, sort: v as "latest" | "hot" }))}>
               <TabsList className="h-8">
                 <TabsTrigger value="latest" className="text-xs px-2">최신</TabsTrigger>
                 <TabsTrigger value="hot" className="text-xs px-2">인기</TabsTrigger>
@@ -153,9 +160,9 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
                 </Badge>
                 측으로 의견을 작성합니다
               </div>
-              {error && (
+              {submitState.error && (
                 <div className="rounded-lg bg-destructive/10 p-2 text-sm text-destructive">
-                  {error}
+                  {submitState.error}
                 </div>
               )}
               <div className="flex gap-2">
@@ -169,13 +176,13 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
                 <Button
                   size="icon"
                   onClick={handleSubmit}
-                  disabled={isSubmitting || newOpinion.length < 10}
+                  disabled={submitState.isSubmitting || newOpinion.length < 10}
                   className={cn(
                     "shrink-0",
                     myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
                   )}
                 >
-                  {isSubmitting ? (
+                  {submitState.isSubmitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Send className="h-4 w-4" />
@@ -226,7 +233,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
   );
 }
 
-function OpinionItem({
+const OpinionItem = memo(function OpinionItem({
   opinion,
   optionA,
   optionB,
@@ -306,4 +313,4 @@ function OpinionItem({
       </div>
     </div>
   );
-}
+});

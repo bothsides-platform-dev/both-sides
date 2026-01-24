@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { Loader2, MessageSquare } from "lucide-react";
+import { fetcher } from "@/lib/fetcher";
 import type { Category } from "@prisma/client";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const categories = Object.entries(CATEGORY_LABELS) as [Category, string][];
 
 export function CommunitySection() {
@@ -21,7 +21,7 @@ export function CommunitySection() {
   params.set("sort", sort);
   params.set("limit", "20");
 
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading } = useSWR<{ data: { topics: TopicListItemProps["topic"][] } }>(
     `/api/topics?${params.toString()}`,
     fetcher
   );

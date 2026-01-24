@@ -7,11 +7,10 @@ import {
   HorizontalScroll,
   HorizontalScrollItem,
 } from "@/components/ui/horizontal-scroll";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { fetcher } from "@/lib/fetcher";
 
 export function RecommendedSection() {
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading } = useSWR<{ data: { topics: TopicCardProps["topic"][] } }>(
     "/api/topics?type=recommended&limit=10",
     fetcher
   );
