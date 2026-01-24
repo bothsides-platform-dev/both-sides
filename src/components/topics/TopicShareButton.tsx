@@ -20,7 +20,7 @@ export function TopicShareButton({
       url={`/topics/${topicId}`}
       title={title}
       description={`${optionA} vs ${optionB}`}
-      imageUrl={`/api/og?topicId=${topicId}`}
+      imageUrl={`/topics/${topicId}/opengraph-image`}
       variant="button"
     />
   );
