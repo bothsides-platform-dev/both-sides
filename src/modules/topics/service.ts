@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/db";
 import { NotFoundError } from "@/lib/errors";
-import type { CreateTopicInput, GetTopicsInput, UpdateFeaturedInput } from "./schema";
+import type {
+  CreateTopicInput,
+  GetTopicsInput,
+  UpdateFeaturedInput,
+  UpdateTopicInput,
+  UpdateHiddenInput,
+  GetTopicsAdminInput,
+} from "./schema";
 
 export async function createTopic(authorId: string, input: CreateTopicInput) {
   const { deadline, ...rest } = input;
@@ -33,7 +40,9 @@ export async function getTopics(input: GetTopicsInput) {
   const { page, limit, category, sort, featured } = input;
   const skip = (page - 1) * limit;
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = {
+    isHidden: false, // 공개된 토픽만 조회
+  };
   if (category) where.category = category;
   if (featured !== undefined) where.isFeatured = featured;
 
@@ -81,7 +90,7 @@ export async function getTopics(input: GetTopicsInput) {
 
 export async function getFeaturedTopics(limit: number = 2) {
   return prisma.topic.findMany({
-    where: { isFeatured: true },
+    where: { isFeatured: true, isHidden: false },
     orderBy: { featuredAt: "desc" },
     take: limit,
     include: {
@@ -105,7 +114,7 @@ export async function getFeaturedTopics(limit: number = 2) {
 
 export async function getRecommendedTopics(limit: number = 6) {
   return prisma.topic.findMany({
-    where: { isFeatured: false },
+    where: { isFeatured: false, isHidden: false },
     orderBy: { votes: { _count: "desc" } },
     take: limit,
     include: {
@@ -217,4 +226,152 @@ export async function incrementViewCount(topicId: string, visitorId: string) {
     // 동시성 문제로 인한 중복 생성 시도 등 에러 무시
     return { success: false };
   }
+}
+
+// Admin functions
+export async function getTopicsForAdmin(input: GetTopicsAdminInput) {
+  const { page, limit, status, search } = input;
+  const skip = (page - 1) * limit;
+
+  const where: Record<string, unknown> = {};
+
+  if (status === "hidden") {
+    where.isHidden = true;
+  } else if (status === "visible") {
+    where.isHidden = false;
+  }
+
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: "insensitive" } },
+      { description: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  const [topics, total] = await Promise.all([
+    prisma.topic.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      include: {
+        author: {
+          select: {
+            id: true,
+            nickname: true,
+            name: true,
+            image: true,
+          },
+        },
+        _count: {
+          select: {
+            votes: true,
+            opinions: true,
+          },
+        },
+      },
+    }),
+    prisma.topic.count({ where }),
+  ]);
+
+  return {
+    topics,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+export async function updateTopic(id: string, input: UpdateTopicInput) {
+  const topic = await prisma.topic.findUnique({ where: { id } });
+
+  if (!topic) {
+    throw new NotFoundError("토론을 찾을 수 없습니다.");
+  }
+
+  const { deadline, ...rest } = input;
+
+  return prisma.topic.update({
+    where: { id },
+    data: {
+      ...rest,
+      deadline: deadline === null ? null : deadline ? new Date(deadline) : undefined,
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          nickname: true,
+          name: true,
+          image: true,
+        },
+      },
+      _count: {
+        select: {
+          votes: true,
+          opinions: true,
+        },
+      },
+    },
+  });
+}
+
+export async function updateHidden(id: string, input: UpdateHiddenInput) {
+  const topic = await prisma.topic.findUnique({ where: { id } });
+
+  if (!topic) {
+    throw new NotFoundError("토론을 찾을 수 없습니다.");
+  }
+
+  return prisma.topic.update({
+    where: { id },
+    data: {
+      isHidden: input.isHidden,
+      hiddenAt: input.isHidden ? new Date() : null,
+    },
+  });
+}
+
+export async function deleteTopic(id: string) {
+  const topic = await prisma.topic.findUnique({ where: { id } });
+
+  if (!topic) {
+    throw new NotFoundError("토론을 찾을 수 없습니다.");
+  }
+
+  return prisma.topic.delete({ where: { id } });
+}
+
+export async function getAdminStats() {
+  const [
+    totalTopics,
+    hiddenTopics,
+    featuredTopics,
+    totalVotes,
+    totalOpinions,
+    totalUsers,
+    pendingReports,
+  ] = await Promise.all([
+    prisma.topic.count(),
+    prisma.topic.count({ where: { isHidden: true } }),
+    prisma.topic.count({ where: { isFeatured: true } }),
+    prisma.vote.count(),
+    prisma.opinion.count(),
+    prisma.user.count(),
+    prisma.report.count({ where: { status: "PENDING" } }),
+  ]);
+
+  return {
+    totalTopics,
+    hiddenTopics,
+    visibleTopics: totalTopics - hiddenTopics,
+    featuredTopics,
+    totalVotes,
+    totalOpinions,
+    totalUsers,
+    pendingReports,
+  };
 }
