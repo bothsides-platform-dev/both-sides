@@ -1,11 +1,13 @@
 import { z } from "zod";
 
+const categoryEnum = z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH"]);
+
 export const createTopicSchema = z.object({
   title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(100, "제목은 100자 이하여야 합니다."),
   description: z.string().max(500, "설명은 500자 이하여야 합니다.").optional(),
   optionA: z.string().min(1, "A 옵션을 입력해주세요.").max(50, "옵션은 50자 이하여야 합니다."),
   optionB: z.string().min(1, "B 옵션을 입력해주세요.").max(50, "옵션은 50자 이하여야 합니다."),
-  category: z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH"]),
+  category: categoryEnum,
   imageUrl: z
     .string()
     .refine(
@@ -19,7 +21,7 @@ export const createTopicSchema = z.object({
 export const getTopicsSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  category: z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH"]).optional(),
+  category: categoryEnum.optional(),
   sort: z.enum(["latest", "popular"]).default("latest"),
   featured: z.coerce.boolean().optional(),
 });
@@ -28,6 +30,38 @@ export const updateFeaturedSchema = z.object({
   isFeatured: z.boolean(),
 });
 
+// Admin schemas
+export const updateTopicSchema = z.object({
+  title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(100, "제목은 100자 이하여야 합니다.").optional(),
+  description: z.string().max(500, "설명은 500자 이하여야 합니다.").optional().nullable(),
+  optionA: z.string().min(1, "A 옵션을 입력해주세요.").max(50, "옵션은 50자 이하여야 합니다.").optional(),
+  optionB: z.string().min(1, "B 옵션을 입력해주세요.").max(50, "옵션은 50자 이하여야 합니다.").optional(),
+  category: categoryEnum.optional(),
+  imageUrl: z
+    .string()
+    .refine(
+      (val) => val.startsWith("/") || z.string().url().safeParse(val).success,
+      { message: "올바른 URL 형식이 아닙니다." }
+    )
+    .optional()
+    .nullable(),
+  deadline: z.string().datetime().optional().nullable(),
+});
+
+export const updateHiddenSchema = z.object({
+  isHidden: z.boolean(),
+});
+
+export const getTopicsAdminSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(["hidden", "visible", "all"]).default("all"),
+  search: z.string().optional(),
+});
+
 export type CreateTopicInput = z.infer<typeof createTopicSchema>;
 export type GetTopicsInput = z.infer<typeof getTopicsSchema>;
 export type UpdateFeaturedInput = z.infer<typeof updateFeaturedSchema>;
+export type UpdateTopicInput = z.infer<typeof updateTopicSchema>;
+export type UpdateHiddenInput = z.infer<typeof updateHiddenSchema>;
+export type GetTopicsAdminInput = z.infer<typeof getTopicsAdminSchema>;
