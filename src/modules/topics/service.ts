@@ -187,3 +187,34 @@ export async function getVoteStats(topicId: string) {
     bPercentage: total > 0 ? Math.round((bCount / total) * 100) : 50,
   };
 }
+
+export async function incrementViewCount(topicId: string, visitorId: string) {
+  // 이미 조회한 적이 있는지 확인
+  const existingView = await prisma.topicView.findUnique({
+    where: {
+      topicId_visitorId: { topicId, visitorId },
+    },
+  });
+
+  if (existingView) {
+    return { success: false, alreadyViewed: true };
+  }
+
+  // 트랜잭션으로 조회 기록 생성 + 카운트 증가
+  try {
+    await prisma.$transaction([
+      prisma.topicView.create({
+        data: { topicId, visitorId },
+      }),
+      prisma.topic.update({
+        where: { id: topicId },
+        data: { viewCount: { increment: 1 } },
+      }),
+    ]);
+
+    return { success: true };
+  } catch {
+    // 동시성 문제로 인한 중복 생성 시도 등 에러 무시
+    return { success: false };
+  }
+}

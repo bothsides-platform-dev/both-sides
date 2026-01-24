@@ -6,8 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VoteSection } from "@/components/debate/VoteSection";
 import { OpinionSection } from "@/components/debate/OpinionSection";
 import { TopicShareButton } from "@/components/topics/TopicShareButton";
+import { ViewCountTracker } from "@/components/topics/ViewCountTracker";
 import { CATEGORY_LABELS } from "@/lib/constants";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatNumber } from "@/lib/utils";
+import { Eye } from "lucide-react";
 
 interface TopicDetailPageProps {
   params: Promise<{ id: string }>;
@@ -109,6 +111,7 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <ViewCountTracker topicId={topic.id} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -140,6 +143,11 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
           <span>{authorName}</span>
           <span>·</span>
           <span>{formatDate(topic.createdAt)}</span>
+          <span>·</span>
+          <span className="flex items-center gap-1">
+            <Eye className="h-4 w-4" />
+            {formatNumber(topic.viewCount)}
+          </span>
         </div>
 
         {/* Options Display */}

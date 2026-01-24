@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatRelativeTime } from "@/lib/utils";
-import { ImageIcon, MessageSquare, Users } from "lucide-react";
+import { Eye, ImageIcon, MessageSquare, Users } from "lucide-react";
 import type { Category } from "@prisma/client";
 
 export interface TopicListItemProps {
@@ -15,6 +15,7 @@ export interface TopicListItemProps {
     category: Category;
     createdAt: string | Date;
     imageUrl?: string | null;
+    viewCount: number;
     _count: {
       votes: number;
       opinions: number;
@@ -43,7 +44,7 @@ export function TopicListItem({ topic }: TopicListItemProps) {
             {topic.title}
           </h4>
           <span className="shrink-0 text-xs text-muted-foreground md:hidden">
-            {topic._count.votes}표 · {topic._count.opinions}의견
+            {topic._count.votes}표 · {topic._count.opinions}의견 · {topic.viewCount}조회
           </span>
         </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">
@@ -60,6 +61,10 @@ export function TopicListItem({ topic }: TopicListItemProps) {
         <span className="flex items-center gap-1">
           <MessageSquare className="h-4 w-4" />
           {topic._count.opinions}
+        </span>
+        <span className="flex items-center gap-1">
+          <Eye className="h-4 w-4" />
+          {topic.viewCount}
         </span>
         <span className="hidden md:block md:w-16 md:text-right">
           {formatRelativeTime(topic.createdAt)}
