@@ -1,42 +1,23 @@
 "use client";
 
-import { useState, useMemo, memo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatRelativeTime } from "@/lib/utils";
-import { Loader2, ThumbsUp, ThumbsDown, Send } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetcher } from "@/lib/fetcher";
+import { useSwipeableTabs } from "@/hooks/useSwipeableTabs";
+import { MobileSideTabs } from "./MobileSideTabs";
+import { OpinionColumn } from "./OpinionColumn";
+import { OpinionList } from "./OpinionList";
+import type { Opinion } from "./types";
 import type { Side, ReactionType } from "@prisma/client";
-
-interface Opinion {
-  id: string;
-  side: Side;
-  body: string;
-  isBlinded: boolean;
-  createdAt: string;
-  user: {
-    id: string;
-    nickname?: string | null;
-    name?: string | null;
-    image?: string | null;
-  };
-  reactions: Array<{
-    id: string;
-    userId: string;
-    type: ReactionType;
-  }>;
-  reactionSummary: {
-    likes: number;
-    dislikes: number;
-  };
-}
 
 interface OpinionSectionProps {
   topicId: string;
@@ -46,15 +27,15 @@ interface OpinionSectionProps {
 
 export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProps) {
   const { data: session } = useSession();
-  const [filters, setFilters] = useState<{ sideFilter: Side | "ALL"; sort: "latest" | "hot" }>({
-    sideFilter: "ALL",
-    sort: "latest",
-  });
+  const [sort, setSort] = useState<"latest" | "hot">("latest");
   const [newOpinion, setNewOpinion] = useState("");
   const [submitState, setSubmitState] = useState<{ isSubmitting: boolean; error: string | null }>({
     isSubmitting: false,
     error: null,
   });
+
+  // Mobile swipe tabs
+  const { activeTab, setActiveTab, handleDragEnd } = useSwipeableTabs();
 
   // Use combined vote-info endpoint
   const { data: voteInfoData } = useSWR<{ data: { myVote: Side | null } }>(
@@ -64,20 +45,33 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
 
   const myVote = voteInfoData?.data?.myVote ?? undefined;
 
-  // Memoize query params to prevent unnecessary recalculations
+  // Fetch all opinions without side filter
   const queryParams = useMemo(() => {
     const params = new URLSearchParams();
-    if (filters.sideFilter !== "ALL") params.set("side", filters.sideFilter);
-    params.set("sort", filters.sort);
+    params.set("sort", sort);
     return params.toString();
-  }, [filters.sideFilter, filters.sort]);
+  }, [sort]);
 
   const { data: opinionsData, isLoading } = useSWR<{ data: { opinions: Opinion[] } }>(
     `/api/topics/${topicId}/opinions?${queryParams}`,
     fetcher
   );
 
-  const opinions: Opinion[] = opinionsData?.data?.opinions ?? [];
+  // Memoize opinions to prevent unnecessary recalculations
+  const opinions = useMemo<Opinion[]>(
+    () => opinionsData?.data?.opinions ?? [],
+    [opinionsData?.data?.opinions]
+  );
+
+  // Client-side filtering for A/B sides
+  const opinionsA = useMemo(
+    () => opinions.filter((op) => op.side === "A"),
+    [opinions]
+  );
+  const opinionsB = useMemo(
+    () => opinions.filter((op) => op.side === "B"),
+    [opinions]
+  );
 
   const handleSubmit = async () => {
     if (!newOpinion.trim() || !session?.user) return;
@@ -108,7 +102,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
     }
   };
 
-  const handleReaction = async (opinionId: string, type: ReactionType) => {
+  const handleReaction = useCallback(async (opinionId: string, type: ReactionType) => {
     if (!session?.user) {
       window.location.href = "/auth/signin";
       return;
@@ -125,28 +119,19 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
     } catch (error) {
       console.error("Reaction failed:", error);
     }
-  };
+  }, [session?.user, topicId, queryParams]);
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">의견</CardTitle>
-          <div className="flex items-center gap-2">
-            <Tabs value={filters.sideFilter} onValueChange={(v) => setFilters((prev) => ({ ...prev, sideFilter: v as Side | "ALL" }))}>
-              <TabsList className="h-8">
-                <TabsTrigger value="ALL" className="text-xs px-2">전체</TabsTrigger>
-                <TabsTrigger value="A" className="text-xs px-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">A</TabsTrigger>
-                <TabsTrigger value="B" className="text-xs px-2 data-[state=active]:bg-red-500 data-[state=active]:text-white">B</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Tabs value={filters.sort} onValueChange={(v) => setFilters((prev) => ({ ...prev, sort: v as "latest" | "hot" }))}>
-              <TabsList className="h-8">
-                <TabsTrigger value="latest" className="text-xs px-2">최신</TabsTrigger>
-                <TabsTrigger value="hot" className="text-xs px-2">인기</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+          <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "hot")}>
+            <TabsList className="h-8">
+              <TabsTrigger value="latest" className="text-xs px-2">최신</TabsTrigger>
+              <TabsTrigger value="hot" className="text-xs px-2">인기</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -205,112 +190,80 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
           </div>
         )}
 
-        {/* Opinions List */}
-        {isLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        {/* PC: 2-column layout */}
+        <div className="hidden md:grid md:grid-cols-2 md:gap-6">
+          <OpinionColumn
+            side="A"
+            sideLabel={optionA}
+            opinions={opinionsA}
+            optionA={optionA}
+            optionB={optionB}
+            isLoading={isLoading}
+            currentUserId={session?.user?.id}
+            onReaction={handleReaction}
+          />
+          <OpinionColumn
+            side="B"
+            sideLabel={optionB}
+            opinions={opinionsB}
+            optionA={optionA}
+            optionB={optionB}
+            isLoading={isLoading}
+            currentUserId={session?.user?.id}
+            onReaction={handleReaction}
+          />
+        </div>
+
+        {/* Mobile: Tabs + Swipe */}
+        <div className="md:hidden">
+          <MobileSideTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            optionA={optionA}
+            optionB={optionB}
+            countA={opinionsA.length}
+            countB={opinionsB.length}
+          />
+
+          <div className="overflow-hidden">
+            <motion.div
+              className="flex"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleDragEnd}
+              animate={{ x: activeTab === "A" ? 0 : "-100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              {/* Side A opinions */}
+              <div className="w-full flex-shrink-0 px-1">
+                <OpinionList
+                  opinions={opinionsA}
+                  optionA={optionA}
+                  optionB={optionB}
+                  isLoading={isLoading}
+                  emptyMessage={`${optionA} 측 의견이 없습니다. 첫 번째 의견을 남겨보세요!`}
+                  currentUserId={session?.user?.id}
+                  onReaction={handleReaction}
+                />
+              </div>
+
+              {/* Side B opinions */}
+              <div className="w-full flex-shrink-0 px-1">
+                <OpinionList
+                  opinions={opinionsB}
+                  optionA={optionA}
+                  optionB={optionB}
+                  isLoading={isLoading}
+                  emptyMessage={`${optionB} 측 의견이 없습니다. 첫 번째 의견을 남겨보세요!`}
+                  currentUserId={session?.user?.id}
+                  onReaction={handleReaction}
+                />
+              </div>
+            </motion.div>
           </div>
-        ) : opinions.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground">
-            아직 의견이 없습니다. 첫 번째 의견을 남겨보세요!
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {opinions.map((opinion) => (
-              <OpinionItem
-                key={opinion.id}
-                opinion={opinion}
-                optionA={optionA}
-                optionB={optionB}
-                currentUserId={session?.user?.id}
-                onReaction={handleReaction}
-              />
-            ))}
-          </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
 }
-
-const OpinionItem = memo(function OpinionItem({
-  opinion,
-  optionA,
-  optionB,
-  currentUserId,
-  onReaction,
-}: {
-  opinion: Opinion;
-  optionA: string;
-  optionB: string;
-  currentUserId?: string;
-  onReaction: (opinionId: string, type: ReactionType) => void;
-}) {
-  const authorName = opinion.user.nickname || opinion.user.name || "익명";
-  const sideLabel = opinion.side === "A" ? optionA : optionB;
-
-  // Check if current user has reacted
-  const userReaction = opinion.reactions.find((r) => r.userId === currentUserId);
-
-  if (opinion.isBlinded) {
-    return (
-      <div className="rounded-lg border bg-muted/50 p-4 text-center text-sm text-muted-foreground">
-        신고로 인해 블라인드 처리된 의견입니다.
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={cn(
-        "rounded-lg border p-4",
-        opinion.side === "A" ? "border-l-4 border-l-blue-500" : "border-l-4 border-l-red-500"
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={opinion.user.image || undefined} />
-          <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{authorName}</span>
-            <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-xs">
-              {sideLabel}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {formatRelativeTime(opinion.createdAt)}
-            </span>
-          </div>
-          <p className="text-sm whitespace-pre-wrap">{opinion.body}</p>
-          <div className="flex items-center gap-4 pt-1">
-            <button
-              onClick={() => onReaction(opinion.id, "LIKE")}
-              className={cn(
-                "flex items-center gap-1 text-xs transition-colors",
-                userReaction?.type === "LIKE"
-                  ? "text-blue-600"
-                  : "text-muted-foreground hover:text-blue-600"
-              )}
-            >
-              <ThumbsUp className="h-4 w-4" />
-              <span>{opinion.reactionSummary.likes}</span>
-            </button>
-            <button
-              onClick={() => onReaction(opinion.id, "DISLIKE")}
-              className={cn(
-                "flex items-center gap-1 text-xs transition-colors",
-                userReaction?.type === "DISLIKE"
-                  ? "text-red-600"
-                  : "text-muted-foreground hover:text-red-600"
-              )}
-            >
-              <ThumbsDown className="h-4 w-4" />
-              <span>{opinion.reactionSummary.dislikes}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-});
