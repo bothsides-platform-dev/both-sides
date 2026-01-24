@@ -48,13 +48,14 @@ interface AdminTopicsProps {
 
 export function AdminTopics({ isAdmin }: AdminTopicsProps) {
   const [status, setStatus] = useState<"all" | "visible" | "hidden">("all");
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");      // 입력창 제어용
+  const [submittedSearch, setSubmittedSearch] = useState(""); // SWR 쿼리용
   const [page, setPage] = useState(1);
 
   const queryParams = new URLSearchParams({
     page: String(page),
     status,
-    ...(search && { search }),
+    ...(submittedSearch && { search: submittedSearch }),
   });
 
   const { data, isLoading } = useSWR<TopicsResponse>(
@@ -75,6 +76,7 @@ export function AdminTopics({ isAdmin }: AdminTopicsProps) {
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmittedSearch(searchInput);  // 입력값을 검색 쿼리로 복사
     setPage(1);
   };
 
@@ -104,8 +106,8 @@ export function AdminTopics({ isAdmin }: AdminTopicsProps) {
               <Input
                 type="search"
                 placeholder="제목 또는 설명으로 검색"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="w-64"
               />
               <Button type="submit" variant="outline">
