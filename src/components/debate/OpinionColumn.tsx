@@ -30,41 +30,27 @@ export const OpinionColumn = memo(function OpinionColumn({
   const isA = side === "A";
 
   return (
-    <div
-      className={cn(
-        "flex flex-col rounded-lg border",
-        isA ? "border-l-4 border-l-blue-500" : "border-l-4 border-l-red-500"
-      )}
-    >
+    <div className="flex flex-col rounded-xl border border-border/50 bg-background">
       {/* Header */}
-      <div
-        className={cn(
-          "flex items-center justify-between px-4 py-3 border-b",
-          isA ? "bg-blue-50/50" : "bg-red-50/50"
-        )}
-      >
-        <h3
-          className={cn(
-            "font-semibold",
-            isA ? "text-blue-700" : "text-red-700"
-          )}
-        >
-          {sideLabel}
-        </h3>
-        <span
-          className={cn(
-            "inline-flex items-center justify-center min-w-[24px] h-6 px-2 text-xs font-medium rounded-full",
-            isA
-              ? "bg-blue-100 text-blue-700"
-              : "bg-red-100 text-red-700"
-          )}
-        >
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border/50">
+        <div className="flex items-center gap-2.5">
+          <div
+            className={cn(
+              "w-2 h-2 rounded-full",
+              isA ? "bg-blue-500" : "bg-red-500"
+            )}
+          />
+          <h3 className="font-medium text-foreground">
+            {sideLabel}
+          </h3>
+        </div>
+        <span className="text-sm text-muted-foreground">
           {opinions.length}
         </span>
       </div>
 
       {/* Scrollable content */}
-      <div className="max-h-[600px] overflow-y-auto p-4">
+      <div className="max-h-[600px] overflow-y-auto px-4 py-2">
         <OpinionList
           opinions={opinions}
           optionA={optionA}

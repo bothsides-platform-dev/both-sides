@@ -24,7 +24,6 @@ export const OpinionItem = memo(function OpinionItem({
   optionB,
   currentUserId,
   onReaction,
-  showSideBorder = true,
 }: OpinionItemProps) {
   const authorName = opinion.user.nickname || opinion.user.name || "익명";
   const sideLabel = opinion.side === "A" ? optionA : optionB;
@@ -34,59 +33,54 @@ export const OpinionItem = memo(function OpinionItem({
 
   if (opinion.isBlinded) {
     return (
-      <div className="rounded-lg border bg-muted/50 p-4 text-center text-sm text-muted-foreground">
+      <div className="py-6 px-2 text-center text-sm text-muted-foreground">
         신고로 인해 블라인드 처리된 의견입니다.
       </div>
     );
   }
 
   return (
-    <div
-      className={cn(
-        "rounded-lg border p-4",
-        showSideBorder && (opinion.side === "A" ? "border-l-4 border-l-blue-500" : "border-l-4 border-l-red-500")
-      )}
-    >
+    <div className="py-5 px-1">
       <div className="flex items-start gap-3">
-        <Avatar className="h-8 w-8">
+        <Avatar className="h-9 w-9 shrink-0">
           <AvatarImage src={opinion.user.image || undefined} />
-          <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
+          <AvatarFallback className="text-sm">{authorName.charAt(0)}</AvatarFallback>
         </Avatar>
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{authorName}</span>
-            <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-xs">
+        <div className="flex-1 min-w-0 space-y-2.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-medium text-sm">{authorName}</span>
+            <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-[11px] px-1.5 py-0">
               {sideLabel}
             </Badge>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground/70">
               {formatRelativeTime(opinion.createdAt)}
             </span>
           </div>
-          <p className="text-sm whitespace-pre-wrap">{opinion.body}</p>
-          <div className="flex items-center gap-4 pt-1">
+          <p className="text-[15px] leading-relaxed whitespace-pre-wrap text-foreground/90">{opinion.body}</p>
+          <div className="flex items-center gap-1 pt-1">
             <button
               onClick={() => onReaction(opinion.id, "LIKE")}
               className={cn(
-                "flex items-center gap-1 text-xs transition-colors",
+                "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
                 userReaction?.type === "LIKE"
-                  ? "text-blue-600"
-                  : "text-muted-foreground hover:text-blue-600"
+                  ? "text-blue-600 bg-blue-50"
+                  : "text-muted-foreground hover:text-blue-600 hover:bg-blue-50/50"
               )}
             >
-              <ThumbsUp className="h-4 w-4" />
-              <span>{opinion.reactionSummary.likes}</span>
+              <ThumbsUp className="h-3.5 w-3.5" />
+              <span className="font-medium">{opinion.reactionSummary.likes}</span>
             </button>
             <button
               onClick={() => onReaction(opinion.id, "DISLIKE")}
               className={cn(
-                "flex items-center gap-1 text-xs transition-colors",
+                "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
                 userReaction?.type === "DISLIKE"
-                  ? "text-red-600"
-                  : "text-muted-foreground hover:text-red-600"
+                  ? "text-red-600 bg-red-50"
+                  : "text-muted-foreground hover:text-red-600 hover:bg-red-50/50"
               )}
             >
-              <ThumbsDown className="h-4 w-4" />
-              <span>{opinion.reactionSummary.dislikes}</span>
+              <ThumbsDown className="h-3.5 w-3.5" />
+              <span className="font-medium">{opinion.reactionSummary.dislikes}</span>
             </button>
           </div>
         </div>

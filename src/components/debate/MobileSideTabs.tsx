@@ -23,23 +23,23 @@ export const MobileSideTabs = memo(function MobileSideTabs({
   countB,
 }: MobileSideTabsProps) {
   return (
-    <div className="relative flex border-b mb-4">
+    <div className="relative flex border-b border-border/50 mb-4">
       {/* Tab buttons */}
       <button
         onClick={() => onTabChange("A")}
         className={cn(
-          "flex-1 py-3 text-sm font-medium transition-colors relative",
-          activeTab === "A" ? "text-blue-600" : "text-muted-foreground"
+          "flex-1 py-4 text-sm font-medium transition-colors relative",
+          activeTab === "A" ? "text-foreground" : "text-muted-foreground/70"
         )}
       >
         <span className="flex items-center justify-center gap-2">
           {optionA}
           <span
             className={cn(
-              "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs rounded-full",
+              "text-xs tabular-nums",
               activeTab === "A"
-                ? "bg-blue-100 text-blue-600"
-                : "bg-muted text-muted-foreground"
+                ? "text-blue-600"
+                : "text-muted-foreground/50"
             )}
           >
             {countA}
@@ -50,18 +50,18 @@ export const MobileSideTabs = memo(function MobileSideTabs({
       <button
         onClick={() => onTabChange("B")}
         className={cn(
-          "flex-1 py-3 text-sm font-medium transition-colors relative",
-          activeTab === "B" ? "text-red-600" : "text-muted-foreground"
+          "flex-1 py-4 text-sm font-medium transition-colors relative",
+          activeTab === "B" ? "text-foreground" : "text-muted-foreground/70"
         )}
       >
         <span className="flex items-center justify-center gap-2">
           {optionB}
           <span
             className={cn(
-              "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs rounded-full",
+              "text-xs tabular-nums",
               activeTab === "B"
-                ? "bg-red-100 text-red-600"
-                : "bg-muted text-muted-foreground"
+                ? "text-red-600"
+                : "text-muted-foreground/50"
             )}
           >
             {countB}
@@ -72,7 +72,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
       {/* Animated indicator */}
       <motion.div
         className={cn(
-          "absolute bottom-0 h-0.5 w-1/2",
+          "absolute bottom-0 h-[2px] w-1/2",
           activeTab === "A" ? "bg-blue-500" : "bg-red-500"
         )}
         initial={false}
