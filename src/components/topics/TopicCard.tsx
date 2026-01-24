@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
-import { ImageIcon, MessageSquare, Users } from "lucide-react";
+import { Eye, ImageIcon, MessageSquare, Users } from "lucide-react";
 import { ShareButton } from "@/components/ui/ShareButton";
 import type { Category } from "@prisma/client";
 
@@ -20,6 +20,7 @@ export interface TopicCardProps {
     category: Category;
     createdAt: string | Date;
     imageUrl?: string | null;
+    viewCount: number;
     author: {
       id: string;
       nickname?: string | null;
@@ -91,6 +92,10 @@ export function TopicCard({ topic }: TopicCardProps) {
             <span className="flex items-center gap-1">
               <MessageSquare className="h-4 w-4" />
               {topic._count.opinions}
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye className="h-4 w-4" />
+              {topic.viewCount}
             </span>
             <span>{formatRelativeTime(topic.createdAt)}</span>
           </div>

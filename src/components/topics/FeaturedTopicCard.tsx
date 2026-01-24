@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDDay, formatNumber } from "@/lib/utils";
-import { Users, Clock } from "lucide-react";
+import { Eye, Users, Clock } from "lucide-react";
 import type { Category } from "@prisma/client";
 
 export interface FeaturedTopicCardProps {
@@ -18,6 +18,7 @@ export interface FeaturedTopicCardProps {
     imageUrl?: string | null;
     deadline?: string | Date | null;
     createdAt: string | Date;
+    viewCount: number;
     _count: {
       votes: number;
       opinions: number;
@@ -51,9 +52,15 @@ export function FeaturedTopicCard({ topic }: FeaturedTopicCardProps) {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-3 left-3 right-3">
-            <div className="flex items-center gap-2 text-white">
-              <Users className="h-4 w-4" />
-              <span className="text-sm font-medium">{voteCount}명 투표 중</span>
+            <div className="flex items-center gap-4 text-white">
+              <div className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span className="text-sm font-medium">{voteCount}명 투표</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Eye className="h-4 w-4" />
+                <span className="text-sm font-medium">{formatNumber(topic.viewCount)}조회</span>
+              </div>
             </div>
           </div>
         </div>

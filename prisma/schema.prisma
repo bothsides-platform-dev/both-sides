@@ -112,18 +112,32 @@ model Topic {
   deadline    DateTime?
   isFeatured  Boolean   @default(false)
   featuredAt  DateTime?
+  viewCount   Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author   User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   votes    Vote[]
   opinions Opinion[]
+  views    TopicView[]
 
   @@index([authorId])
   @@index([category])
   @@index([createdAt])
   @@index([isFeatured])
   @@index([deadline])
+}
+
+model TopicView {
+  id        String   @id @default(cuid())
+  topicId   String
+  visitorId String
+  createdAt DateTime @default(now())
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([topicId, visitorId])
+  @@index([topicId])
 }
 
 model Vote {
