@@ -108,7 +108,7 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
           url={`/topics/${topic.id}`}
           title={topic.title}
           description={shareDescription}
-          imageUrl={`/topics/${topic.id}/opengraph-image`}
+          imageUrl={topic.imageUrl || `/topics/${topic.id}/opengraph-image`}
           variant="icon"
           className="bg-background/80 backdrop-blur-sm hover:bg-background"
         />

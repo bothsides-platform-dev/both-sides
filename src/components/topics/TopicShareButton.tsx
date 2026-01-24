@@ -7,6 +7,7 @@ interface TopicShareButtonProps {
   title: string;
   optionA: string;
   optionB: string;
+  imageUrl?: string | null;
 }
 
 export function TopicShareButton({
@@ -14,13 +15,16 @@ export function TopicShareButton({
   title,
   optionA,
   optionB,
+  imageUrl,
 }: TopicShareButtonProps) {
+  const shareImageUrl = imageUrl || `/topics/${topicId}/opengraph-image`;
+
   return (
     <ShareButton
       url={`/topics/${topicId}`}
       title={title}
       description={`${optionA} vs ${optionB}`}
-      imageUrl={`/topics/${topicId}/opengraph-image`}
+      imageUrl={shareImageUrl}
       variant="button"
     />
   );
