@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +27,7 @@ export interface FeaturedTopicCardProps {
   };
 }
 
-export function FeaturedTopicCard({ topic }: FeaturedTopicCardProps) {
+export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: FeaturedTopicCardProps) {
   const dDay = formatDDay(topic.deadline ?? null);
   const voteCount = formatNumber(topic._count.votes);
 
@@ -87,4 +88,4 @@ export function FeaturedTopicCard({ topic }: FeaturedTopicCardProps) {
       </Card>
     </Link>
   );
-}
+});

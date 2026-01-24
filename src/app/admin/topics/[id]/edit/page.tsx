@@ -24,11 +24,11 @@ import {
 } from "@/components/ui/select";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { CATEGORY_LABELS } from "@/lib/constants";
+import { fetcher } from "@/lib/fetcher";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { Category } from "@prisma/client";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const categories = Object.entries(CATEGORY_LABELS) as [Category, string][];
 
 interface Topic {

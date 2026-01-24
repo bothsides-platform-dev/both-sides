@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fetcher } from "@/lib/fetcher";
 import type { Side } from "@prisma/client";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface VoteSectionProps {
   topicId: string;
@@ -17,25 +16,48 @@ interface VoteSectionProps {
   optionB: string;
 }
 
+interface VoteStats {
+  aCount: number;
+  bCount: number;
+  total: number;
+  aPercentage: number;
+  bPercentage: number;
+}
+
+interface VoteInfoResponse {
+  data: {
+    stats: VoteStats;
+    myVote: Side | null;
+  };
+}
+
 export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
   const { data: session } = useSession();
   const [isVoting, setIsVoting] = useState(false);
+  const isVisibleRef = useRef(true);
 
-  // Fetch current user's vote
-  const { data: myVoteData } = useSWR(
-    session?.user ? `/api/topics/${topicId}/my-vote` : null,
-    fetcher
-  );
+  // Track tab visibility to pause polling when hidden
+  useEffect(() => {
+    const handler = () => {
+      isVisibleRef.current = document.visibilityState === "visible";
+    };
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, []);
 
-  // Fetch vote stats with polling
-  const { data: statsData } = useSWR(
-    `/api/topics/${topicId}/vote-stats`,
+  // Use combined endpoint for vote stats and user's vote
+  const includeMyVote = !!session?.user;
+  const { data: voteInfoData } = useSWR<VoteInfoResponse>(
+    `/api/topics/${topicId}/vote-info${includeMyVote ? "?includeMyVote=true" : ""}`,
     fetcher,
-    { refreshInterval: 3000 }
+    {
+      refreshInterval: 5000,
+      isPaused: () => !isVisibleRef.current,
+    }
   );
 
-  const myVote = myVoteData?.data?.side as Side | undefined;
-  const stats = statsData?.data ?? {
+  const myVote = voteInfoData?.data?.myVote ?? undefined;
+  const stats = voteInfoData?.data?.stats ?? {
     aCount: 0,
     bCount: 0,
     total: 0,
@@ -57,9 +79,8 @@ export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
         body: JSON.stringify({ side }),
       });
 
-      // Refresh data
-      mutate(`/api/topics/${topicId}/my-vote`);
-      mutate(`/api/topics/${topicId}/vote-stats`);
+      // Refresh combined vote info data
+      mutate(`/api/topics/${topicId}/vote-info?includeMyVote=true`);
     } catch (error) {
       console.error("Vote failed:", error);
     } finally {

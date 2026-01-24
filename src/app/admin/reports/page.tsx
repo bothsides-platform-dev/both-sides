@@ -9,11 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatRelativeTime } from "@/lib/utils";
+import { fetcher } from "@/lib/fetcher";
 import { Loader2, Check, X, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type { ReportStatus } from "@prisma/client";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface Report {
   id: string;
@@ -60,7 +59,7 @@ export default function AdminReportsPage() {
   const [processing, setProcessing] = useState<string | null>(null);
 
   const queryStatus = statusFilter === "ALL" ? "" : `?status=${statusFilter}`;
-  const { data, isLoading } = useSWR(
+  const { data, isLoading } = useSWR<{ data: Report[] }>(
     session?.user?.role === "ADMIN" ? `/api/admin/reports${queryStatus}` : null,
     fetcher
   );

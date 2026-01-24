@@ -3,10 +3,9 @@
 import useSWR from "swr";
 import { TopicCard } from "./TopicCard";
 import { Loader2 } from "lucide-react";
+import { fetcher } from "@/lib/fetcher";
 import type { Category } from "@prisma/client";
 import type { TopicCardProps } from "./TopicCard";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface TopicListProps {
   category?: Category;
@@ -18,7 +17,7 @@ export function TopicList({ category, sort = "latest" }: TopicListProps) {
   if (category) params.set("category", category);
   params.set("sort", sort);
 
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading } = useSWR<{ data: { topics: TopicCardProps["topic"][] } }>(
     `/api/topics?${params.toString()}`,
     fetcher
   );

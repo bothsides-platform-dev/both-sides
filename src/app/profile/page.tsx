@@ -9,11 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
+import { fetcher } from "@/lib/fetcher";
 import { Loader2, MessageSquare, Vote } from "lucide-react";
 import Link from "next/link";
 import type { Category, Side } from "@prisma/client";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface VoteItem {
   id: string;
@@ -48,11 +47,19 @@ interface TopicItem {
   createdAt: string;
 }
 
+interface ProfileData {
+  votesCount: number;
+  opinionsCount: number;
+  votes: VoteItem[];
+  opinions: OpinionItem[];
+  topics: TopicItem[];
+}
+
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const { data: profileData, isLoading } = useSWR(
+  const { data: profileData, isLoading } = useSWR<{ data: ProfileData }>(
     session?.user ? "/api/profile" : null,
     fetcher
   );
