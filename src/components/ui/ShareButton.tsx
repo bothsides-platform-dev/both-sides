@@ -10,15 +10,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Share2, Link2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// TODO: 카카오톡 SDK 연동
-// import Kakao from 'kakao-sdk';
-// Kakao.init('YOUR_APP_KEY');
+import { useKakao } from "@/components/providers/KakaoProvider";
 
 interface ShareButtonProps {
   url: string;
   title: string;
   description?: string;
+  imageUrl?: string;
   className?: string;
   variant?: "icon" | "button";
 }
@@ -27,14 +25,20 @@ export function ShareButton({
   url,
   title,
   description,
+  imageUrl,
   className,
   variant = "button",
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
+  const { shareKakao } = useKakao();
 
   const fullUrl = typeof window !== "undefined"
     ? `${window.location.origin}${url}`
     : url;
+
+  const fullImageUrl = imageUrl && typeof window !== "undefined"
+    ? `${window.location.origin}${imageUrl}`
+    : imageUrl;
 
   const handleCopyLink = async () => {
     try {
@@ -57,18 +61,14 @@ export function ShareButton({
     window.open(facebookUrl, "_blank", "width=550,height=420");
   };
 
-  // TODO: 카카오톡 SDK 연동 시 활성화
-  // const handleKakaoShare = () => {
-  //   Kakao.Share.sendDefault({
-  //     objectType: 'feed',
-  //     content: {
-  //       title,
-  //       description,
-  //       imageUrl: ogImageUrl,
-  //       link: { mobileWebUrl: fullUrl, webUrl: fullUrl },
-  //     },
-  //   });
-  // };
+  const handleKakaoShare = () => {
+    shareKakao({
+      title,
+      description,
+      imageUrl: fullImageUrl,
+      url: fullUrl,
+    });
+  };
 
   return (
     <DropdownMenu>
@@ -115,13 +115,12 @@ export function ShareButton({
           </svg>
           Facebook
         </DropdownMenuItem>
-        {/* TODO: 카카오톡 SDK 연동 시 활성화 */}
-        {/* <DropdownMenuItem onClick={handleKakaoShare}>
+        <DropdownMenuItem onClick={handleKakaoShare}>
           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.82 1.88 5.3 4.7 6.7-.2.73-.72 2.63-.82 3.04-.13.5.18.5.38.36.16-.1 2.5-1.7 3.53-2.39.71.11 1.45.17 2.21.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z" />
           </svg>
           카카오톡
-        </DropdownMenuItem> */}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
