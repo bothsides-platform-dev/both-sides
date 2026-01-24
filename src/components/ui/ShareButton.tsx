@@ -36,9 +36,15 @@ export function ShareButton({
     ? `${window.location.origin}${url}`
     : url;
 
-  const fullImageUrl = imageUrl && typeof window !== "undefined"
-    ? `${window.location.origin}${imageUrl}`
-    : imageUrl;
+  const fullImageUrl = (() => {
+    if (!imageUrl) return undefined;
+    if (typeof window === "undefined") return imageUrl;
+    // Vercel Blob URL 등 이미 절대 URL인 경우 그대로 사용
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return imageUrl;
+    }
+    return `${window.location.origin}${imageUrl}`;
+  })();
 
   const handleCopyLink = async () => {
     try {

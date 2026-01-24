@@ -128,6 +128,7 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
             title={topic.title}
             optionA={topic.optionA}
             optionB={topic.optionB}
+            imageUrl={topic.imageUrl}
           />
         </div>
 
