@@ -27,22 +27,22 @@ export const OpinionList = memo(function OpinionList({
 }: OpinionListProps) {
   if (isLoading) {
     return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50" />
       </div>
     );
   }
 
   if (opinions.length === 0) {
     return (
-      <div className="py-8 text-center text-muted-foreground">
+      <div className="py-12 text-center text-sm text-muted-foreground/70">
         {emptyMessage}
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="divide-y divide-border/50">
       {opinions.map((opinion) => (
         <OpinionItem
           key={opinion.id}
