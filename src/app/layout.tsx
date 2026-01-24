@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { KakaoProvider } from "@/components/providers/KakaoProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
@@ -67,11 +68,13 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "v6eobm9gc5");
           `}
         </Script>
-        <SessionProvider>
-          <Header />
-          <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
-          <Footer />
-        </SessionProvider>
+        <KakaoProvider>
+          <SessionProvider>
+            <Header />
+            <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
+            <Footer />
+          </SessionProvider>
+        </KakaoProvider>
       </body>
     </html>
   );
