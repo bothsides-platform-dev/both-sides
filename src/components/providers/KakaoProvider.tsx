@@ -38,9 +38,12 @@ export function KakaoProvider({ children }: KakaoProviderProps) {
 
   const shareKakao = useCallback((options: ShareKakaoOptions) => {
     if (!window.Kakao || !isReady) {
-      // Fallback: open Kakao Talk share URL (web fallback)
-      const kakaoShareUrl = `https://story.kakao.com/share?url=${encodeURIComponent(options.url)}`;
-      window.open(kakaoShareUrl, "_blank", "width=550,height=420");
+      // SDK 미로드 시 클립보드 복사로 대체
+      navigator.clipboard.writeText(options.url).then(() => {
+        alert("카카오톡 공유가 준비되지 않았습니다. 링크가 복사되었습니다.");
+      }).catch(() => {
+        alert("카카오톡 공유를 사용할 수 없습니다. 링크를 직접 복사해주세요.");
+      });
       return;
     }
 
