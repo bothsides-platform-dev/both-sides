@@ -120,6 +120,11 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
     }
   }, [topicId, queryParams]);
 
+  const handleReportSuccess = useCallback(() => {
+    // Refresh opinions list after successful report
+    mutate(`/api/topics/${topicId}/opinions?${queryParams}`);
+  }, [topicId, queryParams]);
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -215,6 +220,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
             isLoading={isLoading}
             currentUserId={session?.user?.id}
             onReaction={handleReaction}
+            onReportSuccess={handleReportSuccess}
           />
           <OpinionColumn
             side="B"
@@ -225,6 +231,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
             isLoading={isLoading}
             currentUserId={session?.user?.id}
             onReaction={handleReaction}
+            onReportSuccess={handleReportSuccess}
           />
         </div>
 
@@ -259,6 +266,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
                   emptyMessage={`${optionA} 측 의견이 없습니다. 첫 번째 의견을 남겨보세요!`}
                   currentUserId={session?.user?.id}
                   onReaction={handleReaction}
+                  onReportSuccess={handleReportSuccess}
                 />
               </div>
 
@@ -272,6 +280,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
                   emptyMessage={`${optionB} 측 의견이 없습니다. 첫 번째 의견을 남겨보세요!`}
                   currentUserId={session?.user?.id}
                   onReaction={handleReaction}
+                  onReportSuccess={handleReportSuccess}
                 />
               </div>
             </motion.div>

@@ -14,6 +14,7 @@ interface OpinionListProps {
   emptyMessage?: string;
   currentUserId?: string;
   onReaction: (opinionId: string, type: ReactionType) => void;
+  onReportSuccess?: () => void;
 }
 
 export const OpinionList = memo(function OpinionList({
@@ -24,6 +25,7 @@ export const OpinionList = memo(function OpinionList({
   emptyMessage = "아직 의견이 없습니다.",
   currentUserId,
   onReaction,
+  onReportSuccess,
 }: OpinionListProps) {
   if (isLoading) {
     return (
@@ -51,6 +53,7 @@ export const OpinionList = memo(function OpinionList({
           optionB={optionB}
           currentUserId={currentUserId}
           onReaction={onReaction}
+          onReportSuccess={onReportSuccess}
         />
       ))}
     </div>

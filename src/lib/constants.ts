@@ -29,7 +29,7 @@ export const SIDE_COLORS: Record<Side, { bg: string; text: string; border: strin
 };
 
 // 블라인드 처리 기준 (신고 누적 수)
-export const BLIND_THRESHOLD = 5;
+export const BLIND_THRESHOLD = 3;
 
 // 페이지네이션 기본값
 export const DEFAULT_PAGE_SIZE = 20;

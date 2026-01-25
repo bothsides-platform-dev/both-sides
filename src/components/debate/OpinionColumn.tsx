@@ -15,6 +15,7 @@ interface OpinionColumnProps {
   isLoading?: boolean;
   currentUserId?: string;
   onReaction: (opinionId: string, type: ReactionType) => void;
+  onReportSuccess?: () => void;
 }
 
 export const OpinionColumn = memo(function OpinionColumn({
@@ -26,6 +27,7 @@ export const OpinionColumn = memo(function OpinionColumn({
   isLoading = false,
   currentUserId,
   onReaction,
+  onReportSuccess,
 }: OpinionColumnProps) {
   const isA = side === "A";
 
@@ -59,6 +61,7 @@ export const OpinionColumn = memo(function OpinionColumn({
           emptyMessage={`${sideLabel} 측 의견이 없습니다. 첫 번째 의견을 남겨보세요!`}
           currentUserId={currentUserId}
           onReaction={onReaction}
+          onReportSuccess={onReportSuccess}
         />
       </div>
     </div>

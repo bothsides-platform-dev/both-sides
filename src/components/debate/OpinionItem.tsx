@@ -5,9 +5,16 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown, Eye, EyeOff, User } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ThumbsUp, ThumbsDown, Eye, EyeOff, User, MoreVertical, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils";
+import { ReportDialog } from "./ReportDialog";
 import type { Opinion } from "./types";
 import type { ReactionType } from "@prisma/client";
 
@@ -18,6 +25,7 @@ interface OpinionItemProps {
   currentUserId?: string;
   onReaction: (opinionId: string, type: ReactionType) => void;
   showSideBorder?: boolean;
+  onReportSuccess?: () => void;
 }
 
 export const OpinionItem = memo(function OpinionItem({
@@ -26,9 +34,11 @@ export const OpinionItem = memo(function OpinionItem({
   optionB,
   currentUserId,
   onReaction,
+  onReportSuccess,
 }: OpinionItemProps) {
   const [isAnonymous, setIsAnonymous] = useState(opinion.isAnonymous ?? false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   const authorName = isAnonymous 
     ? "익명" 
@@ -153,7 +163,36 @@ export const OpinionItem = memo(function OpinionItem({
             </button>
           </div>
         </div>
+        {currentUserId && !isOwner && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              >
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">더보기</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setIsReportDialogOpen(true)}
+                className="text-red-600 focus:text-red-600 cursor-pointer"
+              >
+                <Flag className="h-4 w-4 mr-2" />
+                신고하기
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
+      <ReportDialog
+        open={isReportDialogOpen}
+        onOpenChange={setIsReportDialogOpen}
+        opinionId={opinion.id}
+        onReportSuccess={onReportSuccess}
+      />
     </div>
   );
 });
