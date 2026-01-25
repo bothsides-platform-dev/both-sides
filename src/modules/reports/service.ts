@@ -108,11 +108,38 @@ export async function updateReportStatus(id: string, status: ReportStatus) {
       }),
     ]);
   } else if (status === "DISMISSED") {
-    // If dismissed, just update the report
+    // Update only this specific report to DISMISSED
     await prisma.report.update({
       where: { id },
-      data: { status },
+      data: { status: "DISMISSED" },
     });
+
+    // Check remaining PENDING reports for this opinion
+    const pendingCount = await prisma.report.count({
+      where: {
+        opinionId: report.opinionId,
+        status: "PENDING",
+      },
+    });
+
+    // If no more PENDING reports, check if we should unblind
+    if (pendingCount === 0) {
+      // Check if there are any REVIEWED reports
+      const reviewedCount = await prisma.report.count({
+        where: {
+          opinionId: report.opinionId,
+          status: "REVIEWED",
+        },
+      });
+
+      // Only unblind if no REVIEWED reports exist
+      if (reviewedCount === 0) {
+        await prisma.opinion.update({
+          where: { id: report.opinionId },
+          data: { isBlinded: false },
+        });
+      }
+    }
   }
 
   return prisma.report.findUnique({
