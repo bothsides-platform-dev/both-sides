@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +31,6 @@ interface VoteInfoResponse {
 }
 
 export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
-  const { data: session } = useSession();
   const [isVoting, setIsVoting] = useState(false);
   const isVisibleRef = useRef(true);
 
