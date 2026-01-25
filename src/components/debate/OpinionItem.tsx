@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThumbsUp, ThumbsDown, Eye, EyeOff, User, MoreVertical, Flag } from "lucide-react";
+import { ThumbsUp, Eye, EyeOff, User, MoreVertical, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils";
 import { ReportDialog } from "./ReportDialog";
@@ -148,18 +148,6 @@ export const OpinionItem = memo(function OpinionItem({
             >
               <ThumbsUp className="h-3.5 w-3.5" />
               <span className="font-medium">{opinion.reactionSummary.likes}</span>
-            </button>
-            <button
-              onClick={() => onReaction(opinion.id, "DISLIKE")}
-              className={cn(
-                "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
-                userReaction?.type === "DISLIKE"
-                  ? "text-red-600 bg-red-50"
-                  : "text-muted-foreground hover:text-red-600 hover:bg-red-50/50"
-              )}
-            >
-              <ThumbsDown className="h-3.5 w-3.5" />
-              <span className="font-medium">{opinion.reactionSummary.dislikes}</span>
             </button>
           </div>
         </div>
