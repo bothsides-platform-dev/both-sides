@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThumbsUp, Eye, EyeOff, User, MoreVertical, Flag, MessageCircle } from "lucide-react";
+import { ThumbsUp, Eye, EyeOff, User, MoreVertical, Flag, MessageCircle, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils";
 import { ReportDialog } from "./ReportDialog";
@@ -32,6 +32,10 @@ interface OpinionItemProps {
   onReplySuccess?: () => void;
   showRepliesCount?: boolean;
   userVoteSide?: Side;
+  onToggleReplies?: () => void;
+  showRepliesExpanded?: boolean;
+  loadingReplies?: boolean;
+  hasReplies?: boolean;
 }
 
 export const OpinionItem = memo(function OpinionItem({
@@ -45,6 +49,10 @@ export const OpinionItem = memo(function OpinionItem({
   onReplySuccess,
   showRepliesCount = false,
   userVoteSide,
+  onToggleReplies,
+  showRepliesExpanded = false,
+  loadingReplies = false,
+  hasReplies = false,
 }: OpinionItemProps) {
   const { data: session } = useSession();
   const [isAnonymous, setIsAnonymous] = useState(opinion.isAnonymous ?? false);
@@ -93,6 +101,14 @@ export const OpinionItem = memo(function OpinionItem({
       return;
     }
     setShowReplyForm(!showReplyForm);
+  };
+
+  const handleReplyCountClick = () => {
+    if (hasReplies && onToggleReplies) {
+      onToggleReplies();
+    } else {
+      handleReplyClick();
+    }
   };
 
   const handleReplySubmitSuccess = () => {
@@ -160,18 +176,56 @@ export const OpinionItem = memo(function OpinionItem({
               <span className="font-medium">{opinion.reactionSummary.likes}</span>
             </button>
             {session?.user && (
-              <button
-                onClick={handleReplyClick}
-                className={cn(
-                  "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
-                  showReplyForm
-                    ? "text-primary bg-primary/10"
-                    : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+              <>
+                {hasReplies && onToggleReplies ? (
+                  <>
+                    <button
+                      onClick={handleReplyCountClick}
+                      disabled={loadingReplies}
+                      className={cn(
+                        "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
+                        showRepliesExpanded
+                          ? "text-primary bg-primary/10"
+                          : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                      )}
+                    >
+                      {loadingReplies ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : showRepliesExpanded ? (
+                        <ChevronUp className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      )}
+                      <span className="font-medium">답글 {repliesCount}</span>
+                    </button>
+                    <button
+                      onClick={handleReplyClick}
+                      className={cn(
+                        "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
+                        showReplyForm
+                          ? "text-primary bg-primary/10"
+                          : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                      )}
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      <span className="font-medium">답글 작성</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleReplyClick}
+                    className={cn(
+                      "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
+                      showReplyForm
+                        ? "text-primary bg-primary/10"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                    )}
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    <span className="font-medium">답글{showRepliesCount && repliesCount > 0 ? ` ${repliesCount}` : ""}</span>
+                  </button>
                 )}
-              >
-                <MessageCircle className="h-3.5 w-3.5" />
-                <span className="font-medium">답글{showRepliesCount && repliesCount > 0 ? ` ${repliesCount}` : ""}</span>
-              </button>
+              </>
             )}
           </div>
         </div>

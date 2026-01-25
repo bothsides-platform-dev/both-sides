@@ -2,8 +2,6 @@
 
 import { memo, useState } from "react";
 import useSWR from "swr";
-import { Button } from "@/components/ui/button";
-import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { OpinionItem } from "./OpinionItem";
 import type { Opinion } from "./types";
@@ -78,36 +76,11 @@ export const OpinionThread = memo(function OpinionThread({
         depth={depth}
         onReplySuccess={handleReplySuccess}
         showRepliesCount={hasReplies}
+        onToggleReplies={handleToggleReplies}
+        showRepliesExpanded={showReplies}
+        loadingReplies={loadingReplies}
+        hasReplies={hasReplies}
       />
-
-      {/* Toggle Replies Button */}
-      {hasReplies && (
-        <div className={`ml-${Math.min(depth + 1, 4) * 8} mt-1 mb-2`}>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleToggleReplies}
-            className="h-7 text-xs text-muted-foreground hover:text-foreground"
-          >
-            {loadingReplies ? (
-              <>
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                불러오는 중...
-              </>
-            ) : showReplies ? (
-              <>
-                <ChevronUp className="h-3 w-3 mr-1" />
-                답글 {repliesCount}개 숨기기
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-3 w-3 mr-1" />
-                답글 {repliesCount}개 보기
-              </>
-            )}
-          </Button>
-        </div>
-      )}
 
       {/* Replies */}
       {showReplies && replies.length > 0 && (
