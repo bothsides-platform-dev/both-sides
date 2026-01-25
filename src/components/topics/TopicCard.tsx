@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
-import { Eye, ImageIcon, MessageSquare, Users } from "lucide-react";
+import { Eye, ImageIcon, MessageSquare, Users, User } from "lucide-react";
 import { ShareButton } from "@/components/ui/ShareButton";
 import type { Category } from "@prisma/client";
 
@@ -84,8 +84,9 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
           {topic.isAnonymous ? (
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6">
-                <AvatarImage src={topic.author.image || undefined} />
-                <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
+                <AvatarFallback>
+                  <User className="h-4 w-4" />
+                </AvatarFallback>
               </Avatar>
               <span className="text-sm text-muted-foreground">{authorName}</span>
             </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown, Eye, EyeOff } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Eye, EyeOff, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils";
 import type { Opinion } from "./types";
@@ -76,8 +76,9 @@ export const OpinionItem = memo(function OpinionItem({
       <div className="flex items-start gap-3">
         {isAnonymous ? (
           <Avatar className="h-9 w-9 shrink-0">
-            <AvatarImage src={opinion.user.image || undefined} />
-            <AvatarFallback className="text-sm">{authorName.charAt(0)}</AvatarFallback>
+            <AvatarFallback className="text-sm">
+              <User className="h-5 w-5" />
+            </AvatarFallback>
           </Avatar>
         ) : (
           <Link href={`/users/${opinion.user.id}`}>
