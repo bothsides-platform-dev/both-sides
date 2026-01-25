@@ -48,10 +48,11 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
 
   const myVote = voteInfoData?.data?.myVote ?? undefined;
 
-  // Fetch all opinions without side filter
+  // Fetch only top-level opinions (parentId=null)
   const queryParams = useMemo(() => {
     const params = new URLSearchParams();
     params.set("sort", sort);
+    params.set("parentId", "null");
     return params.toString();
   }, [sort]);
 
@@ -122,6 +123,11 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
 
   const handleReportSuccess = useCallback(() => {
     // Refresh opinions list after successful report
+    mutate(`/api/topics/${topicId}/opinions?${queryParams}`);
+  }, [topicId, queryParams]);
+
+  const handleReplySuccess = useCallback(() => {
+    // Refresh opinions list after successful reply
     mutate(`/api/topics/${topicId}/opinions?${queryParams}`);
   }, [topicId, queryParams]);
 
@@ -221,6 +227,8 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
             currentUserId={session?.user?.id}
             onReaction={handleReaction}
             onReportSuccess={handleReportSuccess}
+            onReplySuccess={handleReplySuccess}
+            userVoteSide={myVote}
           />
           <OpinionColumn
             side="B"
@@ -232,6 +240,8 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
             currentUserId={session?.user?.id}
             onReaction={handleReaction}
             onReportSuccess={handleReportSuccess}
+            onReplySuccess={handleReplySuccess}
+            userVoteSide={myVote}
           />
         </div>
 
@@ -267,6 +277,8 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
                   currentUserId={session?.user?.id}
                   onReaction={handleReaction}
                   onReportSuccess={handleReportSuccess}
+                  onReplySuccess={handleReplySuccess}
+                  userVoteSide={myVote}
                 />
               </div>
 
@@ -281,6 +293,8 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
                   currentUserId={session?.user?.id}
                   onReaction={handleReaction}
                   onReportSuccess={handleReportSuccess}
+                  onReplySuccess={handleReplySuccess}
+                  userVoteSide={myVote}
                 />
               </div>
             </motion.div>

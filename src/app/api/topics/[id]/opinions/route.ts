@@ -12,11 +12,22 @@ export async function GET(
   try {
     const { id: topicId } = await params;
     const searchParams = request.nextUrl.searchParams;
+    
+    // Handle parentId parameter - can be "null" string or actual ID
+    const parentIdParam = searchParams.get("parentId");
+    let parentId: string | null | undefined = undefined;
+    if (parentIdParam === "null") {
+      parentId = null;
+    } else if (parentIdParam) {
+      parentId = parentIdParam;
+    }
+    
     const input = await validateRequest(getOpinionsSchema, {
       side: searchParams.get("side") || undefined,
       sort: searchParams.get("sort") || undefined,
       page: searchParams.get("page") || undefined,
       limit: searchParams.get("limit") || undefined,
+      parentId,
     });
 
     const result = await getOpinions(topicId, input);

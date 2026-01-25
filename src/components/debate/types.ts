@@ -2,10 +2,12 @@ import type { Side, ReactionType } from "@prisma/client";
 
 export interface Opinion {
   id: string;
+  topicId?: string;
   side: Side;
   body: string;
   isBlinded: boolean;
   isAnonymous?: boolean;
+  parentId?: string | null;
   createdAt: string;
   user: {
     id: string;
@@ -21,5 +23,11 @@ export interface Opinion {
   reactionSummary: {
     likes: number;
     dislikes: number;
+  };
+  replies?: Opinion[];
+  _count?: {
+    reactions: number;
+    reports: number;
+    replies: number;
   };
 }

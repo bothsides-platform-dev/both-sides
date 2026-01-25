@@ -172,17 +172,21 @@ model Opinion {
   body        String   @db.Text
   isBlinded   Boolean  @default(false)
   isAnonymous Boolean  @default(false)
+  parentId    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   topic     Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Opinion?   @relation("OpinionReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Opinion[]  @relation("OpinionReplies")
   reactions Reaction[]
   reports   Report[]
 
   @@index([topicId])
   @@index([userId])
   @@index([topicId, side])
+  @@index([parentId])
 }
 
 model Reaction {

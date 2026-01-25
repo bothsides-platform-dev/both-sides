@@ -7,10 +7,28 @@ export async function createOpinion(
   topicId: string,
   input: CreateOpinionInput
 ) {
+  let actualTopicId = topicId;
+  let parentOpinion = null;
+
+  // If creating a reply, get parent opinion info
+  if (input.parentId) {
+    parentOpinion = await prisma.opinion.findUnique({
+      where: { id: input.parentId },
+      select: { id: true, topicId: true },
+    });
+
+    if (!parentOpinion) {
+      throw new NotFoundError("답글을 달 의견을 찾을 수 없습니다.");
+    }
+
+    // Use parent's topicId
+    actualTopicId = parentOpinion.topicId;
+  }
+
   // Check if user has voted on this topic
   const vote = await prisma.vote.findUnique({
     where: {
-      vote_topic_user: { topicId, userId },
+      vote_topic_user: { topicId: actualTopicId, userId },
     },
   });
 
@@ -20,11 +38,12 @@ export async function createOpinion(
 
   return prisma.opinion.create({
     data: {
-      topicId,
+      topicId: actualTopicId,
       userId,
       side: vote.side,
       body: input.body,
       isAnonymous: input.isAnonymous ?? false,
+      parentId: input.parentId || null,
     },
     include: {
       user: {
@@ -38,6 +57,7 @@ export async function createOpinion(
       _count: {
         select: {
           reactions: true,
+          replies: true,
         },
       },
     },
@@ -45,13 +65,18 @@ export async function createOpinion(
 }
 
 export async function getOpinions(topicId: string, input: GetOpinionsInput) {
-  const { side, sort, page, limit } = input;
+  const { side, sort, page, limit, parentId } = input;
   const skip = (page - 1) * limit;
 
-  const where = {
+  const where: Record<string, unknown> = {
     topicId,
     ...(side && { side }),
   };
+
+  // Handle parentId filtering
+  if (parentId !== undefined) {
+    where.parentId = parentId;
+  }
 
   // For "hot" sort, we need to include reaction counts
   const orderBy =
@@ -73,6 +98,7 @@ export async function getOpinions(topicId: string, input: GetOpinionsInput) {
         body: true,
         isBlinded: true,
         isAnonymous: true,
+        parentId: true,
         createdAt: true,
         updatedAt: true,
         user: {
@@ -94,6 +120,7 @@ export async function getOpinions(topicId: string, input: GetOpinionsInput) {
           select: {
             reactions: true,
             reports: true,
+            replies: true,
           },
         },
       },
@@ -178,6 +205,7 @@ export async function updateOpinionAnonymity(id: string, userId: string, input: 
         select: {
           reactions: true,
           reports: true,
+          replies: true,
         },
       },
     },

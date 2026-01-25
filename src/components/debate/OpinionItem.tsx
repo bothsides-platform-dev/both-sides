@@ -2,6 +2,7 @@
 
 import { memo, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,12 +12,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThumbsUp, Eye, EyeOff, User, MoreVertical, Flag } from "lucide-react";
+import { ThumbsUp, Eye, EyeOff, User, MoreVertical, Flag, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils";
 import { ReportDialog } from "./ReportDialog";
+import { ReplyForm } from "./ReplyForm";
 import type { Opinion } from "./types";
-import type { ReactionType } from "@prisma/client";
+import type { ReactionType, Side } from "@prisma/client";
 
 interface OpinionItemProps {
   opinion: Opinion;
@@ -26,6 +28,10 @@ interface OpinionItemProps {
   onReaction: (opinionId: string, type: ReactionType) => void;
   showSideBorder?: boolean;
   onReportSuccess?: () => void;
+  depth?: number;
+  onReplySuccess?: () => void;
+  showRepliesCount?: boolean;
+  userVoteSide?: Side;
 }
 
 export const OpinionItem = memo(function OpinionItem({
@@ -35,10 +41,16 @@ export const OpinionItem = memo(function OpinionItem({
   currentUserId,
   onReaction,
   onReportSuccess,
+  depth = 0,
+  onReplySuccess,
+  showRepliesCount = false,
+  userVoteSide,
 }: OpinionItemProps) {
+  const { data: session } = useSession();
   const [isAnonymous, setIsAnonymous] = useState(opinion.isAnonymous ?? false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [showReplyForm, setShowReplyForm] = useState(false);
 
   const authorName = isAnonymous 
     ? "익명" 
@@ -48,6 +60,8 @@ export const OpinionItem = memo(function OpinionItem({
 
   // Check if current user has reacted
   const userReaction = opinion.reactions.find((r) => r.userId === currentUserId);
+
+  const repliesCount = opinion._count?.replies || 0;
 
   const handleToggleAnonymity = async () => {
     setIsUpdating(true);
@@ -73,6 +87,21 @@ export const OpinionItem = memo(function OpinionItem({
     }
   };
 
+  const handleReplyClick = () => {
+    if (!session?.user) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+    setShowReplyForm(!showReplyForm);
+  };
+
+  const handleReplySubmitSuccess = () => {
+    setShowReplyForm(false);
+    if (onReplySuccess) {
+      onReplySuccess();
+    }
+  };
+
   if (opinion.isBlinded) {
     return (
       <div className="py-6 px-2 text-center text-sm text-muted-foreground">
@@ -81,8 +110,10 @@ export const OpinionItem = memo(function OpinionItem({
     );
   }
 
+  const indentClass = depth > 0 ? `ml-${Math.min(depth, 4) * 8}` : "";
+
   return (
-    <div className="py-5 px-1">
+    <div className={cn("py-5 px-1", indentClass)}>
       <div className="flex items-start gap-3">
         {isAnonymous ? (
           <Avatar className="h-9 w-9 shrink-0">
@@ -149,6 +180,20 @@ export const OpinionItem = memo(function OpinionItem({
               <ThumbsUp className="h-3.5 w-3.5" />
               <span className="font-medium">{opinion.reactionSummary.likes}</span>
             </button>
+            {session?.user && (
+              <button
+                onClick={handleReplyClick}
+                className={cn(
+                  "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
+                  showReplyForm
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                )}
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+                <span className="font-medium">답글{showRepliesCount && repliesCount > 0 ? ` ${repliesCount}` : ""}</span>
+              </button>
+            )}
           </div>
         </div>
         {currentUserId && !isOwner && (
@@ -175,6 +220,20 @@ export const OpinionItem = memo(function OpinionItem({
           </DropdownMenu>
         )}
       </div>
+      
+      {/* Reply Form */}
+      {showReplyForm && (
+        <ReplyForm
+          parentId={opinion.id}
+          topicId={opinion.topicId || ""}
+          onSuccess={handleReplySubmitSuccess}
+          onCancel={() => setShowReplyForm(false)}
+          userVoteSide={userVoteSide}
+          optionA={optionA}
+          optionB={optionB}
+        />
+      )}
+
       <ReportDialog
         open={isReportDialogOpen}
         onOpenChange={setIsReportDialogOpen}

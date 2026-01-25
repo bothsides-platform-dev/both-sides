@@ -2,9 +2,9 @@
 
 import { memo } from "react";
 import { Loader2 } from "lucide-react";
-import { OpinionItem } from "./OpinionItem";
+import { OpinionThread } from "./OpinionThread";
 import type { Opinion } from "./types";
-import type { ReactionType } from "@prisma/client";
+import type { ReactionType, Side } from "@prisma/client";
 
 interface OpinionListProps {
   opinions: Opinion[];
@@ -15,6 +15,8 @@ interface OpinionListProps {
   currentUserId?: string;
   onReaction: (opinionId: string, type: ReactionType) => void;
   onReportSuccess?: () => void;
+  onReplySuccess?: () => void;
+  userVoteSide?: Side;
 }
 
 export const OpinionList = memo(function OpinionList({
@@ -25,7 +27,7 @@ export const OpinionList = memo(function OpinionList({
   emptyMessage = "아직 의견이 없습니다.",
   currentUserId,
   onReaction,
-  onReportSuccess,
+  onReplySuccess,
 }: OpinionListProps) {
   if (isLoading) {
     return (
@@ -46,14 +48,14 @@ export const OpinionList = memo(function OpinionList({
   return (
     <div className="divide-y divide-border/50">
       {opinions.map((opinion) => (
-        <OpinionItem
+        <OpinionThread
           key={opinion.id}
           opinion={opinion}
           optionA={optionA}
           optionB={optionB}
           currentUserId={currentUserId}
           onReaction={onReaction}
-          onReportSuccess={onReportSuccess}
+          onReplySuccess={onReplySuccess}
         />
       ))}
     </div>
