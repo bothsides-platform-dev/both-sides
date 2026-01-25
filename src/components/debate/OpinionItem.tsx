@@ -1,9 +1,10 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ThumbsUp, ThumbsDown, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils";
 import type { Opinion } from "./types";
@@ -25,11 +26,41 @@ export const OpinionItem = memo(function OpinionItem({
   currentUserId,
   onReaction,
 }: OpinionItemProps) {
-  const authorName = opinion.user.nickname || opinion.user.name || "익명";
+  const [isAnonymous, setIsAnonymous] = useState(opinion.isAnonymous ?? false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const authorName = isAnonymous 
+    ? "익명" 
+    : (opinion.user.nickname || opinion.user.name || "익명");
   const sideLabel = opinion.side === "A" ? optionA : optionB;
+  const isOwner = currentUserId === opinion.user.id;
 
   // Check if current user has reacted
   const userReaction = opinion.reactions.find((r) => r.userId === currentUserId);
+
+  const handleToggleAnonymity = async () => {
+    setIsUpdating(true);
+
+    try {
+      const res = await fetch(`/api/opinions/${opinion.id}/anonymity`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isAnonymous: !isAnonymous }),
+      });
+
+      if (!res.ok) {
+        const result = await res.json();
+        throw new Error(result.error || "익명 상태 변경에 실패했습니다.");
+      }
+
+      setIsAnonymous(!isAnonymous);
+    } catch (error) {
+      console.error("Failed to toggle anonymity:", error);
+      alert(error instanceof Error ? error.message : "익명 상태 변경에 실패했습니다.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   if (opinion.isBlinded) {
     return (
@@ -49,6 +80,27 @@ export const OpinionItem = memo(function OpinionItem({
         <div className="flex-1 min-w-0 space-y-2.5">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium text-sm">{authorName}</span>
+            {isOwner && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 px-1.5 text-[10px]"
+                onClick={handleToggleAnonymity}
+                disabled={isUpdating}
+              >
+                {isAnonymous ? (
+                  <>
+                    <EyeOff className="h-2.5 w-2.5 mr-0.5" />
+                    익명
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-2.5 w-2.5 mr-0.5" />
+                    공개
+                  </>
+                )}
+              </Button>
+            )}
             <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-[11px] px-1.5 py-0">
               {sideLabel}
             </Badge>

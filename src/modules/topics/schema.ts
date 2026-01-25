@@ -16,6 +16,7 @@ export const createTopicSchema = z.object({
     )
     .optional(),
   deadline: z.string().datetime().optional(),
+  isAnonymous: z.boolean().default(false),
 });
 
 export const getTopicsSchema = z.object({
@@ -52,6 +53,10 @@ export const updateHiddenSchema = z.object({
   isHidden: z.boolean(),
 });
 
+export const updateTopicAnonymitySchema = z.object({
+  isAnonymous: z.boolean(),
+});
+
 export const getTopicsAdminSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -64,4 +69,5 @@ export type GetTopicsInput = z.infer<typeof getTopicsSchema>;
 export type UpdateFeaturedInput = z.infer<typeof updateFeaturedSchema>;
 export type UpdateTopicInput = z.infer<typeof updateTopicSchema>;
 export type UpdateHiddenInput = z.infer<typeof updateHiddenSchema>;
+export type UpdateTopicAnonymityInput = z.infer<typeof updateTopicAnonymitySchema>;
 export type GetTopicsAdminInput = z.infer<typeof getTopicsAdminSchema>;

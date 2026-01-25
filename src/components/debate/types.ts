@@ -5,6 +5,7 @@ export interface Opinion {
   side: Side;
   body: string;
   isBlinded: boolean;
+  isAnonymous?: boolean;
   createdAt: string;
   user: {
     id: string;

@@ -22,6 +22,7 @@ export interface TopicCardProps {
     createdAt: string | Date;
     imageUrl?: string | null;
     viewCount: number;
+    isAnonymous?: boolean;
     author: {
       id: string;
       nickname?: string | null;
@@ -36,7 +37,9 @@ export interface TopicCardProps {
 }
 
 export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
-  const authorName = topic.author.nickname || topic.author.name || "익명";
+  const authorName = topic.isAnonymous 
+    ? "익명" 
+    : (topic.author.nickname || topic.author.name || "익명");
   const shareDescription = `${topic.optionA} vs ${topic.optionB}`;
 
   return (

@@ -2,14 +2,12 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VoteSection } from "@/components/debate/VoteSection";
 import { OpinionSection } from "@/components/debate/OpinionSection";
 import { TopicShareButton } from "@/components/topics/TopicShareButton";
+import { TopicAuthorSection } from "@/components/topics/TopicAuthorSection";
 import { ViewCountTracker } from "@/components/topics/ViewCountTracker";
 import { CATEGORY_LABELS } from "@/lib/constants";
-import { formatDate, formatNumber } from "@/lib/utils";
-import { Eye } from "lucide-react";
 
 interface TopicDetailPageProps {
   params: Promise<{ id: string }>;
@@ -90,7 +88,9 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
     notFound();
   }
 
-  const authorName = topic.author.nickname || topic.author.name || "익명";
+  const authorName = topic.isAnonymous 
+    ? "익명" 
+    : (topic.author.nickname || topic.author.name || "익명");
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club";
   const canonicalUrl = new URL(`/topics/${topic.id}`, siteUrl).toString();
 
@@ -136,20 +136,15 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
           <p className="text-muted-foreground">{topic.description}</p>
         )}
 
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={topic.author.image || undefined} />
-            <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <span>{authorName}</span>
-          <span>·</span>
-          <span>{formatDate(topic.createdAt)}</span>
-          <span>·</span>
-          <span className="flex items-center gap-1">
-            <Eye className="h-4 w-4" />
-            {formatNumber(topic.viewCount)}
-          </span>
-        </div>
+        <TopicAuthorSection
+          topicId={topic.id}
+          authorId={topic.author.id}
+          authorName={authorName}
+          authorImage={topic.author.image}
+          isAnonymous={topic.isAnonymous}
+          createdAt={topic.createdAt}
+          viewCount={topic.viewCount}
+        />
 
         {/* Options Display */}
         <div className="flex items-center justify-center gap-4 py-4">

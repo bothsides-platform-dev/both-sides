@@ -205,7 +205,7 @@ export default function ProfilePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="topics" className="space-y-5">
+        <TabsContent value="topics" className="space-y-10">
           {profile?.topics?.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">

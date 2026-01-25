@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,6 +31,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
   const { data: session } = useSession();
   const [sort, setSort] = useState<"latest" | "hot">("latest");
   const [newOpinion, setNewOpinion] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitState, setSubmitState] = useState<{ isSubmitting: boolean; error: string | null }>({
     isSubmitting: false,
     error: null,
@@ -82,7 +85,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
       const res = await fetch(`/api/topics/${topicId}/opinions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: newOpinion }),
+        body: JSON.stringify({ body: newOpinion, isAnonymous }),
       });
 
       const result = await res.json();
@@ -92,6 +95,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
       }
 
       setNewOpinion("");
+      setIsAnonymous(false);
       setSubmitState({ isSubmitting: false, error: null });
       mutate(`/api/topics/${topicId}/opinions?${queryParams}`);
     } catch (err) {
@@ -150,29 +154,44 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
                   {submitState.error}
                 </div>
               )}
-              <div className="flex gap-2">
-                <Textarea
-                  value={newOpinion}
-                  onChange={(e) => setNewOpinion(e.target.value)}
-                  placeholder="의견을 입력하세요 (최소 10자)"
-                  className="min-h-[80px] resize-none"
-                  maxLength={1000}
-                />
-                <Button
-                  size="icon"
-                  onClick={handleSubmit}
-                  disabled={submitState.isSubmitting || newOpinion.length < 10}
-                  className={cn(
-                    "shrink-0",
-                    myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
-                  )}
-                >
-                  {submitState.isSubmitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Textarea
+                    value={newOpinion}
+                    onChange={(e) => setNewOpinion(e.target.value)}
+                    placeholder="의견을 입력하세요 (최소 10자)"
+                    className="min-h-[80px] resize-none"
+                    maxLength={1000}
+                  />
+                  <Button
+                    size="icon"
+                    onClick={handleSubmit}
+                    disabled={submitState.isSubmitting || newOpinion.length < 10}
+                    className={cn(
+                      "shrink-0",
+                      myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
+                    )}
+                  >
+                    {submitState.isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="opinionAnonymous"
+                    checked={isAnonymous}
+                    onCheckedChange={(checked) => setIsAnonymous(checked === true)}
+                  />
+                  <Label
+                    htmlFor="opinionAnonymous"
+                    className="text-xs font-normal cursor-pointer text-muted-foreground"
+                  >
+                    익명으로 작성
+                  </Label>
+                </div>
               </div>
             </div>
           ) : (

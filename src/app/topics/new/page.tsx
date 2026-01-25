@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { Loader2 } from "lucide-react";
@@ -22,6 +23,7 @@ export default function NewTopicPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   if (status === "loading") {
     return (
@@ -52,6 +54,7 @@ export default function NewTopicPage() {
       category: formData.get("category"),
       imageUrl: imageUrl || undefined,
       deadline: deadlineValue ? new Date(deadlineValue).toISOString() : undefined,
+      isAnonymous,
     };
 
     try {
@@ -179,6 +182,20 @@ export default function NewTopicPage() {
               <p className="text-xs text-muted-foreground">
                 비워두면 무기한 토론이 됩니다
               </p>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isAnonymous"
+                checked={isAnonymous}
+                onCheckedChange={(checked) => setIsAnonymous(checked === true)}
+              />
+              <Label
+                htmlFor="isAnonymous"
+                className="text-sm font-normal cursor-pointer"
+              >
+                익명으로 작성 (내 이름을 숨깁니다)
+              </Label>
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>

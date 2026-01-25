@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
-import { ForbiddenError } from "@/lib/errors";
-import type { CreateOpinionInput, GetOpinionsInput } from "./schema";
+import { ForbiddenError, NotFoundError } from "@/lib/errors";
+import type { CreateOpinionInput, GetOpinionsInput, UpdateOpinionAnonymityInput } from "./schema";
 
 export async function createOpinion(
   userId: string,
@@ -24,6 +24,7 @@ export async function createOpinion(
       userId,
       side: vote.side,
       body: input.body,
+      isAnonymous: input.isAnonymous ?? false,
     },
     include: {
       user: {
@@ -114,4 +115,62 @@ export async function getOpinions(topicId: string, input: GetOpinionsInput) {
       totalPages: Math.ceil(total / limit),
     },
   };
+}
+
+export async function getOpinionById(id: string) {
+  const opinion = await prisma.opinion.findUnique({
+    where: { id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          nickname: true,
+          name: true,
+          image: true,
+        },
+      },
+    },
+  });
+
+  if (!opinion) {
+    throw new NotFoundError("의견을 찾을 수 없습니다.");
+  }
+
+  return opinion;
+}
+
+export async function updateOpinionAnonymity(id: string, userId: string, input: UpdateOpinionAnonymityInput) {
+  const opinion = await getOpinionById(id);
+
+  if (opinion.userId !== userId) {
+    throw new ForbiddenError("본인의 의견만 수정할 수 있습니다.");
+  }
+
+  return prisma.opinion.update({
+    where: { id },
+    data: { isAnonymous: input.isAnonymous },
+    include: {
+      user: {
+        select: {
+          id: true,
+          nickname: true,
+          name: true,
+          image: true,
+        },
+      },
+      reactions: {
+        select: {
+          id: true,
+          userId: true,
+          type: true,
+        },
+      },
+      _count: {
+        select: {
+          reactions: true,
+          reports: true,
+        },
+      },
+    },
+  });
 }

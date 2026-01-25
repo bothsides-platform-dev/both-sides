@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/db";
-import { NotFoundError } from "@/lib/errors";
+import { NotFoundError, ForbiddenError } from "@/lib/errors";
 import type {
   CreateTopicInput,
   GetTopicsInput,
   UpdateFeaturedInput,
   UpdateTopicInput,
   UpdateHiddenInput,
+  UpdateTopicAnonymityInput,
   GetTopicsAdminInput,
 } from "./schema";
 
@@ -343,6 +344,39 @@ export async function deleteTopic(id: string) {
   }
 
   return prisma.topic.delete({ where: { id } });
+}
+
+export async function updateTopicAnonymity(id: string, userId: string, input: UpdateTopicAnonymityInput) {
+  const topic = await prisma.topic.findUnique({ where: { id } });
+
+  if (!topic) {
+    throw new NotFoundError("토론을 찾을 수 없습니다.");
+  }
+
+  if (topic.authorId !== userId) {
+    throw new ForbiddenError("본인의 토론만 수정할 수 있습니다.");
+  }
+
+  return prisma.topic.update({
+    where: { id },
+    data: { isAnonymous: input.isAnonymous },
+    include: {
+      author: {
+        select: {
+          id: true,
+          nickname: true,
+          name: true,
+          image: true,
+        },
+      },
+      _count: {
+        select: {
+          votes: true,
+          opinions: true,
+        },
+      },
+    },
+  });
 }
 
 export async function getAdminStats() {

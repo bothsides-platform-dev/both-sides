@@ -114,6 +114,7 @@ model Topic {
   featuredAt  DateTime?
   isHidden    Boolean   @default(false)
   hiddenAt    DateTime?
+  isAnonymous Boolean   @default(false)
   viewCount   Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -160,14 +161,15 @@ model Vote {
 }
 
 model Opinion {
-  id        String   @id @default(cuid())
-  topicId   String
-  userId    String
-  side      Side
-  body      String   @db.Text
-  isBlinded Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  topicId     String
+  userId      String
+  side        Side
+  body        String   @db.Text
+  isBlinded   Boolean  @default(false)
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   topic     Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
