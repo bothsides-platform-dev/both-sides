@@ -150,7 +150,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
           <TabsTrigger value="reactions">반응</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="votes" className="space-y-5">
+        <TabsContent value="votes">
           {profile.votes.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
