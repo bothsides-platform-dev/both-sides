@@ -107,11 +107,6 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
   };
 
   const handleReaction = useCallback(async (opinionId: string, type: ReactionType) => {
-    if (!session?.user) {
-      window.location.href = "/auth/signin";
-      return;
-    }
-
     try {
       await fetch(`/api/opinions/${opinionId}/reactions`, {
         method: "POST",
@@ -123,7 +118,7 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
     } catch (error) {
       console.error("Reaction failed:", error);
     }
-  }, [session?.user, topicId, queryParams]);
+  }, [topicId, queryParams]);
 
   return (
     <Card>

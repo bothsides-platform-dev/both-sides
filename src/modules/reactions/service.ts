@@ -2,8 +2,14 @@ import { prisma } from "@/lib/db";
 import { NotFoundError } from "@/lib/errors";
 import type { ReactionType } from "@prisma/client";
 
+interface ReactionIdentifier {
+  userId?: string;
+  visitorId?: string;
+  ipAddress?: string;
+}
+
 export async function toggleReaction(
-  userId: string,
+  identifier: ReactionIdentifier,
   opinionId: string,
   type: ReactionType
 ) {
@@ -16,12 +22,30 @@ export async function toggleReaction(
     throw new NotFoundError("의견을 찾을 수 없습니다.");
   }
 
-  // Check existing reaction
-  const existingReaction = await prisma.reaction.findUnique({
-    where: {
-      opinionId_userId: { opinionId, userId },
-    },
-  });
+  const { userId, visitorId, ipAddress } = identifier;
+
+  // Determine if this is a logged-in user or guest
+  const isLoggedIn = !!userId;
+
+  // Find existing reaction
+  let existingReaction;
+  if (isLoggedIn) {
+    // For logged-in users, search by userId
+    existingReaction = await prisma.reaction.findUnique({
+      where: {
+        reaction_opinion_user: { opinionId, userId: userId! },
+      },
+    });
+  } else {
+    // For guests, search by visitorId + ipAddress
+    existingReaction = await prisma.reaction.findFirst({
+      where: {
+        opinionId,
+        visitorId,
+        ipAddress,
+      },
+    });
+  }
 
   // If same type, remove reaction (toggle off)
   if (existingReaction?.type === type) {
@@ -31,17 +55,25 @@ export async function toggleReaction(
     return { action: "removed", reaction: null };
   }
 
-  // If different type or no existing, upsert
-  const reaction = await prisma.reaction.upsert({
-    where: {
-      opinionId_userId: { opinionId, userId },
-    },
-    update: { type },
-    create: { opinionId, userId, type },
-  });
-
-  return {
-    action: existingReaction ? "changed" : "created",
-    reaction,
-  };
+  // If different type or no existing reaction
+  if (existingReaction) {
+    // Update existing reaction to new type
+    const reaction = await prisma.reaction.update({
+      where: { id: existingReaction.id },
+      data: { type },
+    });
+    return { action: "changed", reaction };
+  } else {
+    // Create new reaction
+    const reaction = await prisma.reaction.create({
+      data: {
+        opinionId,
+        userId,
+        visitorId,
+        ipAddress,
+        type,
+      },
+    });
+    return { action: "created", reaction };
+  }
 }

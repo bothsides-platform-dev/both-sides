@@ -184,16 +184,20 @@ model Opinion {
 model Reaction {
   id        String       @id @default(cuid())
   opinionId String
-  userId    String
+  userId    String?
+  visitorId String?
+  ipAddress String?
   type      ReactionType
   createdAt DateTime     @default(now())
 
   opinion Opinion @relation(fields: [opinionId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([opinionId, userId])
+  @@unique([opinionId, userId], name: "reaction_opinion_user")
+  @@unique([opinionId, visitorId, ipAddress], name: "reaction_opinion_visitor")
   @@index([opinionId])
   @@index([userId])
+  @@index([visitorId])
 }
 
 model Report {
