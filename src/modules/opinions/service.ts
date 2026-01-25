@@ -65,7 +65,16 @@ export async function getOpinions(topicId: string, input: GetOpinionsInput) {
       orderBy,
       skip,
       take: limit,
-      include: {
+      select: {
+        id: true,
+        topicId: true,
+        userId: true,
+        side: true,
+        body: true,
+        isBlinded: true,
+        isAnonymous: true,
+        createdAt: true,
+        updatedAt: true,
         user: {
           select: {
             id: true,

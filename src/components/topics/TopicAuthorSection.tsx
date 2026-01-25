@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
@@ -58,11 +59,23 @@ export function TopicAuthorSection({
 
   return (
     <div className="flex items-center gap-3 text-sm text-muted-foreground">
-      <Avatar className="h-6 w-6">
-        <AvatarImage src={authorImage || undefined} />
-        <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
-      </Avatar>
-      <span>{authorName}</span>
+      {isAnonymous ? (
+        <>
+          <Avatar className="h-6 w-6">
+            <AvatarImage src={authorImage || undefined} />
+            <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <span>{authorName}</span>
+        </>
+      ) : (
+        <Link href={`/users/${authorId}`} className="flex items-center gap-3 hover:underline">
+          <Avatar className="h-6 w-6">
+            <AvatarImage src={authorImage || undefined} />
+            <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <span>{authorName}</span>
+        </Link>
+      )}
       {isOwner && (
         <Button
           variant="ghost"

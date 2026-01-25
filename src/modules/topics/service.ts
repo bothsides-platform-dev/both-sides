@@ -58,7 +58,24 @@ export async function getTopics(input: GetTopicsInput) {
       orderBy,
       skip,
       take: limit,
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        optionA: true,
+        optionB: true,
+        category: true,
+        authorId: true,
+        imageUrl: true,
+        deadline: true,
+        isFeatured: true,
+        featuredAt: true,
+        isHidden: true,
+        hiddenAt: true,
+        isAnonymous: true,
+        viewCount: true,
+        createdAt: true,
+        updatedAt: true,
         author: {
           select: {
             id: true,
@@ -94,7 +111,24 @@ export async function getFeaturedTopics(limit: number = 2) {
     where: { isFeatured: true, isHidden: false },
     orderBy: { featuredAt: "desc" },
     take: limit,
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      optionA: true,
+      optionB: true,
+      category: true,
+      authorId: true,
+      imageUrl: true,
+      deadline: true,
+      isFeatured: true,
+      featuredAt: true,
+      isHidden: true,
+      hiddenAt: true,
+      isAnonymous: true,
+      viewCount: true,
+      createdAt: true,
+      updatedAt: true,
       author: {
         select: {
           id: true,
@@ -118,7 +152,24 @@ export async function getRecommendedTopics(limit: number = 6) {
     where: { isFeatured: false, isHidden: false },
     orderBy: { votes: { _count: "desc" } },
     take: limit,
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      optionA: true,
+      optionB: true,
+      category: true,
+      authorId: true,
+      imageUrl: true,
+      deadline: true,
+      isFeatured: true,
+      featuredAt: true,
+      isHidden: true,
+      hiddenAt: true,
+      isAnonymous: true,
+      viewCount: true,
+      createdAt: true,
+      updatedAt: true,
       author: {
         select: {
           id: true,

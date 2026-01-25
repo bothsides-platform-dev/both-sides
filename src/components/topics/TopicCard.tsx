@@ -81,13 +81,27 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
           </div>
         </CardContent>
         <CardFooter className="flex items-center justify-between pt-0">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={topic.author.image || undefined} />
-              <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-muted-foreground">{authorName}</span>
-          </div>
+          {topic.isAnonymous ? (
+            <div className="flex items-center gap-2">
+              <Avatar className="h-6 w-6">
+                <AvatarImage src={topic.author.image || undefined} />
+                <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm text-muted-foreground">{authorName}</span>
+            </div>
+          ) : (
+            <Link 
+              href={`/users/${topic.author.id}`} 
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-2 hover:underline"
+            >
+              <Avatar className="h-6 w-6">
+                <AvatarImage src={topic.author.image || undefined} />
+                <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm text-muted-foreground">{authorName}</span>
+            </Link>
+          )}
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Users className="h-4 w-4" />

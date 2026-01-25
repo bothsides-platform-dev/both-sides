@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useState } from "react";
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,13 +74,28 @@ export const OpinionItem = memo(function OpinionItem({
   return (
     <div className="py-5 px-1">
       <div className="flex items-start gap-3">
-        <Avatar className="h-9 w-9 shrink-0">
-          <AvatarImage src={opinion.user.image || undefined} />
-          <AvatarFallback className="text-sm">{authorName.charAt(0)}</AvatarFallback>
-        </Avatar>
+        {isAnonymous ? (
+          <Avatar className="h-9 w-9 shrink-0">
+            <AvatarImage src={opinion.user.image || undefined} />
+            <AvatarFallback className="text-sm">{authorName.charAt(0)}</AvatarFallback>
+          </Avatar>
+        ) : (
+          <Link href={`/users/${opinion.user.id}`}>
+            <Avatar className="h-9 w-9 shrink-0 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
+              <AvatarImage src={opinion.user.image || undefined} />
+              <AvatarFallback className="text-sm">{authorName.charAt(0)}</AvatarFallback>
+            </Avatar>
+          </Link>
+        )}
         <div className="flex-1 min-w-0 space-y-2.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-sm">{authorName}</span>
+            {isAnonymous ? (
+              <span className="font-medium text-sm">{authorName}</span>
+            ) : (
+              <Link href={`/users/${opinion.user.id}`} className="hover:underline">
+                <span className="font-medium text-sm">{authorName}</span>
+              </Link>
+            )}
             {isOwner && (
               <Button
                 variant="ghost"
