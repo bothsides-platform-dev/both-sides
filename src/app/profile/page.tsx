@@ -143,7 +143,7 @@ export default function ProfilePage() {
           <TabsTrigger value="topics">내 토론</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="votes" className="space-y-4">
+        <TabsContent value="votes" className="space-y-5">
           {profile?.votes?.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
@@ -174,7 +174,7 @@ export default function ProfilePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="opinions" className="space-y-4">
+        <TabsContent value="opinions" className="space-y-5">
           {profile?.opinions?.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
@@ -205,7 +205,7 @@ export default function ProfilePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="topics" className="space-y-4">
+        <TabsContent value="topics" className="space-y-5">
           {profile?.topics?.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
