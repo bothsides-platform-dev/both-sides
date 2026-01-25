@@ -159,7 +159,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
             </Card>
           ) : (
             profile.votes.map((vote: VoteItem) => (
-              <Link key={vote.id} href={`/topics/${vote.topic.id}`}>
+              <Link key={vote.id} href={`/topics/${vote.topic.id}`} className="block mb-2">
                 <Card className="transition-shadow hover:shadow-md">
                   <CardContent className="flex items-center justify-between p-4">
                     <div className="space-y-1">
