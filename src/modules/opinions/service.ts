@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
-import type { CreateOpinionInput, GetOpinionsInput, UpdateOpinionAnonymityInput } from "./schema";
+import type { CreateOpinionInput, GetOpinionsInput, UpdateOpinionAnonymityInput, GetOpinionsAdminInput } from "./schema";
 
 export async function createOpinion(
   userId: string,
@@ -172,6 +172,107 @@ export async function updateOpinionAnonymity(id: string, userId: string, input: 
           id: true,
           userId: true,
           type: true,
+        },
+      },
+      _count: {
+        select: {
+          reactions: true,
+          reports: true,
+        },
+      },
+    },
+  });
+}
+
+// Admin functions
+export async function getOpinionsForAdmin(input: GetOpinionsAdminInput) {
+  const { page, limit, search, topicId, isBlinded } = input;
+  const skip = (page - 1) * limit;
+
+  const where: Record<string, unknown> = {};
+
+  if (topicId) {
+    where.topicId = topicId;
+  }
+
+  if (isBlinded !== undefined) {
+    where.isBlinded = isBlinded;
+  }
+
+  if (search) {
+    where.OR = [
+      { body: { contains: search, mode: "insensitive" } },
+      { user: { nickname: { contains: search, mode: "insensitive" } } },
+      { user: { name: { contains: search, mode: "insensitive" } } },
+    ];
+  }
+
+  const [opinions, total] = await Promise.all([
+    prisma.opinion.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      include: {
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            name: true,
+            image: true,
+          },
+        },
+        topic: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        _count: {
+          select: {
+            reactions: true,
+            reports: true,
+          },
+        },
+      },
+    }),
+    prisma.opinion.count({ where }),
+  ]);
+
+  return {
+    opinions,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+export async function updateOpinionAnonymityByAdmin(id: string, isAnonymous: boolean) {
+  const opinion = await prisma.opinion.findUnique({ where: { id } });
+
+  if (!opinion) {
+    throw new NotFoundError("의견을 찾을 수 없습니다.");
+  }
+
+  return prisma.opinion.update({
+    where: { id },
+    data: { isAnonymous },
+    include: {
+      user: {
+        select: {
+          id: true,
+          nickname: true,
+          name: true,
+          image: true,
+        },
+      },
+      topic: {
+        select: {
+          id: true,
+          title: true,
         },
       },
       _count: {

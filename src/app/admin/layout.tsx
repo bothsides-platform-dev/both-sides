@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LayoutDashboard, MessageSquare, Flag } from "lucide-react";
+import { LayoutDashboard, MessageSquare, MessageCircle, Flag } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "관리자",
@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 const navItems = [
   { href: "/admin", label: "대시보드", icon: LayoutDashboard },
   { href: "/admin/topics", label: "토론 관리", icon: MessageSquare },
+  { href: "/admin/opinions", label: "의견 관리", icon: MessageCircle },
   { href: "/admin/reports", label: "신고 관리", icon: Flag },
 ];
 

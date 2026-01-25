@@ -17,6 +17,8 @@ import {
   Edit,
   Trash2,
   ExternalLink,
+  UserX,
+  User,
 } from "lucide-react";
 import type { Category } from "@prisma/client";
 
@@ -26,6 +28,7 @@ interface Topic {
   category: Category;
   isHidden: boolean;
   isFeatured: boolean;
+  isAnonymous?: boolean;
   viewCount: number;
   createdAt: string;
   author: {
@@ -83,6 +86,24 @@ export function TopicTable({ topics }: TopicTableProps) {
     }
   };
 
+  const handleToggleAnonymity = async (id: string, isAnonymous: boolean) => {
+    setProcessingId(id);
+    setProcessingAction("anonymity");
+    try {
+      await fetch(`/api/admin/topics/${id}/anonymity`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isAnonymous: !isAnonymous }),
+      });
+      mutate((key: string) => key.startsWith("/api/admin/topics"));
+    } catch (error) {
+      console.error("Failed to toggle anonymity:", error);
+    } finally {
+      setProcessingId(null);
+      setProcessingAction(null);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("정말로 이 토론을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
       return;
@@ -125,6 +146,9 @@ export function TopicTable({ topics }: TopicTableProps) {
                   </Badge>
                   {topic.isFeatured && (
                     <Badge variant="default">추천</Badge>
+                  )}
+                  {topic.isAnonymous && (
+                    <Badge variant="outline">익명</Badge>
                   )}
                   <Badge variant="outline">
                     {CATEGORY_LABELS[topic.category]}
@@ -183,6 +207,22 @@ export function TopicTable({ topics }: TopicTableProps) {
                     <StarOff className="h-4 w-4" />
                   ) : (
                     <Star className="h-4 w-4" />
+                  )}
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleToggleAnonymity(topic.id, topic.isAnonymous ?? false)}
+                  disabled={processingId === topic.id}
+                  title={topic.isAnonymous ? "익명 해제" : "익명 설정"}
+                >
+                  {processingId === topic.id && processingAction === "anonymity" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : topic.isAnonymous ? (
+                    <UserX className="h-4 w-4" />
+                  ) : (
+                    <User className="h-4 w-4" />
                   )}
                 </Button>
 

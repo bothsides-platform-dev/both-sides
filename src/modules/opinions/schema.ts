@@ -16,6 +16,15 @@ export const updateOpinionAnonymitySchema = z.object({
   isAnonymous: z.boolean(),
 });
 
+export const getOpinionsAdminSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().optional(),
+  topicId: z.string().optional(),
+  isBlinded: z.coerce.boolean().optional(),
+});
+
 export type CreateOpinionInput = z.infer<typeof createOpinionSchema>;
 export type GetOpinionsInput = z.infer<typeof getOpinionsSchema>;
 export type UpdateOpinionAnonymityInput = z.infer<typeof updateOpinionAnonymitySchema>;
+export type GetOpinionsAdminInput = z.infer<typeof getOpinionsAdminSchema>;

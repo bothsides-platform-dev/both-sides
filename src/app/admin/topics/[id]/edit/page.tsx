@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -42,6 +43,7 @@ interface Topic {
   deadline: string | null;
   isHidden: boolean;
   isFeatured: boolean;
+  isAnonymous?: boolean;
 }
 
 interface PageParams {
@@ -55,6 +57,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   const { data, isLoading } = useSWR<{ data: Topic }>(
     session?.user?.role === "ADMIN" ? `/api/admin/topics/${id}` : null,
@@ -67,7 +70,10 @@ export default function AdminTopicEditPage({ params }: PageParams) {
     if (topic?.imageUrl) {
       setImageUrl(topic.imageUrl);
     }
-  }, [topic?.imageUrl]);
+    if (topic?.isAnonymous !== undefined) {
+      setIsAnonymous(topic.isAnonymous);
+    }
+  }, [topic?.imageUrl, topic?.isAnonymous]);
 
   if (sessionStatus === "loading" || isLoading) {
     return (
@@ -106,6 +112,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
       category: formData.get("category"),
       imageUrl: imageUrl || null,
       deadline: deadlineValue ? new Date(deadlineValue).toISOString() : null,
+      isAnonymous,
     };
 
     try {
@@ -245,6 +252,20 @@ export default function AdminTopicEditPage({ params }: PageParams) {
               <p className="text-xs text-muted-foreground">
                 비워두면 무기한 토론이 됩니다
               </p>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isAnonymous"
+                checked={isAnonymous}
+                onCheckedChange={(checked) => setIsAnonymous(checked === true)}
+              />
+              <Label
+                htmlFor="isAnonymous"
+                className="text-sm font-normal cursor-pointer"
+              >
+                익명으로 표시 (작성자 이름을 숨깁니다)
+              </Label>
             </div>
 
             <div className="flex gap-4">
