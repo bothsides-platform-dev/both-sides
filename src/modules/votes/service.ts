@@ -2,7 +2,17 @@ import { prisma } from "@/lib/db";
 import { NotFoundError } from "@/lib/errors";
 import type { Side } from "@prisma/client";
 
-export async function upsertVote(userId: string, topicId: string, side: Side) {
+interface VoteIdentifier {
+  userId?: string;
+  visitorId?: string;
+  ipAddress?: string;
+}
+
+export async function upsertVote(
+  identifier: VoteIdentifier,
+  topicId: string,
+  side: Side
+) {
   // Check if topic exists
   const topic = await prisma.topic.findUnique({
     where: { id: topicId },
@@ -12,22 +22,68 @@ export async function upsertVote(userId: string, topicId: string, side: Side) {
     throw new NotFoundError("토론을 찾을 수 없습니다.");
   }
 
-  // Upsert vote
-  return prisma.vote.upsert({
-    where: {
-      topicId_userId: { topicId, userId },
-    },
-    update: { side },
-    create: { topicId, userId, side },
-  });
+  const { userId, visitorId, ipAddress } = identifier;
+  const isLoggedIn = !!userId;
+
+  if (isLoggedIn) {
+    // Logged-in user: use upsert with topicId_userId unique constraint
+    return prisma.vote.upsert({
+      where: {
+        vote_topic_user: { topicId, userId: userId! },
+      },
+      update: { side },
+      create: { topicId, userId, side },
+    });
+  } else {
+    // Guest user: find existing vote and update, or create new
+    const existingVote = await prisma.vote.findFirst({
+      where: {
+        topicId,
+        visitorId,
+        ipAddress,
+      },
+    });
+
+    if (existingVote) {
+      // Update existing vote
+      return prisma.vote.update({
+        where: { id: existingVote.id },
+        data: { side },
+      });
+    } else {
+      // Create new vote
+      return prisma.vote.create({
+        data: {
+          topicId,
+          visitorId,
+          ipAddress,
+          side,
+        },
+      });
+    }
+  }
 }
 
-export async function getUserVote(userId: string, topicId: string) {
-  return prisma.vote.findUnique({
-    where: {
-      topicId_userId: { topicId, userId },
-    },
-  });
+export async function getVote(identifier: VoteIdentifier, topicId: string) {
+  const { userId, visitorId, ipAddress } = identifier;
+
+  if (userId) {
+    // Logged-in user
+    return prisma.vote.findUnique({
+      where: {
+        vote_topic_user: { topicId, userId },
+      },
+    });
+  } else {
+    // Guest user
+    return prisma.vote.findFirst({
+      where: {
+        topicId,
+        visitorId,
+        ipAddress,
+      },
+    });
+  }
 }
 
 export async function getVoteStats(topicId: string) {

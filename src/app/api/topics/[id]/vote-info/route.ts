@@ -1,7 +1,10 @@
 import { NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
-import { getVoteStats, getUserVote } from "@/modules/votes/service";
+import { getVoteStats, getVote } from "@/modules/votes/service";
+import { getIpAddress } from "@/lib/visitor";
+import { cookies } from "next/headers";
+import type { Vote } from "@prisma/client";
 
 /**
  * Combined endpoint for vote stats and user's vote
@@ -18,9 +21,30 @@ export async function GET(
     const session = await getSession();
     const userId = session?.user?.id;
 
+    let myVotePromise: Promise<Vote | null> = Promise.resolve(null);
+
+    if (includeMyVote) {
+      if (userId) {
+        // Logged-in user
+        myVotePromise = getVote({ userId }, topicId);
+      } else {
+        // Guest user - check if they have a visitor cookie
+        const cookieStore = await cookies();
+        const visitorId = cookieStore.get("visitor_id")?.value;
+        
+        if (visitorId) {
+          const ipAddress = getIpAddress(request);
+          myVotePromise = getVote(
+            { visitorId, ipAddress: ipAddress || undefined },
+            topicId
+          );
+        }
+      }
+    }
+
     const [stats, myVote] = await Promise.all([
       getVoteStats(topicId),
-      includeMyVote && userId ? getUserVote(userId, topicId) : Promise.resolve(null),
+      myVotePromise,
     ]);
 
     return Response.json({

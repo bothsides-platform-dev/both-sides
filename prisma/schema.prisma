@@ -147,17 +147,21 @@ model TopicView {
 model Vote {
   id        String   @id @default(cuid())
   topicId   String
-  userId    String
+  userId    String?
+  visitorId String?
+  ipAddress String?
   side      Side
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([topicId, userId])
+  @@unique([topicId, userId], name: "vote_topic_user")
+  @@unique([topicId, visitorId, ipAddress], name: "vote_topic_visitor")
   @@index([topicId])
   @@index([userId])
+  @@index([visitorId])
 }
 
 model Opinion {

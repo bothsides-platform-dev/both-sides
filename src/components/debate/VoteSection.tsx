@@ -46,9 +46,8 @@ export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
   }, []);
 
   // Use combined endpoint for vote stats and user's vote
-  const includeMyVote = !!session?.user;
   const { data: voteInfoData } = useSWR<VoteInfoResponse>(
-    `/api/topics/${topicId}/vote-info${includeMyVote ? "?includeMyVote=true" : ""}`,
+    `/api/topics/${topicId}/vote-info?includeMyVote=true`,
     fetcher,
     {
       refreshInterval: 5000,
@@ -66,11 +65,6 @@ export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
   };
 
   const handleVote = async (side: Side) => {
-    if (!session?.user) {
-      window.location.href = "/auth/signin";
-      return;
-    }
-
     setIsVoting(true);
     try {
       await fetch(`/api/topics/${topicId}/vote`, {

@@ -10,7 +10,7 @@ export async function createOpinion(
   // Check if user has voted on this topic
   const vote = await prisma.vote.findUnique({
     where: {
-      topicId_userId: { topicId, userId },
+      vote_topic_user: { topicId, userId },
     },
   });
 
