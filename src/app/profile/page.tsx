@@ -1,16 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProfileEditForm } from "@/components/ProfileEditForm";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
 import { fetcher } from "@/lib/fetcher";
-import { Loader2, MessageSquare, Vote } from "lucide-react";
+import { Loader2, MessageSquare, Vote, Pencil } from "lucide-react";
 import Link from "next/link";
 import type { Category, Side } from "@prisma/client";
 
@@ -58,11 +61,17 @@ interface ProfileData {
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
 
-  const { data: profileData, isLoading } = useSWR<{ data: ProfileData }>(
+  const { data: profileData, isLoading, mutate } = useSWR<{ data: ProfileData }>(
     session?.user ? "/api/profile" : null,
     fetcher
   );
+
+  const handleEditSuccess = () => {
+    setIsEditing(false);
+    mutate(); // Refresh profile data
+  };
 
   if (status === "loading" || isLoading) {
     return (
@@ -85,27 +94,44 @@ export default function ProfilePage() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Profile Header */}
       <Card>
-        <CardContent className="flex items-center gap-6 p-6">
-          <Avatar className="h-20 w-20">
-            <AvatarImage src={user.image || undefined} />
-            <AvatarFallback className="text-2xl">
-              {displayName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold">{displayName}</h1>
-            <p className="text-muted-foreground">{user.email}</p>
-            <div className="flex items-center gap-4 pt-2 text-sm">
-              <span className="flex items-center gap-1">
-                <Vote className="h-4 w-4" />
-                {profile?.votesCount ?? 0}개 투표
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageSquare className="h-4 w-4" />
-                {profile?.opinionsCount ?? 0}개 의견
-              </span>
+        <CardContent className="p-6">
+          {isEditing ? (
+            <ProfileEditForm
+              onCancel={() => setIsEditing(false)}
+              onSuccess={handleEditSuccess}
+            />
+          ) : (
+            <div className="flex items-center gap-6">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={user.image || undefined} />
+                <AvatarFallback className="text-2xl">
+                  {displayName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-1">
+                <h1 className="text-2xl font-bold">{displayName}</h1>
+                <p className="text-muted-foreground">{user.email}</p>
+                <div className="flex items-center gap-4 pt-2 text-sm">
+                  <span className="flex items-center gap-1">
+                    <Vote className="h-4 w-4" />
+                    {profile?.votesCount ?? 0}개 투표
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MessageSquare className="h-4 w-4" />
+                    {profile?.opinionsCount ?? 0}개 의견
+                  </span>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsEditing(true)}
+                aria-label="프로필 편집"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
