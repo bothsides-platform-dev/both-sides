@@ -143,7 +143,7 @@ export default function ProfilePage() {
           <TabsTrigger value="topics">내 토론</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="votes" className="space-y-5">
+        <TabsContent value="votes">
           {profile?.votes?.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
@@ -152,7 +152,7 @@ export default function ProfilePage() {
             </Card>
           ) : (
             profile?.votes?.map((vote: VoteItem) => (
-              <Link key={vote.id} href={`/topics/${vote.topic.id}`}>
+              <Link key={vote.id} href={`/topics/${vote.topic.id}`} className="block mb-2">
                 <Card className="transition-shadow hover:shadow-md">
                   <CardContent className="flex items-center justify-between p-4">
                     <div className="space-y-1">
