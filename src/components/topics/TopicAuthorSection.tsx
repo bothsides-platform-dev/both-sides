@@ -5,7 +5,13 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, User } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Eye, EyeOff, User, MoreVertical } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 interface TopicAuthorSectionProps {
@@ -77,27 +83,6 @@ export function TopicAuthorSection({
           <span>{authorName}</span>
         </Link>
       )}
-      {isOwner && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 px-2 text-xs"
-          onClick={handleToggleAnonymity}
-          disabled={isUpdating}
-        >
-          {isAnonymous ? (
-            <>
-              <EyeOff className="h-3 w-3 mr-1" />
-              익명
-            </>
-          ) : (
-            <>
-              <Eye className="h-3 w-3 mr-1" />
-              공개
-            </>
-          )}
-        </Button>
-      )}
       <span>·</span>
       <span>{formatDate(createdAt)}</span>
       <span>·</span>
@@ -105,6 +90,39 @@ export function TopicAuthorSection({
         <Eye className="h-4 w-4" />
         {viewCount.toLocaleString()}
       </span>
+      {isOwner && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+            >
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">더보기</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={handleToggleAnonymity}
+              disabled={isUpdating}
+              className="cursor-pointer"
+            >
+              {isAnonymous ? (
+                <>
+                  <Eye className="h-4 w-4 mr-2" />
+                  공개로 전환
+                </>
+              ) : (
+                <>
+                  <EyeOff className="h-4 w-4 mr-2" />
+                  익명으로 전환
+                </>
+              )}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 }

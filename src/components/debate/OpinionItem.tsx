@@ -138,27 +138,6 @@ export const OpinionItem = memo(function OpinionItem({
                 <span className="font-medium text-sm">{authorName}</span>
               </Link>
             )}
-            {isOwner && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-5 px-1.5 text-[10px]"
-                onClick={handleToggleAnonymity}
-                disabled={isUpdating}
-              >
-                {isAnonymous ? (
-                  <>
-                    <EyeOff className="h-2.5 w-2.5 mr-0.5" />
-                    익명
-                  </>
-                ) : (
-                  <>
-                    <Eye className="h-2.5 w-2.5 mr-0.5" />
-                    공개
-                  </>
-                )}
-              </Button>
-            )}
             <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-[11px] px-1.5 py-0">
               {sideLabel}
             </Badge>
@@ -196,7 +175,7 @@ export const OpinionItem = memo(function OpinionItem({
             )}
           </div>
         </div>
-        {currentUserId && !isOwner && (
+        {currentUserId && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -209,13 +188,33 @@ export const OpinionItem = memo(function OpinionItem({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => setIsReportDialogOpen(true)}
-                className="text-red-600 focus:text-red-600 cursor-pointer"
-              >
-                <Flag className="h-4 w-4 mr-2" />
-                신고하기
-              </DropdownMenuItem>
+              {isOwner ? (
+                <DropdownMenuItem
+                  onClick={handleToggleAnonymity}
+                  disabled={isUpdating}
+                  className="cursor-pointer"
+                >
+                  {isAnonymous ? (
+                    <>
+                      <Eye className="h-4 w-4 mr-2" />
+                      공개로 전환
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="h-4 w-4 mr-2" />
+                      익명으로 전환
+                    </>
+                  )}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={() => setIsReportDialogOpen(true)}
+                  className="text-red-600 focus:text-red-600 cursor-pointer"
+                >
+                  <Flag className="h-4 w-4 mr-2" />
+                  신고하기
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
