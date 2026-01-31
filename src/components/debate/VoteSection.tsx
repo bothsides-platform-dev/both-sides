@@ -9,6 +9,8 @@ import { cn, formatDDay, formatDate } from "@/lib/utils";
 import { fetcher } from "@/lib/fetcher";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/components/ui/toast";
+import { ApiError } from "@/lib/api-error";
 import type { Side } from "@prisma/client";
 
 interface VoteSectionProps {
@@ -64,6 +66,7 @@ function getVoteStatusText(
 export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSectionProps) {
   const [isVoting, setIsVoting] = useState(false);
   const isVisibleRef = useRef(true);
+  const { showRateLimitError, showToast } = useToast();
 
   // Check if voting is closed
   const isVotingClosed = deadline ? new Date() > new Date(deadline) : false;
@@ -100,16 +103,33 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
   const handleVote = async (side: Side) => {
     setIsVoting(true);
     try {
-      await fetch(`/api/topics/${topicId}/vote`, {
+      const res = await fetch(`/api/topics/${topicId}/vote`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ side }),
       });
 
+      if (!res.ok) {
+        const retryAfter = res.headers.get("Retry-After");
+        if (res.status === 429) {
+          showRateLimitError(retryAfter ? parseInt(retryAfter, 10) : undefined);
+          return;
+        }
+        const data = await res.json();
+        throw new ApiError(data.error || "투표에 실패했습니다.", res.status);
+      }
+
       // Refresh combined vote info data
       mutate(`/api/topics/${topicId}/vote-info?includeMyVote=true`);
     } catch (error) {
-      console.error("Vote failed:", error);
+      if (error instanceof ApiError && error.isRateLimit) {
+        showRateLimitError(error.retryAfter);
+      } else {
+        showToast(
+          error instanceof Error ? error.message : "투표에 실패했습니다.",
+          "error"
+        );
+      }
     } finally {
       setIsVoting(false);
     }

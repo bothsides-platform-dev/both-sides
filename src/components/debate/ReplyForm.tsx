@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Loader2, Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 
 interface ReplyFormProps {
   parentId: string;
@@ -32,6 +33,7 @@ export function ReplyForm({
     isSubmitting: false,
     error: null,
   });
+  const { showRateLimitError } = useToast();
 
   const handleSubmit = async () => {
     if (!body.trim()) return;
@@ -44,6 +46,13 @@ export function ReplyForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ body, isAnonymous }),
       });
+
+      if (res.status === 429) {
+        const retryAfter = res.headers.get("Retry-After");
+        showRateLimitError(retryAfter ? parseInt(retryAfter, 10) : undefined);
+        setSubmitState({ isSubmitting: false, error: null });
+        return;
+      }
 
       const result = await res.json();
 

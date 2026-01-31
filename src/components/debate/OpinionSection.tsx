@@ -21,6 +21,7 @@ import { Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetcher } from "@/lib/fetcher";
 import { useSwipeableTabs } from "@/hooks/useSwipeableTabs";
+import { useToast } from "@/components/ui/toast";
 import { MobileSideTabs } from "./MobileSideTabs";
 import { OpinionColumn } from "./OpinionColumn";
 import { OpinionList } from "./OpinionList";
@@ -50,6 +51,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
     isSubmitting: false,
     error: null,
   });
+  const { showRateLimitError } = useToast();
 
   // Mobile swipe tabs
   const { activeTab, setActiveTab, handleDragEnd } = useSwipeableTabs();
@@ -132,6 +134,13 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
         body: JSON.stringify({ body: newOpinion, isAnonymous }),
       });
 
+      if (res.status === 429) {
+        const retryAfter = res.headers.get("Retry-After");
+        showRateLimitError(retryAfter ? parseInt(retryAfter, 10) : undefined);
+        setSubmitState({ isSubmitting: false, error: null });
+        return;
+      }
+
       const result = await res.json();
 
       if (!res.ok) {
@@ -152,17 +161,23 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
 
   const handleReaction = useCallback(async (opinionId: string, type: ReactionType) => {
     try {
-      await fetch(`/api/opinions/${opinionId}/reactions`, {
+      const res = await fetch(`/api/opinions/${opinionId}/reactions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type }),
       });
 
+      if (res.status === 429) {
+        const retryAfter = res.headers.get("Retry-After");
+        showRateLimitError(retryAfter ? parseInt(retryAfter, 10) : undefined);
+        return;
+      }
+
       mutate(`/api/topics/${topicId}/opinions?${queryParams}`);
     } catch (error) {
       console.error("Reaction failed:", error);
     }
-  }, [topicId, queryParams]);
+  }, [topicId, queryParams, showRateLimitError]);
 
   const handleReportSuccess = useCallback(() => {
     // Refresh opinions list after successful report

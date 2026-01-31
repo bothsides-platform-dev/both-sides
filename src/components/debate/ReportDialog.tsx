@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/toast";
 
 interface ReportDialogProps {
   open: boolean;
@@ -42,6 +43,7 @@ export function ReportDialog({
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const { showRateLimitError, showToast } = useToast();
 
   const characterCount = reason.length;
   const isValidLength = characterCount >= 10 && characterCount <= 500;
@@ -70,6 +72,13 @@ export function ReportDialog({
         body: JSON.stringify({ reason }),
       });
 
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("Retry-After");
+        showRateLimitError(retryAfter ? parseInt(retryAfter, 10) : undefined);
+        setIsSubmitting(false);
+        return;
+      }
+
       const result = await response.json();
 
       if (!response.ok) {
@@ -77,7 +86,7 @@ export function ReportDialog({
       }
 
       // Success
-      alert("신고가 접수되었습니다.");
+      showToast("신고가 접수되었습니다.", "success");
       setReason("");
       onOpenChange(false);
       onReportSuccess?.();
