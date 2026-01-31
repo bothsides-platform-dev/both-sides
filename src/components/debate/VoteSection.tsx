@@ -4,9 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import useSWR, { mutate } from "swr";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Loader2, Clock } from "lucide-react";
+import { cn, formatDDay, formatDate } from "@/lib/utils";
 import { fetcher } from "@/lib/fetcher";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { Side } from "@prisma/client";
 
 interface VoteSectionProps {
@@ -65,6 +67,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
 
   // Check if voting is closed
   const isVotingClosed = deadline ? new Date() > new Date(deadline) : false;
+  const dDay = formatDDay(deadline ?? null);
 
   // Track tab visibility to pause polling when hidden
   useEffect(() => {
@@ -115,9 +118,31 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">
-          {isVotingClosed ? "투표 결과" : "투표하기"}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">
+            {isVotingClosed ? "투표 결과" : "투표하기"}
+          </CardTitle>
+          {dDay && deadline && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Badge
+                  variant={dDay === "마감" ? "secondary" : "default"}
+                  className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                >
+                  <Clock className="mr-1 h-3 w-3" />
+                  {dDay}
+                </Badge>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3">
+                <p className="text-sm">
+                  <span className="font-medium">마감 시간</span>
+                  <br />
+                  {formatDate(deadline)}
+                </p>
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {isVotingClosed && (
