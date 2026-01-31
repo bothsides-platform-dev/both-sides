@@ -211,6 +211,7 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         topicId={topic.id}
         optionA={topic.optionA}
         optionB={topic.optionB}
+        deadline={topic.deadline}
       />
 
       {/* Opinions Section */}

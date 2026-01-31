@@ -13,6 +13,7 @@ interface VoteSectionProps {
   topicId: string;
   optionA: string;
   optionB: string;
+  deadline?: Date | string | null;
 }
 
 interface VoteStats {
@@ -58,9 +59,12 @@ function getVoteStatusText(
   }
 }
 
-export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
+export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSectionProps) {
   const [isVoting, setIsVoting] = useState(false);
   const isVisibleRef = useRef(true);
+
+  // Check if voting is closed
+  const isVotingClosed = deadline ? new Date() > new Date(deadline) : false;
 
   // Track tab visibility to pause polling when hidden
   useEffect(() => {
@@ -111,9 +115,16 @@ export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">투표하기</CardTitle>
+        <CardTitle className="text-lg">
+          {isVotingClosed ? "투표 결과" : "투표하기"}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {isVotingClosed && (
+          <p className="text-center text-sm text-muted-foreground">
+            투표가 마감되었습니다
+          </p>
+        )}
         <div className="flex gap-4">
           <Button
             variant={myVote === "A" ? "sideA" : "sideAOutline"}
@@ -122,7 +133,7 @@ export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
               myVote === "A" && "ring-2 ring-blue-500 ring-offset-2"
             )}
             onClick={() => handleVote("A")}
-            disabled={isVoting}
+            disabled={isVoting || isVotingClosed}
           >
             {isVoting && myVote !== "A" && (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -138,7 +149,7 @@ export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
               myVote === "B" && "ring-2 ring-red-500 ring-offset-2"
             )}
             onClick={() => handleVote("B")}
-            disabled={isVoting}
+            disabled={isVoting || isVotingClosed}
           >
             {isVoting && myVote !== "B" && (
               <Loader2 className="h-4 w-4 animate-spin" />

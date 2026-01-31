@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { NotFoundError } from "@/lib/errors";
+import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { Side } from "@prisma/client";
 
 interface VoteIdentifier {
@@ -20,6 +20,11 @@ export async function upsertVote(
 
   if (!topic) {
     throw new NotFoundError("토론을 찾을 수 없습니다.");
+  }
+
+  // Check if voting has ended
+  if (topic.deadline && new Date() > topic.deadline) {
+    throw new ForbiddenError("마감된 토론에는 투표할 수 없습니다.");
   }
 
   const { userId, visitorId, ipAddress } = identifier;
