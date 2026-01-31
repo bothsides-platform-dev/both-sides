@@ -116,3 +116,12 @@
   animation-play-state: paused;
 }
 
+/* Collapsible content animation */
+[data-state="closed"].ticker-collapsible-content {
+  display: none;
+}
+
+[data-state="open"].ticker-collapsible-content {
+  display: block;
+}
+

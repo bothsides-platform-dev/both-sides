@@ -152,7 +152,7 @@ export function TrendingTicker() {
           </CollapsibleTrigger>
 
           {/* Ticker Content - Hidden when collapsed */}
-          <CollapsibleContent>
+          <CollapsibleContent className="ticker-collapsible-content">
             <div className="ticker-container overflow-hidden mt-2">
               <div className={`ticker-content flex items-center gap-6 ${popoverOpen ? "ticker-paused" : ""}`}>
                 {duplicatedTrends.map((trend, index) => (
