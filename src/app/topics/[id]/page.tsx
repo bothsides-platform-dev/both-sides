@@ -159,13 +159,6 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
           <p className="text-muted-foreground">{topic.description}</p>
         )}
 
-        {/* Reference Links */}
-        {topic.referenceLinks && Array.isArray(topic.referenceLinks) && (topic.referenceLinks as unknown as ReferenceLink[]).length > 0 && (
-          <ReferenceLinksCollapsible
-            links={topic.referenceLinks as unknown as ReferenceLink[]}
-          />
-        )}
-
         <TopicAuthorSection
           topicId={topic.id}
           authorId={topic.author.id}
@@ -211,6 +204,13 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         optionB={topic.optionB}
         deadline={topic.deadline}
       />
+
+      {/* Reference Links */}
+      {topic.referenceLinks && Array.isArray(topic.referenceLinks) && (topic.referenceLinks as unknown as ReferenceLink[]).length > 0 && (
+        <ReferenceLinksCollapsible
+          links={topic.referenceLinks as unknown as ReferenceLink[]}
+        />
+      )}
 
       {/* Opinions Section */}
       <OpinionSection
