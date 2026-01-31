@@ -81,7 +81,7 @@
 }
 
 /* Trending ticker animation */
-@keyframes scroll-left {
+@keyframes ticker-scroll {
   0% {
     transform: translateX(0);
   }
@@ -90,11 +90,28 @@
   }
 }
 
-.animate-scroll-left {
-  animation: scroll-left 30s linear infinite;
+.ticker-container {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 20px,
+    black calc(100% - 20px),
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 20px,
+    black calc(100% - 20px),
+    transparent
+  );
 }
 
-.animate-scroll-left:hover,
-.group:hover .animate-scroll-left {
+.ticker-content {
+  animation: ticker-scroll 30s linear infinite;
+}
+
+.ticker-content:hover {
   animation-play-state: paused;
 }
+
