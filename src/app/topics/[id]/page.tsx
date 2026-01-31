@@ -162,7 +162,7 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
         </div>
 
         {/* Hero Image */}
-        {topic.imageUrl ? (
+        {topic.imageUrl && (
           <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl">
             <Image
               src={topic.imageUrl}
@@ -171,24 +171,6 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
               className="object-cover"
               priority
             />
-          </div>
-        ) : (
-          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-50 via-white to-red-50">
-            {/* 배경 VS 워터마크 */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="select-none text-[120px] font-black text-muted-foreground/5">VS</span>
-            </div>
-
-            {/* 하단 옵션 미리보기 */}
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-center gap-4">
-              <div className="flex-1 rounded-lg bg-blue-500/10 px-4 py-2 text-center">
-                <span className="text-sm font-medium text-blue-700">A. {topic.optionA}</span>
-              </div>
-              <span className="text-lg font-bold text-muted-foreground/50">VS</span>
-              <div className="flex-1 rounded-lg bg-red-500/10 px-4 py-2 text-center">
-                <span className="text-sm font-medium text-red-700">B. {topic.optionB}</span>
-              </div>
-            </div>
           </div>
         )}
       </div>
