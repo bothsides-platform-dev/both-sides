@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "./UserMenu";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { TrendingTicker } from "@/components/TrendingTicker";
 import { PlusCircle } from "lucide-react";
 import logo from "@/app/logo.png";
 
@@ -13,8 +14,8 @@ export function Header() {
   const { data: session } = useSession();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="w-full px-4 md:px-8 lg:px-12 flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="w-full px-4 md:px-8 lg:px-12 flex h-16 items-center justify-between border-b">
         <Link href="/" className="flex items-center space-x-2">
           <Image
             src={logo}
@@ -45,6 +46,7 @@ export function Header() {
           <UserMenu />
         </nav>
       </div>
+      <TrendingTicker />
     </header>
   );
 }
