@@ -161,7 +161,7 @@ export default function ProfilePage() {
                         <Badge variant="secondary">
                           {CATEGORY_LABELS[vote.topic.category as keyof typeof CATEGORY_LABELS]}
                         </Badge>
-                        <span>{formatRelativeTime(vote.createdAt)}</span>
+                        <span suppressHydrationWarning>{formatRelativeTime(vote.createdAt)}</span>
                       </div>
                     </div>
                     <Badge variant={vote.side === "A" ? "sideA" : "sideB"}>
@@ -191,7 +191,7 @@ export default function ProfilePage() {
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {opinion.body}
                       </p>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground" suppressHydrationWarning>
                         {formatRelativeTime(opinion.createdAt)}
                       </span>
                     </div>
@@ -221,7 +221,7 @@ export default function ProfilePage() {
                       <h3 className="font-medium">{topic.title}</h3>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>{topic.optionA} vs {topic.optionB}</span>
-                        <span>{formatRelativeTime(topic.createdAt)}</span>
+                        <span suppressHydrationWarning>{formatRelativeTime(topic.createdAt)}</span>
                       </div>
                     </div>
                     <Badge variant="secondary">

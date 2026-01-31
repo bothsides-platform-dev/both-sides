@@ -89,7 +89,7 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
             &quot;{replyPreview}&quot;
           </p>
         )}
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-xs text-muted-foreground mt-1" suppressHydrationWarning>
           {topicTitle} · {formatDistanceToNow(new Date(notification.createdAt), {
             addSuffix: true,
             locale: ko,

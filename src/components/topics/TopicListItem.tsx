@@ -78,7 +78,7 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
           <Eye className="h-4 w-4" />
           {topic.viewCount}
         </span>
-        <span className="hidden md:block md:w-16 md:text-right">
+        <span className="hidden md:block md:w-16 md:text-right" suppressHydrationWarning>
           {formatRelativeTime(topic.createdAt)}
         </span>
       </div>

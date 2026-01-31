@@ -260,14 +260,14 @@ export function UserTable({ users }: UserTableProps) {
                     <span>토론 {user._count.topics}</span>
                     <span>의견 {user._count.opinions}</span>
                     <span>투표 {user._count.votes}</span>
-                    <span>{formatRelativeTime(user.createdAt)}</span>
+                    <span suppressHydrationWarning>{formatRelativeTime(user.createdAt)}</span>
                   </div>
 
                   {user.isBlacklisted && user.blacklistReason && (
                     <div className="text-xs text-destructive mt-1">
                       <span className="font-medium">차단 사유:</span> {user.blacklistReason}
                       {user.blacklistedAt && (
-                        <span className="ml-2 text-muted-foreground">
+                        <span className="ml-2 text-muted-foreground" suppressHydrationWarning>
                           ({formatRelativeTime(user.blacklistedAt)})
                         </span>
                       )}

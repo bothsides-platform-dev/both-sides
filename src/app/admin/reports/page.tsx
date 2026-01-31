@@ -170,7 +170,7 @@ export default function AdminReportsPage() {
                         <Badge variant="outline">
                           {reportType === "opinion" ? "의견" : "토론"}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-muted-foreground" suppressHydrationWarning>
                           {formatRelativeTime(report.createdAt)}
                         </span>
                       </div>

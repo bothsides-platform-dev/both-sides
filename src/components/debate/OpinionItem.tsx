@@ -206,7 +206,7 @@ export const OpinionItem = memo(function OpinionItem({
             <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-[11px] px-1.5 py-0">
               {sideLabel}
             </Badge>
-            <span className="text-xs text-muted-foreground/70">
+            <span className="text-xs text-muted-foreground/70" suppressHydrationWarning>
               {formatRelativeTime(opinion.createdAt)}
             </span>
           </div>

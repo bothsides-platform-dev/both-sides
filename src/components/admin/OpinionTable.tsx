@@ -133,7 +133,7 @@ export function OpinionTable({ opinions }: OpinionTableProps) {
                   </span>
                   <span>반응 {opinion._count.reactions}</span>
                   <span>신고 {opinion._count.reports}</span>
-                  <span>{formatRelativeTime(opinion.createdAt)}</span>
+                  <span suppressHydrationWarning>{formatRelativeTime(opinion.createdAt)}</span>
                 </div>
               </div>
 

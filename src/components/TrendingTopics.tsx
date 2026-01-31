@@ -126,7 +126,7 @@ export function TrendingTopics({ className, limit = 10 }: TrendingTopicsProps) {
           실시간 인기 검색어
         </CardTitle>
         {updatedAt && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground" suppressHydrationWarning>
             {formatRelativeTime(updatedAt)} 업데이트
           </p>
         )}
@@ -172,7 +172,7 @@ export function TrendingTopicsCollapsible({ className }: { className?: string })
           <TrendingUp className="h-5 w-5 text-green-500" />
           <span className="font-semibold">실시간 인기 검색어</span>
           {updatedAt && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground" suppressHydrationWarning>
               {formatRelativeTime(updatedAt)}
             </span>
           )}

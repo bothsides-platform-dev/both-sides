@@ -173,7 +173,7 @@ export function TopicTable({ topics }: TopicTableProps) {
                   <span>조회 {topic.viewCount.toLocaleString()}</span>
                   <span>투표 {topic._count.votes.toLocaleString()}</span>
                   <span>의견 {topic._count.opinions.toLocaleString()}</span>
-                  <span>{formatRelativeTime(topic.createdAt)}</span>
+                  <span suppressHydrationWarning>{formatRelativeTime(topic.createdAt)}</span>
                 </div>
               </div>
 

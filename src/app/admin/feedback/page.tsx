@@ -235,7 +235,7 @@ export default function AdminFeedbackPage() {
                           <StatusIcon className="h-3 w-3" />
                           {FEEDBACK_STATUS_LABELS[feedback.status]}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-muted-foreground" suppressHydrationWarning>
                           {formatRelativeTime(feedback.createdAt)}
                         </span>
                       </div>

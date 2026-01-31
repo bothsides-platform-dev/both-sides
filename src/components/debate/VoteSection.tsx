@@ -148,6 +148,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
                 <Badge
                   variant={dDay === "마감" ? "secondary" : "default"}
                   className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                  suppressHydrationWarning
                 >
                   <Clock className="mr-1 h-3 w-3" />
                   {dDay}
@@ -157,7 +158,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
                 <p className="text-sm">
                   <span className="font-medium">마감 시간</span>
                   <br />
-                  {formatDate(deadline)}
+                  <span suppressHydrationWarning>{formatDate(deadline)}</span>
                 </p>
               </PopoverContent>
             </Popover>
