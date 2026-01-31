@@ -181,7 +181,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
           )}
         </TabsContent>
 
-        <TabsContent value="opinions" className="space-y-5">
+        <TabsContent value="opinions">
           {profile.opinions.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
@@ -190,21 +190,21 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
             </Card>
           ) : (
             profile.opinions.map((opinion: OpinionItem) => (
-              <Link key={opinion.id} href={`/topics/${opinion.topic.id}`}>
+              <Link key={opinion.id} href={`/topics/${opinion.topic.id}`} className="block mb-2">
                 <Card className="transition-shadow hover:shadow-md">
-                  <CardContent className="p-4 space-y-2">
-                    <div className="flex items-center justify-between">
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex-1 min-w-0 space-y-1">
                       <h3 className="font-medium">{opinion.topic.title}</h3>
-                      <Badge variant={opinion.side === "A" ? "sideA" : "sideB"}>
-                        {opinion.side === "A" ? opinion.topic.optionA : opinion.topic.optionB}
-                      </Badge>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {opinion.body}
+                      </p>
+                      <span className="text-xs text-muted-foreground">
+                        {formatRelativeTime(opinion.createdAt)}
+                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {opinion.body}
-                    </p>
-                    <span className="text-xs text-muted-foreground">
-                      {formatRelativeTime(opinion.createdAt)}
-                    </span>
+                    <Badge className="ml-4 shrink-0" variant={opinion.side === "A" ? "sideA" : "sideB"}>
+                      {opinion.side === "A" ? opinion.topic.optionA : opinion.topic.optionB}
+                    </Badge>
                   </CardContent>
                 </Card>
               </Link>
@@ -212,7 +212,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
           )}
         </TabsContent>
 
-        <TabsContent value="topics" className="space-y-5">
+        <TabsContent value="topics">
           {profile.topics.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
@@ -221,19 +221,19 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
             </Card>
           ) : (
             profile.topics.map((topic: TopicItem) => (
-              <Link key={topic.id} href={`/topics/${topic.id}`}>
+              <Link key={topic.id} href={`/topics/${topic.id}`} className="block mb-2">
                 <Card className="transition-shadow hover:shadow-md">
-                  <CardContent className="p-4 space-y-2">
-                    <div className="flex items-center justify-between">
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="space-y-1">
                       <h3 className="font-medium">{topic.title}</h3>
-                      <Badge variant="secondary">
-                        {CATEGORY_LABELS[topic.category as keyof typeof CATEGORY_LABELS]}
-                      </Badge>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{topic.optionA} vs {topic.optionB}</span>
+                        <span>{formatRelativeTime(topic.createdAt)}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>{topic.optionA} vs {topic.optionB}</span>
-                      <span>{formatRelativeTime(topic.createdAt)}</span>
-                    </div>
+                    <Badge variant="secondary">
+                      {CATEGORY_LABELS[topic.category as keyof typeof CATEGORY_LABELS]}
+                    </Badge>
                   </CardContent>
                 </Card>
               </Link>
@@ -241,7 +241,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
           )}
         </TabsContent>
 
-        <TabsContent value="reactions" className="space-y-5">
+        <TabsContent value="reactions">
           {profile.reactions.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
@@ -250,26 +250,26 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
             </Card>
           ) : (
             profile.reactions.map((reaction: ReactionItem) => (
-              <Link key={reaction.id} href={`/topics/${reaction.opinion.topic.id}`}>
+              <Link key={reaction.id} href={`/topics/${reaction.opinion.topic.id}`} className="block mb-2">
                 <Card className="transition-shadow hover:shadow-md">
-                  <CardContent className="p-4 space-y-2">
-                    <div className="flex items-center justify-between">
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex-1 min-w-0 space-y-1">
                       <h3 className="font-medium">{reaction.opinion.topic.title}</h3>
-                      <Badge variant={reaction.type === "LIKE" ? "default" : "destructive"}>
-                        {reaction.type === "LIKE" ? "좋아요" : "싫어요"}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={reaction.opinion.side === "A" ? "sideA" : "sideB"} className="text-xs">
+                          {reaction.opinion.side === "A" ? reaction.opinion.topic.optionA : reaction.opinion.topic.optionB}
+                        </Badge>
+                        <p className="text-sm text-muted-foreground line-clamp-1 flex-1">
+                          {reaction.opinion.body}
+                        </p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {formatRelativeTime(reaction.createdAt)}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={reaction.opinion.side === "A" ? "sideA" : "sideB"} className="text-xs">
-                        {reaction.opinion.side === "A" ? reaction.opinion.topic.optionA : reaction.opinion.topic.optionB}
-                      </Badge>
-                      <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
-                        {reaction.opinion.body}
-                      </p>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {formatRelativeTime(reaction.createdAt)}
-                    </span>
+                    <Badge className="ml-4 shrink-0" variant={reaction.type === "LIKE" ? "default" : "destructive"}>
+                      {reaction.type === "LIKE" ? "좋아요" : "싫어요"}
+                    </Badge>
                   </CardContent>
                 </Card>
               </Link>
