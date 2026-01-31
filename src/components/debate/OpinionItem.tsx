@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThumbsUp, Eye, EyeOff, User, MoreVertical, Flag, MessageCircle, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { ThumbsUp, Eye, EyeOff, User, MoreVertical, Flag, MessageCircle, ChevronDown, ChevronUp, Loader2, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils";
 import { ReportDialog } from "./ReportDialog";
@@ -150,8 +150,14 @@ export const OpinionItem = memo(function OpinionItem({
             {isAnonymous ? (
               <span className="font-medium text-sm">{authorName}</span>
             ) : (
-              <Link href={`/users/${opinion.user.id}`} className="hover:underline">
+              <Link href={`/users/${opinion.user.id}`} className="hover:underline flex items-center gap-1.5">
                 <span className="font-medium text-sm">{authorName}</span>
+                {opinion.user.isBlacklisted && (
+                  <Badge variant="outline" className="text-[10px] px-1 py-0 text-destructive border-destructive/50">
+                    <Ban className="h-2.5 w-2.5 mr-0.5" />
+                    차단됨
+                  </Badge>
+                )}
               </Link>
             )}
             <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-[11px] px-1.5 py-0">

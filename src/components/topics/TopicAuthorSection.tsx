@@ -11,7 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Eye, EyeOff, User, MoreVertical, Flag } from "lucide-react";
+import { Eye, EyeOff, User, MoreVertical, Flag, Ban } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { ReportDialog } from "@/components/debate/ReportDialog";
 
@@ -21,6 +22,7 @@ interface TopicAuthorSectionProps {
   authorName: string;
   authorImage: string | null;
   isAnonymous: boolean;
+  isBlacklisted?: boolean;
   createdAt: Date;
   viewCount: number;
 }
@@ -31,6 +33,7 @@ export function TopicAuthorSection({
   authorName,
   authorImage,
   isAnonymous: initialIsAnonymous,
+  isBlacklisted,
   createdAt,
   viewCount,
 }: TopicAuthorSectionProps) {
@@ -84,6 +87,12 @@ export function TopicAuthorSection({
             <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
           </Avatar>
           <span>{authorName}</span>
+          {isBlacklisted && (
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-destructive border-destructive/50">
+              <Ban className="h-2.5 w-2.5 mr-0.5" />
+              차단된 사용자
+            </Badge>
+          )}
         </Link>
       )}
       <span>·</span>

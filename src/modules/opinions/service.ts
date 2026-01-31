@@ -52,6 +52,7 @@ export async function createOpinion(
           nickname: true,
           name: true,
           image: true,
+          isBlacklisted: true,
         },
       },
       _count: {
@@ -107,6 +108,7 @@ export async function getOpinions(topicId: string, input: GetOpinionsInput) {
             nickname: true,
             name: true,
             image: true,
+            isBlacklisted: true,
           },
         },
         reactions: {
@@ -163,6 +165,7 @@ export async function getOpinionById(id: string) {
           nickname: true,
           name: true,
           image: true,
+          isBlacklisted: true,
         },
       },
     },
@@ -192,6 +195,7 @@ export async function updateOpinionAnonymity(id: string, userId: string, input: 
           nickname: true,
           name: true,
           image: true,
+          isBlacklisted: true,
         },
       },
       reactions: {
@@ -248,6 +252,7 @@ export async function getOpinionsForAdmin(input: GetOpinionsAdminInput) {
             nickname: true,
             name: true,
             image: true,
+            isBlacklisted: true,
           },
         },
         topic: {
@@ -295,6 +300,7 @@ export async function updateOpinionAnonymityByAdmin(id: string, isAnonymous: boo
           nickname: true,
           name: true,
           image: true,
+          isBlacklisted: true,
         },
       },
       topic: {

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
-import { Eye, MessageSquare, Users, User } from "lucide-react";
+import { Eye, MessageSquare, Users, User, Ban } from "lucide-react";
 import { ShareButton } from "@/components/ui/ShareButton";
 import type { Category } from "@prisma/client";
 
@@ -28,6 +28,7 @@ export interface TopicCardProps {
       nickname?: string | null;
       name?: string | null;
       image?: string | null;
+      isBlacklisted?: boolean;
     };
     _count: {
       votes: number;
@@ -100,8 +101,8 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
               <span className="text-sm text-muted-foreground">{authorName}</span>
             </div>
           ) : (
-            <Link 
-              href={`/users/${topic.author.id}`} 
+            <Link
+              href={`/users/${topic.author.id}`}
               onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-2 hover:underline"
             >
@@ -110,6 +111,12 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
                 <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
               </Avatar>
               <span className="text-sm text-muted-foreground">{authorName}</span>
+              {topic.author.isBlacklisted && (
+                <Badge variant="outline" className="text-[10px] px-1 py-0 text-destructive border-destructive/50">
+                  <Ban className="h-2.5 w-2.5 mr-0.5" />
+                  차단됨
+                </Badge>
+              )}
             </Link>
           )}
           <div className="flex items-center gap-3 text-sm text-muted-foreground">

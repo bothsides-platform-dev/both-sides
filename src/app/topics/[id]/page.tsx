@@ -24,6 +24,7 @@ async function getTopic(id: string) {
           nickname: true,
           name: true,
           image: true,
+          isBlacklisted: true,
         },
       },
     },
@@ -144,6 +145,7 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
           authorName={authorName}
           authorImage={topic.author.image}
           isAnonymous={topic.isAnonymous}
+          isBlacklisted={topic.author.isBlacklisted}
           createdAt={topic.createdAt}
           viewCount={topic.viewCount}
         />

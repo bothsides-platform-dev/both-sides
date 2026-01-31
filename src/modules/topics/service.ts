@@ -25,6 +25,7 @@ export async function createTopic(authorId: string, input: CreateTopicInput) {
           nickname: true,
           name: true,
           image: true,
+          isBlacklisted: true,
         },
       },
       _count: {
@@ -82,6 +83,7 @@ export async function getTopics(input: GetTopicsInput) {
             nickname: true,
             name: true,
             image: true,
+            isBlacklisted: true,
           },
         },
         _count: {
@@ -214,6 +216,7 @@ export async function getTopic(id: string) {
           nickname: true,
           name: true,
           image: true,
+          isBlacklisted: true,
         },
       },
       _count: {
@@ -313,6 +316,7 @@ export async function getTopicsForAdmin(input: GetTopicsAdminInput) {
             nickname: true,
             name: true,
             image: true,
+            isBlacklisted: true,
           },
         },
         _count: {
@@ -359,6 +363,7 @@ export async function updateTopic(id: string, input: UpdateTopicInput) {
           nickname: true,
           name: true,
           image: true,
+          isBlacklisted: true,
         },
       },
       _count: {
@@ -418,6 +423,7 @@ export async function updateTopicAnonymity(id: string, userId: string, input: Up
           nickname: true,
           name: true,
           image: true,
+          isBlacklisted: true,
         },
       },
       _count: {
