@@ -3,7 +3,13 @@ import { put } from "@vercel/blob";
 import { requireAuth } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif"];
+const MIME_TO_EXT: Record<string, string[]> = {
+  "image/jpeg": ["jpg", "jpeg"],
+  "image/png": ["png"],
+  "image/webp": ["webp"],
+  "image/gif": ["gif"],
+};
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(request: NextRequest) {
@@ -20,13 +26,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    // 1. MIME 타입 검증
+    const allowedExts = MIME_TO_EXT[file.type];
+    if (!allowedExts) {
       return NextResponse.json(
         { error: "지원하지 않는 파일 형식입니다. (jpg, png, webp, gif만 가능)" },
         { status: 400 }
       );
     }
 
+    // 2. 확장자 추출 및 검증
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+      return NextResponse.json(
+        { error: "지원하지 않는 파일 확장자입니다." },
+        { status: 400 }
+      );
+    }
+
+    // 3. MIME 타입과 확장자 일치 검증
+    if (!allowedExts.includes(ext)) {
+      return NextResponse.json(
+        { error: "파일 형식과 확장자가 일치하지 않습니다." },
+        { status: 400 }
+      );
+    }
+
+    // 4. 파일 크기 검증
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
         { error: "파일 크기는 5MB 이하여야 합니다." },
@@ -34,10 +60,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ext = file.name.split(".").pop() || "jpg";
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+    // 5. 안전한 파일명 생성 (검증된 확장자 사용)
+    const safeFilename = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 
-    // Vercel Blob Storage에 업로드
     const token = process.env.BLOB_READ_WRITE_TOKEN;
     if (!token) {
       return NextResponse.json(
@@ -46,7 +71,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const blob = await put(filename, file, {
+    const blob = await put(safeFilename, file, {
       access: "public",
       contentType: file.type,
       token,

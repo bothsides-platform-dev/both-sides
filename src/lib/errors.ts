@@ -44,25 +44,26 @@ export class ConflictError extends AppError {
   }
 }
 
-export function handleApiError(error: unknown): Response {
-  console.error("API Error:", error);
+export function handleApiError(error: unknown, requestId?: string): Response {
+  const rid = requestId || "unknown";
+  console.error(`[${rid}] API Error:`, error);
 
   if (error instanceof AppError) {
     return Response.json(
-      { error: error.message, code: error.code },
+      { error: error.message, code: error.code, requestId: rid },
       { status: error.statusCode }
     );
   }
 
   if (error instanceof Error) {
     return Response.json(
-      { error: error.message, code: "INTERNAL_ERROR" },
+      { error: error.message, code: "INTERNAL_ERROR", requestId: rid },
       { status: 500 }
     );
   }
 
   return Response.json(
-    { error: "알 수 없는 오류가 발생했습니다.", code: "UNKNOWN_ERROR" },
+    { error: "알 수 없는 오류가 발생했습니다.", code: "UNKNOWN_ERROR", requestId: rid },
     { status: 500 }
   );
 }

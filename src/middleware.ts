@@ -3,7 +3,57 @@ import type { NextRequest } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-// Edge Runtime용 Redis 클라이언트 (환경변수가 없으면 null)
+// --- Request ID 생성 ---
+function generateRequestId(): string {
+  return crypto.randomUUID();
+}
+
+// --- CSRF 검증 (Origin-based) ---
+const CSRF_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
+
+function validateCsrf(request: NextRequest): boolean {
+  if (!CSRF_METHODS.includes(request.method)) return true;
+
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("host");
+
+  // Same-origin 요청 (origin 없음) 허용
+  if (!origin) return true;
+
+  // Origin이 host와 일치하는지 확인
+  const allowedOrigins = [
+    `https://${host}`,
+    `http://${host}`, // 개발 환경
+    process.env.NEXTAUTH_URL,
+  ].filter(Boolean);
+
+  return allowedOrigins.some((allowed) => origin === allowed);
+}
+
+// --- Body Size 제한 ---
+const MAX_BODY_SIZES: Record<string, number> = {
+  "/api/upload": 5 * 1024 * 1024, // 5MB
+  "/api/": 100 * 1024, // 100KB 기본
+};
+
+function checkBodySize(request: NextRequest): boolean {
+  const contentLength = request.headers.get("content-length");
+  if (!contentLength) return true;
+
+  const pathname = request.nextUrl.pathname;
+  let maxSize = 100 * 1024; // 기본 100KB
+
+  for (const [route, size] of Object.entries(MAX_BODY_SIZES)) {
+    if (pathname.startsWith(route)) {
+      maxSize = size;
+      break;
+    }
+  }
+
+  return parseInt(contentLength) <= maxSize;
+}
+
+// --- Rate Limiting 설정 ---
 const redis =
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
     ? new Redis({
@@ -12,7 +62,6 @@ const redis =
       })
     : null;
 
-// Rate limiters (Redis가 있을 때만 생성)
 const voteLimiter = redis
   ? new Ratelimit({
       redis,
@@ -45,7 +94,6 @@ const opinionLimiter = redis
     })
   : null;
 
-// 라우트 → limiter 매핑
 const RATE_LIMITED_ROUTES: Array<{
   pattern: RegExp;
   limiter: Ratelimit | null;
@@ -76,8 +124,25 @@ const RATE_LIMITED_ROUTES: Array<{
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const method = request.method;
+  const requestId = generateRequestId();
 
-  // Rate limiting 적용
+  // 1. CSRF 검증
+  if (!validateCsrf(request)) {
+    return NextResponse.json(
+      { error: "잘못된 요청입니다.", requestId },
+      { status: 403 }
+    );
+  }
+
+  // 2. Body Size 검증
+  if (!checkBodySize(request)) {
+    return NextResponse.json(
+      { error: "요청 크기가 너무 큽니다.", requestId },
+      { status: 413 }
+    );
+  }
+
+  // 3. Rate Limiting
   for (const route of RATE_LIMITED_ROUTES) {
     if (
       route.pattern.test(pathname) &&
@@ -96,13 +161,13 @@ export async function middleware(request: NextRequest) {
 
         if (!result.success) {
           return NextResponse.json(
-            { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+            { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.", requestId },
             {
               status: 429,
               headers: {
+                "X-Request-Id": requestId,
                 "X-RateLimit-Limit": String(result.limit),
                 "X-RateLimit-Remaining": String(result.remaining),
-                "X-RateLimit-Reset": String(result.reset),
                 "Retry-After": String(
                   Math.ceil((result.reset - Date.now()) / 1000)
                 ),
@@ -112,18 +177,24 @@ export async function middleware(request: NextRequest) {
         }
 
         const response = NextResponse.next();
+        response.headers.set("X-Request-Id", requestId);
         response.headers.set("X-RateLimit-Limit", String(result.limit));
         response.headers.set("X-RateLimit-Remaining", String(result.remaining));
         return response;
       } catch (error) {
         // Redis 연결 실패 시 요청 허용 (fail-open)
-        console.error("Rate limit error:", error);
-        return NextResponse.next();
+        console.error(`[${requestId}] Rate limit error:`, error);
+        const response = NextResponse.next();
+        response.headers.set("X-Request-Id", requestId);
+        return response;
       }
     }
   }
 
-  return NextResponse.next();
+  // Request ID를 응답 헤더에 추가
+  const response = NextResponse.next();
+  response.headers.set("X-Request-Id", requestId);
+  return response;
 }
 
 export const config = {
