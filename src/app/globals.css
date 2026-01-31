@@ -111,7 +111,8 @@
   animation: ticker-scroll 30s linear infinite;
 }
 
-.ticker-content:hover {
+.ticker-content:hover,
+.ticker-content.ticker-paused {
   animation-play-state: paused;
 }
 

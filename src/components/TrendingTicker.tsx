@@ -20,11 +20,22 @@ import type { TrendsApiResponse } from "@/modules/trends/types";
 
 const STORAGE_KEY = "trending-ticker-open";
 
-function TrendingKeyword({ rank, query }: { rank: number; query: string }) {
+interface TrendingKeywordProps {
+  rank: number;
+  query: string;
+  onOpenChange?: (open: boolean) => void;
+}
+
+function TrendingKeyword({ rank, query, onOpenChange }: TrendingKeywordProps) {
   const [open, setOpen] = useState(false);
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    onOpenChange?.(isOpen);
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
           className="inline-flex items-center gap-1.5 whitespace-nowrap hover:text-primary transition-colors"
@@ -42,7 +53,7 @@ function TrendingKeyword({ rank, query }: { rank: number; query: string }) {
           <Link
             href={`/topics/new?keyword=${encodeURIComponent(query)}`}
             className="flex items-center gap-2 px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors"
-            onClick={() => setOpen(false)}
+            onClick={() => handleOpenChange(false)}
           >
             <MessageSquarePlus className="h-4 w-4 text-primary" />
             이 주제로 토론 만들기
@@ -52,7 +63,7 @@ function TrendingKeyword({ rank, query }: { rank: number; query: string }) {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors"
-            onClick={() => setOpen(false)}
+            onClick={() => handleOpenChange(false)}
           >
             <Search className="h-4 w-4 text-muted-foreground" />
             Google에서 검색
@@ -66,6 +77,7 @@ function TrendingKeyword({ rank, query }: { rank: number; query: string }) {
 export function TrendingTicker() {
   const [isOpen, setIsOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const { data, error, isLoading } = useSWR<TrendsApiResponse>(
     "/api/trends",
@@ -142,12 +154,13 @@ export function TrendingTicker() {
           {/* Ticker Content - Hidden when collapsed */}
           <CollapsibleContent>
             <div className="ticker-container overflow-hidden mt-2">
-              <div className="ticker-content flex items-center gap-6">
+              <div className={`ticker-content flex items-center gap-6 ${popoverOpen ? "ticker-paused" : ""}`}>
                 {duplicatedTrends.map((trend, index) => (
                   <TrendingKeyword
                     key={`${trend.rank}-${index}`}
                     rank={trend.rank}
                     query={trend.query}
+                    onOpenChange={setPopoverOpen}
                   />
                 ))}
               </div>
