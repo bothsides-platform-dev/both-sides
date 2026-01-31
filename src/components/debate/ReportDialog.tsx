@@ -16,14 +16,27 @@ import { Label } from "@/components/ui/label";
 interface ReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  opinionId: string;
+  targetId: string;
+  targetType: "opinion" | "topic";
   onReportSuccess?: () => void;
 }
+
+const dialogContent = {
+  opinion: {
+    title: "의견 신고",
+    description: "부적절한 의견을 신고해주세요. 신고 사유를 구체적으로 작성해주시면 검토에 도움이 됩니다.",
+  },
+  topic: {
+    title: "토론 신고",
+    description: "부적절한 토론을 신고해주세요. 신고 사유를 구체적으로 작성해주시면 검토에 도움이 됩니다.",
+  },
+};
 
 export function ReportDialog({
   open,
   onOpenChange,
-  opinionId,
+  targetId,
+  targetType,
   onReportSuccess,
 }: ReportDialogProps) {
   const [reason, setReason] = useState("");
@@ -32,6 +45,10 @@ export function ReportDialog({
 
   const characterCount = reason.length;
   const isValidLength = characterCount >= 10 && characterCount <= 500;
+
+  const apiPath = targetType === "opinion"
+    ? `/api/opinions/${targetId}/reports`
+    : `/api/topics/${targetId}/reports`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +62,7 @@ export function ReportDialog({
     setError("");
 
     try {
-      const response = await fetch(`/api/opinions/${opinionId}/reports`, {
+      const response = await fetch(apiPath, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,9 +102,9 @@ export function ReportDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>의견 신고</DialogTitle>
+          <DialogTitle>{dialogContent[targetType].title}</DialogTitle>
           <DialogDescription>
-            부적절한 의견을 신고해주세요. 신고 사유를 구체적으로 작성해주시면 검토에 도움이 됩니다.
+            {dialogContent[targetType].description}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

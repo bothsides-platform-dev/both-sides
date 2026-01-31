@@ -290,7 +290,8 @@ export const OpinionItem = memo(function OpinionItem({
       <ReportDialog
         open={isReportDialogOpen}
         onOpenChange={setIsReportDialogOpen}
-        opinionId={opinion.id}
+        targetId={opinion.id}
+        targetType="opinion"
         onReportSuccess={onReportSuccess}
       />
     </div>

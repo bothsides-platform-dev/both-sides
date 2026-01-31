@@ -11,8 +11,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Eye, EyeOff, User, MoreVertical } from "lucide-react";
+import { Eye, EyeOff, User, MoreVertical, Flag } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { ReportDialog } from "@/components/debate/ReportDialog";
 
 interface TopicAuthorSectionProps {
   topicId: string;
@@ -36,8 +37,10 @@ export function TopicAuthorSection({
   const { data: session } = useSession();
   const [isAnonymous, setIsAnonymous] = useState(initialIsAnonymous);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   const isOwner = session?.user?.id === authorId;
+  const isLoggedIn = !!session?.user;
 
   const handleToggleAnonymity = async () => {
     setIsUpdating(true);
@@ -90,7 +93,7 @@ export function TopicAuthorSection({
         <Eye className="h-4 w-4" />
         {viewCount.toLocaleString()}
       </span>
-      {isOwner && (
+      {isLoggedIn && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -103,26 +106,41 @@ export function TopicAuthorSection({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {isOwner && (
+              <DropdownMenuItem
+                onClick={handleToggleAnonymity}
+                disabled={isUpdating}
+                className="cursor-pointer"
+              >
+                {isAnonymous ? (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    공개로 전환
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="h-4 w-4 mr-2" />
+                    익명으로 전환
+                  </>
+                )}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
-              onClick={handleToggleAnonymity}
-              disabled={isUpdating}
-              className="cursor-pointer"
+              onClick={() => setIsReportDialogOpen(true)}
+              className="text-red-600 focus:text-red-600 cursor-pointer"
             >
-              {isAnonymous ? (
-                <>
-                  <Eye className="h-4 w-4 mr-2" />
-                  공개로 전환
-                </>
-              ) : (
-                <>
-                  <EyeOff className="h-4 w-4 mr-2" />
-                  익명으로 전환
-                </>
-              )}
+              <Flag className="h-4 w-4 mr-2" />
+              토론 신고하기
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+      <ReportDialog
+        open={isReportDialogOpen}
+        onOpenChange={setIsReportDialogOpen}
+        targetId={topicId}
+        targetType="topic"
+      />
     </div>
   );
 }

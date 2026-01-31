@@ -3,6 +3,8 @@ import { NotFoundError, ConflictError } from "@/lib/errors";
 import { BLIND_THRESHOLD } from "@/lib/constants";
 import type { ReportStatus } from "@prisma/client";
 
+export type ReportType = "opinion" | "topic";
+
 export async function createReport(
   userId: string,
   opinionId: string,
@@ -50,8 +52,69 @@ export async function createReport(
   return report;
 }
 
-export async function getReports(status?: ReportStatus) {
-  const where = status ? { status } : {};
+export async function createTopicReport(
+  userId: string,
+  topicId: string,
+  reason: string
+) {
+  // Check if topic exists
+  const topic = await prisma.topic.findUnique({
+    where: { id: topicId },
+  });
+
+  if (!topic) {
+    throw new NotFoundError("토론을 찾을 수 없습니다.");
+  }
+
+  // Check if user already reported this topic (본인 신고는 허용 - 자진 삭제 대용)
+  const existingReport = await prisma.report.findFirst({
+    where: { topicId, userId },
+  });
+
+  if (existingReport) {
+    throw new ConflictError("이미 이 토론을 신고하셨습니다.");
+  }
+
+  // Create report
+  const report = await prisma.report.create({
+    data: {
+      topicId,
+      userId,
+      reason,
+    },
+  });
+
+  // Check if should auto-hide
+  const reportCount = await prisma.report.count({
+    where: { topicId },
+  });
+
+  if (reportCount >= BLIND_THRESHOLD && !topic.isHidden) {
+    await prisma.topic.update({
+      where: { id: topicId },
+      data: { isHidden: true, hiddenAt: new Date() },
+    });
+  }
+
+  return report;
+}
+
+export async function getReports(status?: ReportStatus, type?: ReportType) {
+  const where: {
+    status?: ReportStatus;
+    opinionId?: { not: null } | null;
+    topicId?: { not: null } | null;
+  } = {};
+
+  if (status) {
+    where.status = status;
+  }
+
+  if (type === "opinion") {
+    where.opinionId = { not: null };
+  } else if (type === "topic") {
+    where.topicId = { not: null };
+  }
 
   return prisma.report.findMany({
     where,
@@ -74,6 +137,17 @@ export async function getReports(status?: ReportStatus) {
           },
         },
       },
+      topic: {
+        include: {
+          author: {
+            select: {
+              id: true,
+              nickname: true,
+              name: true,
+            },
+          },
+        },
+      },
       user: {
         select: {
           id: true,
@@ -88,57 +162,108 @@ export async function getReports(status?: ReportStatus) {
 export async function updateReportStatus(id: string, status: ReportStatus) {
   const report = await prisma.report.findUnique({
     where: { id },
-    include: { opinion: true },
+    include: { opinion: true, topic: true },
   });
 
   if (!report) {
     throw new NotFoundError("신고를 찾을 수 없습니다.");
   }
 
-  // If reviewed (accepted), blind the opinion
-  if (status === "REVIEWED" && !report.opinion.isBlinded) {
-    await prisma.$transaction([
-      prisma.report.update({
+  // Handle opinion reports
+  if (report.opinionId && report.opinion) {
+    if (status === "REVIEWED" && !report.opinion.isBlinded) {
+      await prisma.$transaction([
+        prisma.report.update({
+          where: { id },
+          data: { status },
+        }),
+        prisma.opinion.update({
+          where: { id: report.opinionId },
+          data: { isBlinded: true },
+        }),
+      ]);
+    } else if (status === "DISMISSED") {
+      await prisma.report.update({
         where: { id },
-        data: { status },
-      }),
-      prisma.opinion.update({
-        where: { id: report.opinionId },
-        data: { isBlinded: true },
-      }),
-    ]);
-  } else if (status === "DISMISSED") {
-    // Update only this specific report to DISMISSED
-    await prisma.report.update({
-      where: { id },
-      data: { status: "DISMISSED" },
-    });
+        data: { status: "DISMISSED" },
+      });
 
-    // Check remaining PENDING reports for this opinion
-    const pendingCount = await prisma.report.count({
-      where: {
-        opinionId: report.opinionId,
-        status: "PENDING",
-      },
-    });
-
-    // If no more PENDING reports, check if we should unblind
-    if (pendingCount === 0) {
-      // Check if there are any REVIEWED reports
-      const reviewedCount = await prisma.report.count({
+      const pendingCount = await prisma.report.count({
         where: {
           opinionId: report.opinionId,
-          status: "REVIEWED",
+          status: "PENDING",
         },
       });
 
-      // Only unblind if no REVIEWED reports exist
-      if (reviewedCount === 0) {
-        await prisma.opinion.update({
-          where: { id: report.opinionId },
-          data: { isBlinded: false },
+      if (pendingCount === 0) {
+        const reviewedCount = await prisma.report.count({
+          where: {
+            opinionId: report.opinionId,
+            status: "REVIEWED",
+          },
         });
+
+        if (reviewedCount === 0) {
+          await prisma.opinion.update({
+            where: { id: report.opinionId },
+            data: { isBlinded: false },
+          });
+        }
       }
+    } else {
+      await prisma.report.update({
+        where: { id },
+        data: { status },
+      });
+    }
+  }
+
+  // Handle topic reports
+  if (report.topicId && report.topic) {
+    if (status === "REVIEWED" && !report.topic.isHidden) {
+      await prisma.$transaction([
+        prisma.report.update({
+          where: { id },
+          data: { status },
+        }),
+        prisma.topic.update({
+          where: { id: report.topicId },
+          data: { isHidden: true, hiddenAt: new Date() },
+        }),
+      ]);
+    } else if (status === "DISMISSED") {
+      await prisma.report.update({
+        where: { id },
+        data: { status: "DISMISSED" },
+      });
+
+      const pendingCount = await prisma.report.count({
+        where: {
+          topicId: report.topicId,
+          status: "PENDING",
+        },
+      });
+
+      if (pendingCount === 0) {
+        const reviewedCount = await prisma.report.count({
+          where: {
+            topicId: report.topicId,
+            status: "REVIEWED",
+          },
+        });
+
+        if (reviewedCount === 0) {
+          await prisma.topic.update({
+            where: { id: report.topicId },
+            data: { isHidden: false, hiddenAt: null },
+          });
+        }
+      }
+    } else {
+      await prisma.report.update({
+        where: { id },
+        data: { status },
+      });
     }
   }
 
@@ -146,6 +271,7 @@ export async function updateReportStatus(id: string, status: ReportStatus) {
     where: { id },
     include: {
       opinion: true,
+      topic: true,
     },
   });
 }

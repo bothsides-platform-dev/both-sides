@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
-import { getReports, updateReportStatus } from "@/modules/reports/service";
+import { getReports, updateReportStatus, type ReportType } from "@/modules/reports/service";
 
 export const dynamic = 'force-dynamic';
 
@@ -13,8 +13,9 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get("status") as "PENDING" | "REVIEWED" | "DISMISSED" | null;
+    const type = searchParams.get("type") as ReportType | null;
 
-    const reports = await getReports(status ?? undefined);
+    const reports = await getReports(status ?? undefined, type ?? undefined);
     return Response.json({ data: reports });
   } catch (error) {
     return handleApiError(error);

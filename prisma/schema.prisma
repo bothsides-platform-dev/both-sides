@@ -137,6 +137,7 @@ model Topic {
   votes    Vote[]
   opinions Opinion[]
   views    TopicView[]
+  reports  Report[]
 
   @@index([authorId])
   @@index([category])
@@ -224,17 +225,20 @@ model Reaction {
 
 model Report {
   id        String       @id @default(cuid())
-  opinionId String
+  opinionId String?
+  topicId   String?
   userId    String
   reason    String       @db.Text
   status    ReportStatus @default(PENDING)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  opinion Opinion @relation(fields: [opinionId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opinion Opinion? @relation(fields: [opinionId], references: [id], onDelete: Cascade)
+  topic   Topic?   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([opinionId])
+  @@index([topicId])
   @@index([userId])
   @@index([status])
 }
