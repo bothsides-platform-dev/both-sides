@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { notFound } from "next/navigation";
 import useSWR from "swr";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -83,9 +84,10 @@ interface PublicProfileData {
   reactionsCount: number;
 }
 
-export default function PublicProfilePage({ params }: { params: { id: string } }) {
+export default function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { data, isLoading, error } = useSWR<{ data: PublicProfileData }>(
-    `/api/users/${params.id}`,
+    `/api/users/${id}`,
     fetcher
   );
 

@@ -5,7 +5,7 @@ import { NextRequest } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -15,7 +15,7 @@ export async function GET(
       throw new ForbiddenError("로그인이 필요합니다.");
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
 
     // Check if user exists
     const user = await prisma.user.findUnique({
