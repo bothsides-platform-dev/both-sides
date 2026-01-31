@@ -24,7 +24,7 @@ export function Header() {
             priority
             className="h-10 w-10"
           />
-          <span className="hidden sm:inline text-2xl font-bold">
+          <span className="text-xl sm:text-2xl font-bold">
             <span className="text-[#3B82F6]">Both</span>
             <span className="text-[#EF4444]">Sides</span>
           </span>
