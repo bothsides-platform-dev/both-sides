@@ -49,6 +49,27 @@ export const metadata: Metadata = {
   },
 };
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club";
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "BothSides",
+  alternateName: "보스사이드",
+  url: siteUrl,
+  description: "A vs B, 당신의 선택은? 양자택일 토론 플랫폼",
+  inLanguage: "ko",
+  publisher: {
+    "@type": "Organization",
+    name: "BothSides",
+    url: siteUrl,
+    logo: {
+      "@type": "ImageObject",
+      url: `${siteUrl}/logo.png`,
+    },
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -59,6 +80,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
+        {/* WebSite Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         {/* Microsoft Clarity */}
         <Script id="clarity-script" strategy="afterInteractive">
           {`

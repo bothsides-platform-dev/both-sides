@@ -63,9 +63,19 @@ export async function generateMetadata({ params }: TopicDetailPageProps) {
   const ogImageUrl = new URL(`/topics/${id}/opengraph-image`, siteUrl);
   const twitterImageUrl = new URL(`/topics/${id}/twitter-image`, siteUrl);
 
+  const authorName = topic.author.nickname || topic.author.name || "익명";
+
   return {
     title,
     description,
+    keywords: [
+      topic.optionA,
+      topic.optionB,
+      CATEGORY_LABELS[topic.category],
+      "토론",
+      "양자택일",
+      "찬반",
+    ],
     alternates: {
       canonical: canonicalUrl,
     },
@@ -83,6 +93,11 @@ export async function generateMetadata({ params }: TopicDetailPageProps) {
         },
       ],
       type: "article",
+      publishedTime: topic.createdAt.toISOString(),
+      modifiedTime: topic.updatedAt.toISOString(),
+      authors: topic.isAnonymous ? undefined : [authorName],
+      section: CATEGORY_LABELS[topic.category],
+      tags: [topic.optionA, topic.optionB, CATEGORY_LABELS[topic.category]],
     },
     twitter: {
       card: "summary_large_image",
@@ -114,15 +129,27 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
     "@context": "https://schema.org",
     "@type": "DiscussionForumPosting",
     headline: topic.title,
-    description: topic.description ?? undefined,
+    description: topic.description ?? `${topic.optionA} vs ${topic.optionB}`,
     datePublished: topic.createdAt.toISOString(),
     dateModified: topic.updatedAt.toISOString(),
     author: {
       "@type": "Person",
       name: authorName,
     },
-    mainEntityOfPage: canonicalUrl,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": canonicalUrl,
+    },
     url: canonicalUrl,
+    image: `${siteUrl}/topics/${topic.id}/opengraph-image`,
+    inLanguage: "ko",
+    keywords: [topic.optionA, topic.optionB, CATEGORY_LABELS[topic.category]].join(", "),
+    articleSection: CATEGORY_LABELS[topic.category],
+    interactionStatistic: {
+      "@type": "InteractionCounter",
+      interactionType: "https://schema.org/ViewAction",
+      userInteractionCount: topic.viewCount,
+    },
   };
 
   return (
