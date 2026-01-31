@@ -45,3 +45,6 @@ src/
 
 ## Common Issues
 - **Vercel build fails with `ERR_PNPM_OUTDATED_LOCKFILE`**: Run `pnpm install` locally and commit the updated lockfile
+
+## Workflow
+- **작업 완료시 반드시 commit and push 수행**
