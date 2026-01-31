@@ -33,13 +33,13 @@ export async function GET(
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            background: "linear-gradient(135deg, #111827 0%, #6d28d9 100%)",
+            background: "#F5F5F5",
             fontFamily: "system-ui, sans-serif",
-            color: "white",
+            color: "#212121",
           }}
         >
           <div style={{ fontSize: 56, fontWeight: 800 }}>BothSides</div>
-          <div style={{ marginTop: 16, fontSize: 28, opacity: 0.9 }}>
+          <div style={{ marginTop: 16, fontSize: 28, color: "#757575" }}>
             토론을 찾을 수 없습니다
           </div>
         </div>
@@ -60,9 +60,9 @@ export async function GET(
           flexDirection: "column",
           justifyContent: "space-between",
           padding: 72,
-          background: "linear-gradient(135deg, #111827 0%, #6d28d9 100%)",
+          background: "#F5F5F5",
           fontFamily: "system-ui, sans-serif",
-          color: "white",
+          color: "#212121",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -72,7 +72,8 @@ export async function GET(
               fontSize: 24,
               padding: "10px 16px",
               borderRadius: 999,
-              background: "rgba(255,255,255,0.14)",
+              background: "rgba(0,0,0,0.08)",
+              color: "#616161",
             }}
           >
             {categoryLabel}
@@ -92,14 +93,15 @@ export async function GET(
                 justifyContent: "center",
                 padding: "18px 22px",
                 borderRadius: 18,
-                background: "rgba(59,130,246,0.22)",
-                border: "1px solid rgba(191,219,254,0.45)",
+                background: "rgba(59,130,246,0.15)",
+                border: "2px solid #3B82F6",
                 fontWeight: 800,
+                color: "#1E40AF",
               }}
             >
               A: {topic.optionA}
             </div>
-            <div style={{ fontSize: 28, fontWeight: 900, opacity: 0.95 }}>VS</div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: "#757575" }}>VS</div>
             <div
               style={{
                 display: "flex",
@@ -107,9 +109,10 @@ export async function GET(
                 justifyContent: "center",
                 padding: "18px 22px",
                 borderRadius: 18,
-                background: "rgba(239,68,68,0.20)",
-                border: "1px solid rgba(254,202,202,0.5)",
+                background: "rgba(239,68,68,0.15)",
+                border: "2px solid #EF4444",
                 fontWeight: 800,
+                color: "#B91C1C",
               }}
             >
               B: {topic.optionB}
@@ -123,7 +126,8 @@ export async function GET(
               fontSize: 22,
               padding: "14px 18px",
               borderRadius: 14,
-              background: "rgba(255,255,255,0.12)",
+              background: "rgba(0,0,0,0.08)",
+              color: "#616161",
             }}
           >
             bothsides.club
