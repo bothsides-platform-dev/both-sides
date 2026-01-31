@@ -52,6 +52,10 @@ enum FeedbackStatus {
   RESOLVED     // 해결 완료
 }
 
+enum NotificationType {
+  REPLY
+}
+
 // NextAuth required models
 model Account {
   id                String  @id @default(cuid())
@@ -115,6 +119,8 @@ model User {
   reactions Reaction[]
   reports   Report[]
   feedbacks Feedback[]
+  receivedNotifications Notification[] @relation("ReceivedNotifications")
+  sentNotifications     Notification[] @relation("SentNotifications")
 
   @@index([isBlacklisted])
 }
@@ -138,11 +144,12 @@ model Topic {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  author   User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  votes    Vote[]
-  opinions Opinion[]
-  views    TopicView[]
-  reports  Report[]
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes         Vote[]
+  opinions      Opinion[]
+  views         TopicView[]
+  reports       Report[]
+  notifications Notification[]
 
   @@index([authorId])
   @@index([category])
@@ -202,6 +209,8 @@ model Opinion {
   replies   Opinion[]  @relation("OpinionReplies")
   reactions Reaction[]
   reports   Report[]
+  notificationsAsOriginal Notification[] @relation("NotifiedOpinion")
+  notificationsAsReply    Notification[] @relation("NotifyingReply")
 
   @@index([topicId])
   @@index([userId])
@@ -265,4 +274,28 @@ model Feedback {
   @@index([status])
   @@index([category])
   @@index([createdAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           // 알림 수신자
+  type      NotificationType
+  isRead    Boolean          @default(false)
+
+  // 관련 리소스
+  opinionId String?          // 원본 의견
+  replyId   String?          // 새 답글
+  topicId   String?          // 토론
+  actorId   String?          // 답글 작성자
+
+  createdAt DateTime         @default(now())
+
+  user    User     @relation("ReceivedNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  actor   User?    @relation("SentNotifications", fields: [actorId], references: [id], onDelete: SetNull)
+  opinion Opinion? @relation("NotifiedOpinion", fields: [opinionId], references: [id], onDelete: Cascade)
+  reply   Opinion? @relation("NotifyingReply", fields: [replyId], references: [id], onDelete: Cascade)
+  topic   Topic?   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
 }

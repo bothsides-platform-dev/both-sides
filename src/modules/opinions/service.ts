@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { CreateOpinionInput, GetOpinionsInput, UpdateOpinionAnonymityInput, GetOpinionsAdminInput } from "./schema";
+import { createReplyNotification } from "@/modules/notifications/service";
 
 export async function createOpinion(
   userId: string,
@@ -14,7 +15,7 @@ export async function createOpinion(
   if (input.parentId) {
     parentOpinion = await prisma.opinion.findUnique({
       where: { id: input.parentId },
-      select: { id: true, topicId: true },
+      select: { id: true, topicId: true, userId: true },
     });
 
     if (!parentOpinion) {
@@ -36,7 +37,7 @@ export async function createOpinion(
     throw new ForbiddenError("투표를 먼저 해주세요. 투표한 측에서만 의견을 작성할 수 있습니다.");
   }
 
-  return prisma.opinion.create({
+  const opinion = await prisma.opinion.create({
     data: {
       topicId: actualTopicId,
       userId,
@@ -63,6 +64,19 @@ export async function createOpinion(
       },
     },
   });
+
+  // Create notification for parent opinion author if this is a reply
+  if (parentOpinion && parentOpinion.userId) {
+    await createReplyNotification({
+      userId: parentOpinion.userId,
+      actorId: userId,
+      opinionId: parentOpinion.id,
+      replyId: opinion.id,
+      topicId: actualTopicId,
+    });
+  }
+
+  return opinion;
 }
 
 export async function getOpinions(topicId: string, input: GetOpinionsInput) {

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "./UserMenu";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { PlusCircle } from "lucide-react";
 import logo from "@/app/logo.png";
 
@@ -29,14 +30,17 @@ export function Header() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-2 sm:gap-4">
           {session?.user && (
-            <Button asChild variant="outline" size="sm">
-              <Link href="/topics/new">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                토론 만들기
-              </Link>
-            </Button>
+            <>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/topics/new">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  토론 만들기
+                </Link>
+              </Button>
+              <NotificationBell />
+            </>
           )}
           <UserMenu />
         </nav>
