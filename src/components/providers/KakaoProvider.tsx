@@ -56,13 +56,24 @@ export function KakaoProvider({ children }: KakaoProviderProps) {
 
     if (templateId) {
       // 사용자 정의 템플릿 사용 (원본 비율 유지)
+      // URL에서 path만 추출 (카카오 템플릿은 도메인 없이 경로만 필요)
+      const urlPath = (() => {
+        try {
+          const url = new URL(options.url);
+          return url.pathname + url.search + url.hash;
+        } catch {
+          // 이미 path인 경우 그대로 반환
+          return options.url;
+        }
+      })();
+
       window.Kakao.Share.sendCustom({
         templateId: Number(templateId),
         templateArgs: {
           IMG: options.imageUrl || "",
           TITLE: options.title,
           DESC: options.description || "",
-          URL: options.url,
+          URL: urlPath,
         },
       });
     } else {
