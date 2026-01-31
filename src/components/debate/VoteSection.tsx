@@ -41,6 +41,23 @@ function compressPercentage(percentage: number): number {
   return 50 + compressedDeviation;
 }
 
+// 투표 상황을 설명하는 문구 생성
+function getVoteStatusText(
+  aPercentage: number,
+  optionA: string,
+  optionB: string
+): string {
+  const diff = Math.abs(aPercentage - 50);
+
+  if (diff <= 5) {
+    return "팽팽한 접전 중";
+  } else if (aPercentage > 50) {
+    return `${optionA}이(가) 앞서고 있습니다`;
+  } else {
+    return `${optionB}이(가) 앞서고 있습니다`;
+  }
+}
+
 export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
   const [isVoting, setIsVoting] = useState(false);
   const isVisibleRef = useRef(true);
@@ -132,19 +149,24 @@ export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
         </div>
 
         {/* Vote Stats Bar - 숫자 없이 압축된 비율로 표시 */}
-        <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
-          <div className="flex h-full">
-            <div
-              className="bg-blue-500 transition-all duration-300"
-              style={{ width: `${compressPercentage(stats.aPercentage)}%` }}
-            />
-            <div
-              className="bg-red-500 transition-all duration-300"
-              style={{
-                width: `${100 - compressPercentage(stats.aPercentage)}%`,
-              }}
-            />
+        <div className="space-y-2">
+          <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
+            <div className="flex h-full">
+              <div
+                className="bg-blue-500 transition-all duration-300"
+                style={{ width: `${compressPercentage(stats.aPercentage)}%` }}
+              />
+              <div
+                className="bg-red-500 transition-all duration-300"
+                style={{
+                  width: `${100 - compressPercentage(stats.aPercentage)}%`,
+                }}
+              />
+            </div>
           </div>
+          <p className="text-center text-sm text-muted-foreground">
+            {getVoteStatusText(stats.aPercentage, optionA, optionB)}
+          </p>
         </div>
 
         {myVote && (
