@@ -8,6 +8,7 @@ import {
   getOrCreateVisitorId,
   getIpAddress,
   setVisitorIdCookie,
+  generateDeviceFingerprint,
 } from "@/lib/visitor";
 
 export async function PUT(
@@ -31,9 +32,10 @@ export async function PUT(
       // Guest user
       const { visitorId, isNew } = await getOrCreateVisitorId();
       const ipAddress = getIpAddress(request);
+      const fingerprint = generateDeviceFingerprint(request);
 
       vote = await upsertVote(
-        { visitorId, ipAddress: ipAddress || undefined },
+        { visitorId, ipAddress: ipAddress || undefined, fingerprint },
         topicId,
         side
       );

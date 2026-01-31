@@ -181,14 +181,15 @@ model TopicView {
 }
 
 model Vote {
-  id        String   @id @default(cuid())
-  topicId   String
-  userId    String?
-  visitorId String?
-  ipAddress String?
-  side      Side
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  topicId     String
+  userId      String?
+  visitorId   String?
+  ipAddress   String?
+  fingerprint String?
+  side        Side
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
   user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -198,6 +199,7 @@ model Vote {
   @@index([topicId])
   @@index([userId])
   @@index([visitorId])
+  @@index([fingerprint])
   @@index([topicId, visitorId, ipAddress]) // Guest 투표 조회 시 full scan 방지
 }
 

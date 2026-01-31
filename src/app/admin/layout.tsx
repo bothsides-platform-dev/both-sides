@@ -1,6 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LayoutDashboard, MessageSquare, MessageCircle, Flag, MessageSquareText, Users } from "lucide-react";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/modules/auth/options";
+import {
+  LayoutDashboard,
+  MessageSquare,
+  MessageCircle,
+  Flag,
+  MessageSquareText,
+  Users,
+} from "lucide-react";
 
 export const metadata: Metadata = {
   title: "관리자",
@@ -19,7 +29,22 @@ const navItems = [
   { href: "/admin/users", label: "사용자 관리", icon: Users },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // 서버사이드 인증 체크
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    redirect("/auth/signin?callbackUrl=/admin");
+  }
+
+  if (session.user.role !== "ADMIN") {
+    redirect("/?error=unauthorized");
+  }
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">

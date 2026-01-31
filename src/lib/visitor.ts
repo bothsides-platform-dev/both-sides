@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import crypto from "crypto";
 
 export const VISITOR_ID_COOKIE = "visitor_id";
 
@@ -83,4 +84,17 @@ export function setVisitorIdCookie(
     maxAge: 60 * 60 * 24 * 365, // 1 year
     path: "/",
   });
+}
+
+/**
+ * Generate device fingerprint (IP + User-Agent + Accept-Language)
+ * Used for additional guest vote validation
+ */
+export function generateDeviceFingerprint(request: NextRequest): string {
+  const ip = getIpAddress(request) || "unknown";
+  const userAgent = request.headers.get("user-agent") || "unknown";
+  const acceptLanguage = request.headers.get("accept-language") || "";
+
+  const raw = `${ip}:${userAgent}:${acceptLanguage}`;
+  return crypto.createHash("sha256").update(raw).digest("hex").substring(0, 32);
 }

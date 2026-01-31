@@ -6,6 +6,7 @@ interface VoteIdentifier {
   userId?: string;
   visitorId?: string;
   ipAddress?: string;
+  fingerprint?: string;
 }
 
 export async function upsertVote(
@@ -27,7 +28,7 @@ export async function upsertVote(
     throw new ForbiddenError("마감된 토론에는 투표할 수 없습니다.");
   }
 
-  const { userId, visitorId, ipAddress } = identifier;
+  const { userId, visitorId, ipAddress, fingerprint } = identifier;
   const isLoggedIn = !!userId;
 
   if (isLoggedIn) {
@@ -40,20 +41,27 @@ export async function upsertVote(
       create: { topicId, userId, side },
     });
   } else {
-    // Guest user: find existing vote and update, or create new
+    // Guest user: find existing vote by fingerprint OR (visitorId + ipAddress)
     const existingVote = await prisma.vote.findFirst({
       where: {
         topicId,
-        visitorId,
-        ipAddress,
+        OR: [
+          // Fingerprint match (strongest identifier)
+          ...(fingerprint ? [{ fingerprint }] : []),
+          // Fallback to visitorId + ipAddress
+          { visitorId, ipAddress },
+        ],
       },
     });
 
     if (existingVote) {
-      // Update existing vote
+      // Update existing vote and also update fingerprint if available
       return prisma.vote.update({
         where: { id: existingVote.id },
-        data: { side },
+        data: {
+          side,
+          ...(fingerprint && { fingerprint }),
+        },
       });
     } else {
       // Create new vote
@@ -62,6 +70,7 @@ export async function upsertVote(
           topicId,
           visitorId,
           ipAddress,
+          fingerprint,
           side,
         },
       });
@@ -70,7 +79,7 @@ export async function upsertVote(
 }
 
 export async function getVote(identifier: VoteIdentifier, topicId: string) {
-  const { userId, visitorId, ipAddress } = identifier;
+  const { userId, visitorId, ipAddress, fingerprint } = identifier;
 
   if (userId) {
     // Logged-in user
@@ -80,12 +89,14 @@ export async function getVote(identifier: VoteIdentifier, topicId: string) {
       },
     });
   } else {
-    // Guest user
+    // Guest user: check fingerprint OR (visitorId + ipAddress)
     return prisma.vote.findFirst({
       where: {
         topicId,
-        visitorId,
-        ipAddress,
+        OR: [
+          ...(fingerprint ? [{ fingerprint }] : []),
+          { visitorId, ipAddress },
+        ],
       },
     });
   }
