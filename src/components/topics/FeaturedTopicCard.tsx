@@ -44,10 +44,16 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <div className="text-center">
-                <span className="text-4xl font-bold text-blue-500">A</span>
-                <span className="mx-2 text-2xl text-muted-foreground">vs</span>
-                <span className="text-4xl font-bold text-red-500">B</span>
+              {/* 애니메이션 그라데이션 배경 */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-50 to-red-100 transition-all duration-500 group-hover:from-blue-200 group-hover:to-red-200" />
+
+              {/* VS 배지 */}
+              <div className="relative z-10 text-center">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-5xl font-bold text-blue-500 drop-shadow-sm">A</span>
+                  <span className="text-2xl font-medium text-muted-foreground/70">vs</span>
+                  <span className="text-5xl font-bold text-red-500 drop-shadow-sm">B</span>
+                </div>
               </div>
             </div>
           )}

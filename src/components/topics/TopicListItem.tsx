@@ -4,7 +4,7 @@ import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatRelativeTime } from "@/lib/utils";
-import { Eye, ImageIcon, MessageSquare, Users } from "lucide-react";
+import { Eye, MessageSquare, Users } from "lucide-react";
 import type { Category } from "@prisma/client";
 
 export interface TopicListItemProps {
@@ -35,7 +35,18 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
           <Image src={topic.imageUrl} alt="" fill className="object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center">
-            <ImageIcon className="h-6 w-6 text-muted-foreground/50" />
+            {/* 좌우 분할 배경 */}
+            <div className="absolute inset-0 flex">
+              <div className="flex-1 bg-gradient-to-r from-blue-100 to-blue-50" />
+              <div className="flex-1 bg-gradient-to-l from-red-100 to-red-50" />
+            </div>
+
+            {/* 컴팩트 A vs B */}
+            <div className="relative z-10 flex items-center gap-1">
+              <span className="text-xs font-bold text-blue-600">A</span>
+              <span className="text-[10px] text-muted-foreground">vs</span>
+              <span className="text-xs font-bold text-red-600">B</span>
+            </div>
           </div>
         )}
       </div>

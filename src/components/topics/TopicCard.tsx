@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
-import { Eye, ImageIcon, MessageSquare, Users, User } from "lucide-react";
+import { Eye, MessageSquare, Users, User } from "lucide-react";
 import { ShareButton } from "@/components/ui/ShareButton";
 import type { Category } from "@prisma/client";
 
@@ -51,7 +51,16 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
               <Image src={topic.imageUrl} alt="" fill className="object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center">
-                <ImageIcon className="h-10 w-10 text-muted-foreground/30" />
+                {/* 대각선 분할 배경 */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-tl from-red-500/20 via-transparent to-transparent" />
+
+                {/* 중앙 VS 배지 */}
+                <div className="relative z-10 flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 shadow-sm">
+                  <span className="text-lg font-bold text-blue-600">A</span>
+                  <span className="text-sm font-medium text-muted-foreground">vs</span>
+                  <span className="text-lg font-bold text-red-600">B</span>
+                </div>
               </div>
             )}
           </div>
