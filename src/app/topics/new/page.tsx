@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,9 @@ import type { Category } from "@prisma/client";
 
 const categories = Object.entries(CATEGORY_LABELS) as [Category, string][];
 
-export default function NewTopicPage() {
+function NewTopicForm() {
+  const searchParams = useSearchParams();
+  const keyword = searchParams.get("keyword");
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,6 +107,7 @@ export default function NewTopicPage() {
               <Input
                 id="title"
                 name="title"
+                defaultValue={keyword || ""}
                 placeholder="예: 짜장면 vs 짬뽕, 당신의 선택은?"
                 required
                 minLength={5}
@@ -223,5 +226,19 @@ export default function NewTopicPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function NewTopicPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      }
+    >
+      <NewTopicForm />
+    </Suspense>
   );
 }
