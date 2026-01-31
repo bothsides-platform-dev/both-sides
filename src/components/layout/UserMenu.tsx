@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, MessageSquareText, Settings, User } from "lucide-react";
 
 export function UserMenu() {
   const { data: session, status } = useSession();
@@ -59,6 +59,12 @@ export function UserMenu() {
           <Link href="/profile" className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             <span>내 프로필</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/feedback" className="cursor-pointer">
+            <MessageSquareText className="mr-2 h-4 w-4" />
+            <span>피드백</span>
           </Link>
         </DropdownMenuItem>
         {user.role === "ADMIN" && (
