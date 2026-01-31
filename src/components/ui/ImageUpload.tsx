@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
+import imageCompression from "browser-image-compression";
 import { Button } from "@/components/ui/button";
 import { Loader2, X, ImageIcon, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,6 +10,14 @@ import { cn } from "@/lib/utils";
 // File validation constants
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+// Image compression options
+const COMPRESSION_OPTIONS = {
+  maxSizeMB: 1,           // 최대 1MB
+  maxWidthOrHeight: 1920, // 최대 크기
+  useWebWorker: true,     // Web Worker 사용 (non-blocking)
+  fileType: "image/webp" as const, // WebP로 변환
+};
 
 function validateFile(file: File): string | null {
   if (!ALLOWED_TYPES.includes(file.type)) {
@@ -18,6 +27,18 @@ function validateFile(file: File): string | null {
     return `파일 크기가 너무 큽니다. (최대 5MB, 현재: ${(file.size / 1024 / 1024).toFixed(1)}MB)`;
   }
   return null;
+}
+
+async function compressImage(file: File): Promise<File> {
+  // GIF는 압축하지 않음 (애니메이션 손실 방지)
+  if (file.type === "image/gif") return file;
+
+  try {
+    return await imageCompression(file, COMPRESSION_OPTIONS);
+  } catch (error) {
+    console.error("Image compression failed:", error);
+    return file; // 실패 시 원본 사용
+  }
 }
 
 interface ImageUploadProps {
@@ -48,8 +69,11 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
     setIsUploading(true);
 
     try {
+      // 이미지 압축 (GIF 제외)
+      const compressedFile = await compressImage(file);
+
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", compressedFile);
 
       const res = await fetch("/api/upload", {
         method: "POST",
