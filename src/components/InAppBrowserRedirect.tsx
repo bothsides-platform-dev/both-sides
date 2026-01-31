@@ -5,18 +5,32 @@ import { isKakaoInAppBrowser, isAndroid, buildChromeIntentUrl } from '@/lib/inap
 import { Button } from '@/components/ui/button';
 import { ExternalLink, X } from 'lucide-react';
 
+const DISMISS_KEY = 'inapp-banner-dismissed';
+
+function getTodayString() {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
 export function InAppBrowserRedirect() {
-  const [isInApp, setIsInApp] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
     const ua = navigator.userAgent;
-    if (isKakaoInAppBrowser(ua)) {
-      setIsInApp(true);
-    }
+    if (!isKakaoInAppBrowser(ua)) return;
+
+    // 오늘 이미 닫았는지 확인
+    const dismissedDate = localStorage.getItem(DISMISS_KEY);
+    if (dismissedDate === getTodayString()) return;
+
+    setShowBanner(true);
   }, []);
 
-  if (!isInApp || isDismissed) {
+  const handleDismiss = () => {
+    localStorage.setItem(DISMISS_KEY, getTodayString());
+    setShowBanner(false);
+  };
+
+  if (!showBanner) {
     return null;
   }
 
@@ -39,7 +53,7 @@ export function InAppBrowserRedirect() {
   return (
     <div className="relative rounded-lg border border-amber-200 bg-amber-50 p-4">
       <button
-        onClick={() => setIsDismissed(true)}
+        onClick={handleDismiss}
         className="absolute right-2 top-2 rounded-full p-1 text-amber-600 hover:bg-amber-100"
         aria-label="알림 닫기"
       >
