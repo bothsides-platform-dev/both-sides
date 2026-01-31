@@ -8,7 +8,6 @@ import { TrendingUp, ChevronRight, ChevronDown, MessageSquarePlus, Search } from
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
-  CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
@@ -133,39 +132,41 @@ export function TrendingTicker() {
     <div className="w-full bg-muted/50 border-b">
       <div className="w-full px-4 md:px-8 lg:px-12 py-2">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          {/* Label + Toggle Button */}
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5 shrink-0 h-auto py-1 px-2 -ml-2"
-              aria-expanded={isOpen}
-            >
-              <TrendingUp className="h-4 w-4 text-green-500" />
-              <span className="text-sm font-semibold">인기</span>
-              {isOpen ? (
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
+          <div className="flex items-center gap-3">
+            {/* Label + Toggle Button */}
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-1.5 shrink-0 h-auto py-1 px-2 -ml-2"
+                aria-expanded={isOpen}
+              >
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <span className="text-sm font-semibold">인기</span>
+                {isOpen ? (
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
 
-          {/* Ticker Content - Hidden when collapsed */}
-          <CollapsibleContent className="ticker-collapsible-content">
-            <div className="ticker-container overflow-hidden mt-2">
-              <div className={`ticker-content flex items-center gap-6 ${popoverOpen ? "ticker-paused" : ""}`}>
-                {duplicatedTrends.map((trend, index) => (
-                  <TrendingKeyword
-                    key={`${trend.rank}-${index}`}
-                    rank={trend.rank}
-                    query={trend.query}
-                    onOpenChange={setPopoverOpen}
-                  />
-                ))}
+            {/* Ticker Content - Hidden when collapsed, shown inline */}
+            {isOpen && (
+              <div className="flex-1 ticker-container overflow-hidden">
+                <div className={`ticker-content flex items-center gap-6 ${popoverOpen ? "ticker-paused" : ""}`}>
+                  {duplicatedTrends.map((trend, index) => (
+                    <TrendingKeyword
+                      key={`${trend.rank}-${index}`}
+                      rank={trend.rank}
+                      query={trend.query}
+                      onOpenChange={setPopoverOpen}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          </CollapsibleContent>
+            )}
+          </div>
         </Collapsible>
       </div>
     </div>
