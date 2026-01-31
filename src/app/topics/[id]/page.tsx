@@ -10,9 +10,7 @@ import { TopicAuthorSection } from "@/components/topics/TopicAuthorSection";
 import { ViewCountTracker } from "@/components/topics/ViewCountTracker";
 import { InAppBrowserRedirect } from "@/components/InAppBrowserRedirect";
 import { CATEGORY_LABELS } from "@/lib/constants";
-import { formatDDay } from "@/lib/utils";
 import { ReferenceLinksCollapsible } from "@/components/topics/ReferenceLinksCollapsible";
-import { Clock } from "lucide-react";
 
 interface ReferenceLink {
   url: string;
@@ -123,8 +121,6 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
     notFound();
   }
 
-  const dDay = formatDDay(topic.deadline ?? null);
-
   const authorName = topic.isAnonymous 
     ? "익명" 
     : (topic.author.nickname || topic.author.name || "익명");
@@ -174,15 +170,7 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">{CATEGORY_LABELS[topic.category]}</Badge>
-              {dDay && (
-                <Badge variant={dDay === "마감" ? "secondary" : "default"} className="shrink-0">
-                  <Clock className="mr-1 h-3 w-3" />
-                  {dDay}
-                </Badge>
-              )}
-            </div>
+            <Badge variant="secondary">{CATEGORY_LABELS[topic.category]}</Badge>
             <h1 className="text-2xl font-bold md:text-3xl">{topic.title}</h1>
           </div>
           <TopicShareButton
