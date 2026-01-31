@@ -11,6 +11,22 @@ function getTodayString() {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
+/**
+ * localStorage 안전하게 접근 (프라이빗 모드 대응)
+ */
+function safeLocalStorage() {
+  try {
+    // 테스트 쓰기/읽기로 localStorage 사용 가능 여부 확인
+    const testKey = '__storage_test__';
+    window.localStorage.setItem(testKey, testKey);
+    window.localStorage.removeItem(testKey);
+    return window.localStorage;
+  } catch {
+    // 프라이빗 모드 또는 localStorage 비활성화
+    return null;
+  }
+}
+
 export function InAppBrowserRedirect() {
   const [showBanner, setShowBanner] = useState(false);
 
@@ -19,14 +35,20 @@ export function InAppBrowserRedirect() {
     if (!isKakaoInAppBrowser(ua)) return;
 
     // 오늘 이미 닫았는지 확인
-    const dismissedDate = localStorage.getItem(DISMISS_KEY);
-    if (dismissedDate === getTodayString()) return;
+    const storage = safeLocalStorage();
+    if (storage) {
+      const dismissedDate = storage.getItem(DISMISS_KEY);
+      if (dismissedDate === getTodayString()) return;
+    }
 
     setShowBanner(true);
   }, []);
 
   const handleDismiss = () => {
-    localStorage.setItem(DISMISS_KEY, getTodayString());
+    const storage = safeLocalStorage();
+    if (storage) {
+      storage.setItem(DISMISS_KEY, getTodayString());
+    }
     setShowBanner(false);
   };
 

@@ -144,17 +144,33 @@ export async function getOpinions(topicId: string, input: GetOpinionsInput) {
     prisma.opinion.count({ where }),
   ]);
 
+  // Get reaction counts aggregated from DB for each opinion
+  const opinionIds = opinions.map((o) => o.id);
+  const reactionCounts = await prisma.reaction.groupBy({
+    by: ["opinionId", "type"],
+    where: { opinionId: { in: opinionIds } },
+    _count: { id: true },
+  });
+
+  // Build a map for quick lookup
+  const reactionMap = new Map<string, { likes: number; dislikes: number }>();
+  for (const rc of reactionCounts) {
+    const existing = reactionMap.get(rc.opinionId) || { likes: 0, dislikes: 0 };
+    if (rc.type === "LIKE") {
+      existing.likes = rc._count.id;
+    } else if (rc.type === "DISLIKE") {
+      existing.dislikes = rc._count.id;
+    }
+    reactionMap.set(rc.opinionId, existing);
+  }
+
   // Process opinions to add reaction summary
   const processedOpinions = opinions.map((opinion) => {
-    const likes = opinion.reactions.filter((r) => r.type === "LIKE").length;
-    const dislikes = opinion.reactions.filter((r) => r.type === "DISLIKE").length;
+    const summary = reactionMap.get(opinion.id) || { likes: 0, dislikes: 0 };
 
     return {
       ...opinion,
-      reactionSummary: {
-        likes,
-        dislikes,
-      },
+      reactionSummary: summary,
     };
   });
 

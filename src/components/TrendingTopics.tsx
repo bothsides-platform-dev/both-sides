@@ -3,22 +3,10 @@
 import useSWR from "swr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetcher } from "@/lib/fetcher";
+import { formatRelativeTime } from "@/lib/utils";
 import { Loader2, TrendingUp, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import type { TrendsApiResponse, TrendItem } from "@/modules/trends/types";
-
-function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-
-  if (diffMins < 1) return "방금 전";
-  if (diffMins < 60) return `${diffMins}분 전`;
-  if (diffHours < 24) return `${diffHours}시간 전`;
-  return `${Math.floor(diffHours / 24)}일 전`;
-}
 
 function TrendItemRow({ trend }: { trend: TrendItem }) {
   const [showArticles, setShowArticles] = useState(false);

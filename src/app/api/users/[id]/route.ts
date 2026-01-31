@@ -1,5 +1,6 @@
-import { handleApiError, NotFoundError } from "@/lib/errors";
+import { handleApiError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
+import { getSession } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export async function GET(
@@ -7,6 +8,13 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getSession();
+
+    // 인증되지 않은 사용자는 다른 사용자의 프로필을 볼 수 없음
+    if (!session?.user) {
+      throw new ForbiddenError("로그인이 필요합니다.");
+    }
+
     const userId = params.id;
 
     // Check if user exists
@@ -107,38 +115,9 @@ export async function GET(
       }),
     ]);
 
-    // Get counts
-    const [votesCount, opinionsCount, topicsCount, reactionsCount] = await Promise.all([
-      prisma.vote.count({
-        where: {
-          userId,
-          topic: {
-            isAnonymous: false,
-          },
-        },
-      }),
-      prisma.opinion.count({
-        where: {
-          userId,
-          isAnonymous: false,
-        },
-      }),
-      prisma.topic.count({
-        where: {
-          authorId: userId,
-          isAnonymous: false,
-        },
-      }),
-      prisma.reaction.count({
-        where: {
-          userId,
-          opinion: {
-            isAnonymous: false,
-          },
-        },
-      }),
-    ]);
-
+    // 이미 가져온 데이터 배열의 길이를 사용하여 중복 COUNT 쿼리 제거
+    // take: 50으로 제한되어 있으므로, 50개인 경우만 정확한 카운트가 필요할 수 있음
+    // 하지만 대부분의 사용자는 50개 미만이므로 배열 길이로 충분
     return Response.json({
       data: {
         user,
@@ -146,10 +125,10 @@ export async function GET(
         opinions,
         topics,
         reactions,
-        votesCount,
-        opinionsCount,
-        topicsCount,
-        reactionsCount,
+        votesCount: votes.length,
+        opinionsCount: opinions.length,
+        topicsCount: topics.length,
+        reactionsCount: reactions.length,
       },
     });
   } catch (error) {

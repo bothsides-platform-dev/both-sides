@@ -153,7 +153,15 @@ export const OpinionItem = memo(function OpinionItem({
     );
   }
 
-  const indentClass = depth > 0 ? `ml-${Math.min(depth, 4) * 8}` : "";
+  // Tailwind는 동적 클래스(ml-${n})를 컴파일하지 않으므로 정적 매핑 사용
+  const indentClasses: Record<number, string> = {
+    0: "",
+    1: "ml-8",
+    2: "ml-16",
+    3: "ml-24",
+    4: "ml-32",
+  };
+  const indentClass = indentClasses[Math.min(depth, 4)] || "";
 
   return (
     <div

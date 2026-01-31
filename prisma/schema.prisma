@@ -226,6 +226,9 @@ model Opinion {
   @@index([userId])
   @@index([topicId, side])
   @@index([parentId])
+  @@index([isAnonymous]) // 사용자 프로필 페이지 의견 조회 최적화
+  @@index([topicId, createdAt]) // 토론 페이지 최신순 정렬 최적화
+  @@index([isBlinded]) // 관리자 블라인드 필터링 최적화
 }
 
 model Reaction {
@@ -246,6 +249,7 @@ model Reaction {
   @@index([userId])
   @@index([visitorId])
   @@index([opinionId, visitorId, ipAddress]) // Guest 반응 조회 시 full scan 방지
+  @@index([opinionId, type]) // 반응 타입별 집계 쿼리 최적화
 }
 
 model Report {

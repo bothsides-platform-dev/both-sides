@@ -24,20 +24,45 @@ export async function getOrCreateVisitorId(): Promise<{
 }
 
 /**
+ * Validate IPv4 or IPv6 address format
+ */
+function isValidIpAddress(ip: string): boolean {
+  // IPv4 pattern
+  const ipv4Pattern = /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
+  // IPv6 pattern (simplified - accepts valid IPv6 formats)
+  const ipv6Pattern = /^(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}$|^::(?:[a-fA-F0-9]{1,4}:){0,6}[a-fA-F0-9]{1,4}$|^(?:[a-fA-F0-9]{1,4}:){1,7}:$|^(?:[a-fA-F0-9]{1,4}:){1,6}:[a-fA-F0-9]{1,4}$/;
+
+  return ipv4Pattern.test(ip) || ipv6Pattern.test(ip);
+}
+
+/**
  * Extract IP address from request
  * Handles proxy headers (x-forwarded-for, x-real-ip)
+ * Note: Vercel automatically sets x-forwarded-for header which cannot be spoofed
+ * For other environments, consider using a trusted reverse proxy
  */
 export function getIpAddress(request: NextRequest): string | null {
   // Check proxy headers first
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) {
-    // x-forwarded-for can contain multiple IPs, get the first one
-    return forwardedFor.split(",")[0].trim();
+    // x-forwarded-for can contain multiple IPs, get the first one (client IP)
+    const clientIp = forwardedFor.split(",")[0].trim();
+
+    // Validate IP format to prevent malformed data
+    if (isValidIpAddress(clientIp)) {
+      return clientIp;
+    }
+    // If the first IP is invalid, return null for safety
+    return null;
   }
 
   const realIp = request.headers.get("x-real-ip");
   if (realIp) {
-    return realIp;
+    const trimmedIp = realIp.trim();
+    if (isValidIpAddress(trimmedIp)) {
+      return trimmedIp;
+    }
+    return null;
   }
 
   // Fallback to connection IP (may not be available in all environments)
