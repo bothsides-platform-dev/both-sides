@@ -79,16 +79,18 @@ export default function AdminTopicEditPage({ params }: PageParams) {
     if (topic?.isAnonymous !== undefined) {
       setIsAnonymous(topic.isAnonymous);
     }
-    if (topic?.metaTitle) {
-      setMetaTitle(topic.metaTitle);
+    // SEO 필드: 저장된 값이 있으면 사용, 없으면 자동 생성 기본값 사용
+    if (topic) {
+      const defaultMetaTitle = topic.title;
+      const defaultMetaDescription = topic.description?.trim()
+        ? `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · ${topic.description.trim()}`
+        : `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · 당신의 선택은?`;
+
+      setMetaTitle(topic.metaTitle || defaultMetaTitle);
+      setMetaDescription(topic.metaDescription || defaultMetaDescription);
+      setOgImageUrl(topic.ogImageUrl || "");
     }
-    if (topic?.metaDescription) {
-      setMetaDescription(topic.metaDescription);
-    }
-    if (topic?.ogImageUrl) {
-      setOgImageUrl(topic.ogImageUrl);
-    }
-  }, [topic?.imageUrl, topic?.isAnonymous, topic?.metaTitle, topic?.metaDescription, topic?.ogImageUrl]);
+  }, [topic]);
 
   if (sessionStatus === "loading" || isLoading) {
     return (
