@@ -44,6 +44,9 @@ importers:
       '@vercel/blob':
         specifier: ^2.0.0
         version: 2.0.1
+      badwords-ko:
+        specifier: ^1.0.4
+        version: 1.0.4
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1037,6 +1040,9 @@ packages:
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
     engines: {node: '>= 0.4'}
+
+  badwords-ko@1.0.4:
+    resolution: {integrity: sha512-l2gJiVkIXd1nyyRI6aXEujq+aCiMfCyREUdK68mUnH6iZy8+mvXvkvOLO6Nv6MXiRKgvdUQEmSeuVno38MX+wA==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -3481,6 +3487,8 @@ snapshots:
   axe-core@4.11.1: {}
 
   axobject-query@4.1.0: {}
+
+  badwords-ko@1.0.4: {}
 
   balanced-match@1.0.2: {}
 
