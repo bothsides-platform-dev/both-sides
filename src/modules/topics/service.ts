@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { NotFoundError, ForbiddenError } from "@/lib/errors";
 import type {
@@ -348,13 +349,18 @@ export async function updateTopic(id: string, input: UpdateTopicInput) {
     throw new NotFoundError("토론을 찾을 수 없습니다.");
   }
 
-  const { deadline, ...rest } = input;
+  const { deadline, referenceLinks, ...rest } = input;
 
   return prisma.topic.update({
     where: { id },
     data: {
       ...rest,
       deadline: deadline === null ? null : deadline ? new Date(deadline) : undefined,
+      referenceLinks: referenceLinks === null
+        ? Prisma.JsonNull
+        : referenceLinks !== undefined
+          ? (referenceLinks as Prisma.InputJsonValue)
+          : undefined,
     },
     include: {
       author: {

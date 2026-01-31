@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/ImageUpload";
+import { ReferenceLinkInput, type ReferenceLink } from "@/components/ui/ReferenceLinkInput";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { Loader2 } from "lucide-react";
 import type { Category } from "@prisma/client";
@@ -24,6 +25,7 @@ export default function NewTopicPage() {
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [referenceLinks, setReferenceLinks] = useState<ReferenceLink[]>([]);
 
   if (status === "loading") {
     return (
@@ -46,6 +48,8 @@ export default function NewTopicPage() {
     const formData = new FormData(e.currentTarget);
     const deadlineValue = formData.get("deadline") as string;
 
+    const validReferenceLinks = referenceLinks.filter((link) => link.url.trim());
+
     const data = {
       title: formData.get("title"),
       description: formData.get("description") || undefined,
@@ -54,6 +58,7 @@ export default function NewTopicPage() {
       category: formData.get("category"),
       imageUrl: imageUrl || undefined,
       deadline: deadlineValue ? new Date(deadlineValue).toISOString() : undefined,
+      referenceLinks: validReferenceLinks.length > 0 ? validReferenceLinks : undefined,
       isAnonymous,
     };
 
@@ -183,6 +188,12 @@ export default function NewTopicPage() {
                 비워두면 무기한 토론이 됩니다
               </p>
             </div>
+
+            <ReferenceLinkInput
+              value={referenceLinks}
+              onChange={setReferenceLinks}
+              disabled={isSubmitting}
+            />
 
             <div className="flex items-center space-x-2">
               <Checkbox

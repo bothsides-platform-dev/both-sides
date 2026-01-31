@@ -126,23 +126,24 @@ model User {
 }
 
 model Topic {
-  id          String    @id @default(cuid())
-  title       String
-  description String?   @db.Text
-  optionA     String
-  optionB     String
-  category    Category
-  authorId    String
-  imageUrl    String?
-  deadline    DateTime?
-  isFeatured  Boolean   @default(false)
-  featuredAt  DateTime?
-  isHidden    Boolean   @default(false)
-  hiddenAt    DateTime?
-  isAnonymous Boolean   @default(false)
-  viewCount   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  title          String
+  description    String?   @db.Text
+  optionA        String
+  optionB        String
+  category       Category
+  authorId       String
+  imageUrl       String?
+  deadline       DateTime?
+  referenceLinks Json?     @default("[]")
+  isFeatured     Boolean   @default(false)
+  featuredAt     DateTime?
+  isHidden       Boolean   @default(false)
+  hiddenAt       DateTime?
+  isAnonymous    Boolean   @default(false)
+  viewCount      Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
   votes         Vote[]

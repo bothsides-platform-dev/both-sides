@@ -2,6 +2,11 @@ import { z } from "zod";
 
 const categoryEnum = z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH"]);
 
+const referenceLinkSchema = z.object({
+  url: z.string().url("올바른 URL 형식이 아닙니다.").max(2000, "URL은 2000자 이하여야 합니다."),
+  title: z.string().max(100, "제목은 100자 이하여야 합니다.").optional(),
+});
+
 export const createTopicSchema = z.object({
   title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(100, "제목은 100자 이하여야 합니다."),
   description: z.string().max(500, "설명은 500자 이하여야 합니다.").optional(),
@@ -16,6 +21,7 @@ export const createTopicSchema = z.object({
     )
     .optional(),
   deadline: z.string().datetime().optional(),
+  referenceLinks: z.array(referenceLinkSchema).max(5, "참고링크는 최대 5개까지 추가할 수 있습니다.").optional().default([]),
   isAnonymous: z.boolean().default(false),
 });
 
@@ -47,6 +53,7 @@ export const updateTopicSchema = z.object({
     .optional()
     .nullable(),
   deadline: z.string().datetime().optional().nullable(),
+  referenceLinks: z.array(referenceLinkSchema).max(5, "참고링크는 최대 5개까지 추가할 수 있습니다.").optional().nullable(),
 });
 
 export const updateHiddenSchema = z.object({

@@ -9,6 +9,12 @@ import { TopicAuthorSection } from "@/components/topics/TopicAuthorSection";
 import { ViewCountTracker } from "@/components/topics/ViewCountTracker";
 import { InAppBrowserRedirect } from "@/components/InAppBrowserRedirect";
 import { CATEGORY_LABELS } from "@/lib/constants";
+import { ExternalLink } from "lucide-react";
+
+interface ReferenceLink {
+  url: string;
+  title?: string;
+}
 
 interface TopicDetailPageProps {
   params: Promise<{ id: string }>;
@@ -139,6 +145,27 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
 
         {topic.description && (
           <p className="text-muted-foreground">{topic.description}</p>
+        )}
+
+        {/* Reference Links */}
+        {topic.referenceLinks && Array.isArray(topic.referenceLinks) && (topic.referenceLinks as unknown as ReferenceLink[]).length > 0 && (
+          <div className="rounded-lg bg-muted/30 p-4">
+            <p className="mb-3 text-sm font-medium text-muted-foreground">참고링크</p>
+            <div className="space-y-2">
+              {(topic.referenceLinks as unknown as ReferenceLink[]).map((link, index) => (
+                <a
+                  key={index}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-primary hover:underline"
+                >
+                  <ExternalLink className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{link.title || link.url}</span>
+                </a>
+              ))}
+            </div>
+          </div>
         )}
 
         <TopicAuthorSection
