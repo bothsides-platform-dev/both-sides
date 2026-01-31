@@ -88,6 +88,16 @@ export function ReplyForm({
           <Textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                if (!submitState.isSubmitting && body.trim()) {
+                  handleSubmit();
+                }
+              } else if (e.key === "Escape") {
+                onCancel();
+              }
+            }}
             placeholder="답글을 입력하세요"
             className="min-h-[60px] resize-none text-sm"
             maxLength={1000}

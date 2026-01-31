@@ -202,6 +202,14 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   <Textarea
                     value={newOpinion}
                     onChange={(e) => setNewOpinion(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        if (!submitState.isSubmitting && newOpinion.trim()) {
+                          handleSubmit();
+                        }
+                      }
+                    }}
                     placeholder="의견을 입력하세요"
                     className="min-h-[80px] resize-none"
                     maxLength={1000}
