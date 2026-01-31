@@ -1,84 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BothSides
+
+양자택일 토론 플랫폼 - 두 가지 선택지 중 하나를 고르고 의견을 나누는 서비스
+
+## Tech Stack
+
+- **Framework**: Next.js 14.2 (App Router)
+- **Language**: TypeScript
+- **Database**: PostgreSQL + Prisma ORM
+- **Auth**: NextAuth.js (Kakao OAuth)
+- **UI**: Tailwind CSS + Radix UI + Framer Motion
+- **Hosting**: Vercel (+ Blob Storage)
+- **Package Manager**: pnpm
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+- PostgreSQL database
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Install dependencies
+pnpm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your configuration
+
+# Generate Prisma client
+pnpm prisma generate
+
+# Run database migrations
+pnpm prisma db push
+
+# Start development server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/           # Next.js App Router pages
+├── components/    # React components
+├── lib/           # Utilities (auth, db, validation)
+├── modules/       # Business logic (opinions, votes, reports)
+└── types/         # TypeScript type definitions
+```
 
-## Learn More
+## Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+### Required for Vercel Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string (pooled) |
+| `DIRECT_URL` | PostgreSQL direct connection |
+| `NEXTAUTH_SECRET` | NextAuth secret key |
+| `NEXTAUTH_URL` | Production URL (e.g., `https://bothsides.club`) |
+| `NEXT_PUBLIC_KAKAO_JS_KEY` | Kakao JavaScript SDK key |
+| `KAKAO_CLIENT_ID` | Kakao OAuth client ID |
+| `KAKAO_CLIENT_SECRET` | Kakao OAuth client secret |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob storage token |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Configuration
 
-## Deploy on Vercel
+### Kakao Login Setup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. [Kakao Developers Console](https://developers.kakao.com/)에서 앱 생성
+2. 카카오 로그인 활성화
+3. Redirect URI 등록: `https://your-domain.com/api/auth/callback/kakao`
+4. 동의 항목에서 닉네임, 프로필 이미지 설정
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Kakao Share Setup
 
-## Auth (NextAuth + Google) 설정 체크
+카카오톡 공유 기능 사용을 위해:
+1. `NEXT_PUBLIC_KAKAO_JS_KEY` 환경변수 설정
+2. Kakao Developers Console > 플랫폼 > Web에서 사이트 도메인 등록
 
-### 필수 환경 변수 (Vercel)
-- `NEXTAUTH_URL`: 프로덕션 도메인 (예: `https://bothsides.club`)
-- `NEXTAUTH_SECRET`
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
+### Vercel Blob Storage
 
-### Google Cloud Console (OAuth Client) Redirect URI
-- 아래 Redirect URI가 **반드시** 등록되어 있어야 합니다.
-  - `https://bothsides.club/api/auth/callback/google`
-  - (도메인이 다르면 해당 도메인으로 교체)
+이미지 업로드용 스토리지:
+1. Vercel 대시보드 > Storage > Blob 생성
+2. `BLOB_READ_WRITE_TOKEN` 자동 설정됨
+3. 로컬 개발 시 토큰을 `.env.local`에 추가
 
-### 참고: 카카오톡 인앱 브라우저에서 구글 로그인
-- 카카오톡 인앱 브라우저(WebView)에서는 Google 정책(embedded webview)으로 인해 로그인이 **차단**될 수 있습니다.
-- 이 프로젝트는 인앱 감지 시 외부 브라우저(Safari/Chrome)로 열도록 안내합니다.
-
-### 이미지 업로드 설정 (Vercel Blob Storage)
-
-이 프로젝트는 Vercel Blob Storage를 사용하여 이미지를 저장합니다.
-
-#### Vercel 배포 시
-1. Vercel 대시보드에서 프로젝트 설정으로 이동
-2. **Storage** 탭에서 **Blob** 스토리지 생성
-3. 자동으로 `BLOB_READ_WRITE_TOKEN` 환경 변수가 설정됩니다
-
-#### 로컬 개발 시 (선택사항)
-로컬에서 테스트하려면 `.env.local` 파일에 다음을 추가하세요:
+## Scripts
 
 ```bash
-BLOB_READ_WRITE_TOKEN=your_token_here
+pnpm dev          # Start development server
+pnpm build        # Build for production
+pnpm start        # Start production server
+pnpm lint         # Run ESLint
 ```
 
-#### 토큰 확인 방법
+## Deployment
 
-1. [Vercel 대시보드](https://vercel.com/dashboard)에 로그인
-2. 프로젝트 선택
-3. 상단 메뉴에서 **Storage** 탭 클릭
-4. **Blob** 스토리지가 있다면 클릭, 없다면 **Create** 버튼으로 생성
-5. Blob 스토리지 페이지에서 **Settings** 탭 클릭
-6. **Token** 섹션에서 **Read and Write** 토큰 확인
-   - 토큰 옆의 **Copy** 버튼을 클릭하여 복사
-   - 또는 **Show** 버튼을 클릭하여 토큰 표시 후 복사
+Vercel에 배포:
 
-**참고**: 
-- Vercel에 배포하면 자동으로 환경 변수가 설정되므로, 로컬 개발 시에만 필요합니다.
-- 토큰은 민감한 정보이므로 `.env.local` 파일을 `.gitignore`에 포함시켜야 합니다.
+```bash
+# Vercel CLI 사용
+vercel
+
+# 또는 GitHub 연동 후 자동 배포
+```
+
+### Troubleshooting
+
+**`ERR_PNPM_OUTDATED_LOCKFILE` 오류 시:**
+```bash
+pnpm install
+git add pnpm-lock.yaml
+git commit -m "chore: update lockfile"
+```
+
+## License
+
+Private - All rights reserved
