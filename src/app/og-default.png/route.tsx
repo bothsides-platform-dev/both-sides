@@ -20,7 +20,7 @@ export async function GET() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #0ea5e9 0%, #7c3aed 100%)",
+          background: "#F5F5F5",
           fontFamily: "system-ui, sans-serif",
         }}
       >
@@ -31,7 +31,7 @@ export async function GET() {
           height={280}
           style={{
             marginBottom: 32,
-            filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.25))",
+            filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.15))",
           }}
         />
 
@@ -42,7 +42,7 @@ export async function GET() {
             fontSize: 64,
             fontWeight: 800,
             marginBottom: 16,
-            textShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            textShadow: "0 2px 8px rgba(0,0,0,0.1)",
           }}
         >
           <span style={{ color: "#3B82F6" }}>Both</span>
@@ -53,7 +53,7 @@ export async function GET() {
         <div
           style={{
             fontSize: 28,
-            color: "rgba(255,255,255,0.9)",
+            color: "#757575",
             textAlign: "center",
           }}
         >
