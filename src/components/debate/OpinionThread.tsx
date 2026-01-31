@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, useEffect } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { OpinionItem } from "./OpinionItem";
@@ -16,6 +16,8 @@ interface OpinionThreadProps {
   onReplySuccess?: () => void;
   depth?: number;
   maxDepth?: number;
+  highlightReplyId?: string;
+  expandedAncestorIds?: string[];
 }
 
 const MAX_DEPTH = 4;
@@ -29,9 +31,21 @@ export const OpinionThread = memo(function OpinionThread({
   onReplySuccess,
   depth = 0,
   maxDepth = MAX_DEPTH,
+  highlightReplyId,
+  expandedAncestorIds,
 }: OpinionThreadProps) {
-  const [showReplies, setShowReplies] = useState(false);
+  // Check if this opinion should be auto-expanded (is in the ancestor chain)
+  const shouldAutoExpand = expandedAncestorIds?.includes(opinion.id) ?? false;
+
+  const [showReplies, setShowReplies] = useState(shouldAutoExpand);
   const [loadingReplies, setLoadingReplies] = useState(false);
+
+  // Auto-expand when ancestor data changes
+  useEffect(() => {
+    if (shouldAutoExpand && !showReplies) {
+      setShowReplies(true);
+    }
+  }, [shouldAutoExpand, showReplies]);
 
   const repliesCount = opinion._count?.replies || 0;
   const hasReplies = repliesCount > 0;
@@ -80,6 +94,7 @@ export const OpinionThread = memo(function OpinionThread({
         showRepliesExpanded={showReplies}
         loadingReplies={loadingReplies}
         hasReplies={hasReplies}
+        isHighlighted={highlightReplyId === opinion.id}
       />
 
       {/* Replies */}
@@ -96,6 +111,8 @@ export const OpinionThread = memo(function OpinionThread({
               onReplySuccess={handleReplySuccess}
               depth={depth + 1}
               maxDepth={maxDepth}
+              highlightReplyId={highlightReplyId}
+              expandedAncestorIds={expandedAncestorIds}
             />
           ))}
         </div>

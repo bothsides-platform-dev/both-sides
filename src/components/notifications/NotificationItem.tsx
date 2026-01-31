@@ -49,9 +49,16 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
     }
   };
 
+  // Build URL with highlightReply parameter if reply exists
+  const href = notification.topic
+    ? notification.reply
+      ? `/topics/${notification.topic.id}?highlightReply=${notification.reply.id}`
+      : `/topics/${notification.topic.id}`
+    : "#";
+
   return (
     <Link
-      href={notification.topic ? `/topics/${notification.topic.id}` : "#"}
+      href={href}
       onClick={handleClick}
       className={cn(
         "flex items-start gap-3 p-3 hover:bg-muted/50 transition-colors border-b last:border-b-0",

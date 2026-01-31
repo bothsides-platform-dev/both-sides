@@ -18,6 +18,8 @@ interface OpinionColumnProps {
   onReportSuccess?: () => void;
   onReplySuccess?: () => void;
   userVoteSide?: Side;
+  highlightReplyId?: string;
+  expandedAncestorIds?: string[];
 }
 
 export const OpinionColumn = memo(function OpinionColumn({
@@ -32,6 +34,8 @@ export const OpinionColumn = memo(function OpinionColumn({
   onReportSuccess,
   onReplySuccess,
   userVoteSide,
+  highlightReplyId,
+  expandedAncestorIds,
 }: OpinionColumnProps) {
   const isA = side === "A";
 
@@ -68,6 +72,8 @@ export const OpinionColumn = memo(function OpinionColumn({
           onReportSuccess={onReportSuccess}
           onReplySuccess={onReplySuccess}
           userVoteSide={userVoteSide}
+          highlightReplyId={highlightReplyId}
+          expandedAncestorIds={expandedAncestorIds}
         />
       </div>
     </div>

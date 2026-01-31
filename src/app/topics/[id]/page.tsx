@@ -12,6 +12,7 @@ import { CATEGORY_LABELS } from "@/lib/constants";
 
 interface TopicDetailPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ highlightReply?: string }>;
 }
 
 async function getTopic(id: string) {
@@ -82,8 +83,9 @@ export async function generateMetadata({ params }: TopicDetailPageProps) {
   };
 }
 
-export default async function TopicDetailPage({ params }: TopicDetailPageProps) {
+export default async function TopicDetailPage({ params, searchParams }: TopicDetailPageProps) {
   const { id } = await params;
+  const { highlightReply } = await searchParams;
   const topic = await getTopic(id);
 
   if (!topic) {
@@ -189,6 +191,7 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
         topicId={topic.id}
         optionA={topic.optionA}
         optionB={topic.optionB}
+        highlightReplyId={highlightReply}
       />
     </div>
   );

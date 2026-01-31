@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,6 +36,7 @@ interface OpinionItemProps {
   showRepliesExpanded?: boolean;
   loadingReplies?: boolean;
   hasReplies?: boolean;
+  isHighlighted?: boolean;
 }
 
 export const OpinionItem = memo(function OpinionItem({
@@ -53,12 +54,38 @@ export const OpinionItem = memo(function OpinionItem({
   showRepliesExpanded = false,
   loadingReplies = false,
   hasReplies = false,
+  isHighlighted = false,
 }: OpinionItemProps) {
   const { data: session } = useSession();
   const [isAnonymous, setIsAnonymous] = useState(opinion.isAnonymous ?? false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [showReplyForm, setShowReplyForm] = useState(false);
+  const [highlightVisible, setHighlightVisible] = useState(isHighlighted);
+  const itemRef = useRef<HTMLDivElement>(null);
+
+  // Handle scroll to highlighted item and fade out animation
+  useEffect(() => {
+    if (isHighlighted && itemRef.current) {
+      // Small delay to ensure DOM is ready and parent threads are expanded
+      const scrollTimeout = setTimeout(() => {
+        itemRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 300);
+
+      // Fade out highlight after 3 seconds
+      const fadeTimeout = setTimeout(() => {
+        setHighlightVisible(false);
+      }, 3000);
+
+      return () => {
+        clearTimeout(scrollTimeout);
+        clearTimeout(fadeTimeout);
+      };
+    }
+  }, [isHighlighted]);
 
   const authorName = isAnonymous 
     ? "익명" 
@@ -129,7 +156,15 @@ export const OpinionItem = memo(function OpinionItem({
   const indentClass = depth > 0 ? `ml-${Math.min(depth, 4) * 8}` : "";
 
   return (
-    <div className={cn("py-5 px-1", indentClass)}>
+    <div
+      ref={itemRef}
+      id={`opinion-${opinion.id}`}
+      className={cn(
+        "py-5 px-1 rounded-lg transition-colors duration-500",
+        indentClass,
+        highlightVisible && "bg-blue-100/50 dark:bg-blue-900/30 animate-pulse"
+      )}
+    >
       <div className="flex items-start gap-3">
         {isAnonymous ? (
           <Avatar className="h-9 w-9 shrink-0">

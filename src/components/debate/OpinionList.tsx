@@ -17,6 +17,8 @@ interface OpinionListProps {
   onReportSuccess?: () => void;
   onReplySuccess?: () => void;
   userVoteSide?: Side;
+  highlightReplyId?: string;
+  expandedAncestorIds?: string[];
 }
 
 export const OpinionList = memo(function OpinionList({
@@ -28,6 +30,8 @@ export const OpinionList = memo(function OpinionList({
   currentUserId,
   onReaction,
   onReplySuccess,
+  highlightReplyId,
+  expandedAncestorIds,
 }: OpinionListProps) {
   if (isLoading) {
     return (
@@ -56,6 +60,8 @@ export const OpinionList = memo(function OpinionList({
           currentUserId={currentUserId}
           onReaction={onReaction}
           onReplySuccess={onReplySuccess}
+          highlightReplyId={highlightReplyId}
+          expandedAncestorIds={expandedAncestorIds}
         />
       ))}
     </div>

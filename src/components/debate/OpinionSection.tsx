@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
 import { motion } from "framer-motion";
@@ -25,9 +25,17 @@ interface OpinionSectionProps {
   topicId: string;
   optionA: string;
   optionB: string;
+  highlightReplyId?: string;
 }
 
-export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProps) {
+interface AncestorData {
+  ancestorIds: string[];
+  topLevelOpinionId: string;
+  side: "A" | "B";
+  topicId: string;
+}
+
+export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: OpinionSectionProps) {
   const { data: session } = useSession();
   const [sort, setSort] = useState<"latest" | "hot">("latest");
   const [newOpinion, setNewOpinion] = useState("");
@@ -47,6 +55,35 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
   );
 
   const myVote = voteInfoData?.data?.myVote ?? undefined;
+
+  // State for highlight reply ancestor data
+  const [ancestorData, setAncestorData] = useState<AncestorData | null>(null);
+
+  // Fetch ancestor data when highlightReplyId is provided
+  useEffect(() => {
+    if (!highlightReplyId) {
+      setAncestorData(null);
+      return;
+    }
+
+    const fetchAncestorData = async () => {
+      try {
+        const res = await fetch(`/api/opinions/${highlightReplyId}/ancestors`);
+        if (res.ok) {
+          const data = await res.json();
+          setAncestorData(data.data);
+          // Auto-switch mobile tab to the correct side
+          if (data.data?.side) {
+            setActiveTab(data.data.side);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch ancestor data:", error);
+      }
+    };
+
+    fetchAncestorData();
+  }, [highlightReplyId, setActiveTab]);
 
   // Fetch only top-level opinions (parentId=null)
   const queryParams = useMemo(() => {
@@ -229,6 +266,8 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
             onReportSuccess={handleReportSuccess}
             onReplySuccess={handleReplySuccess}
             userVoteSide={myVote}
+            highlightReplyId={highlightReplyId}
+            expandedAncestorIds={ancestorData?.ancestorIds}
           />
           <OpinionColumn
             side="B"
@@ -242,6 +281,8 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
             onReportSuccess={handleReportSuccess}
             onReplySuccess={handleReplySuccess}
             userVoteSide={myVote}
+            highlightReplyId={highlightReplyId}
+            expandedAncestorIds={ancestorData?.ancestorIds}
           />
         </div>
 
@@ -279,6 +320,8 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
                   onReportSuccess={handleReportSuccess}
                   onReplySuccess={handleReplySuccess}
                   userVoteSide={myVote}
+                  highlightReplyId={highlightReplyId}
+                  expandedAncestorIds={ancestorData?.ancestorIds}
                 />
               </div>
 
@@ -295,6 +338,8 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
                   onReportSuccess={handleReportSuccess}
                   onReplySuccess={handleReplySuccess}
                   userVoteSide={myVote}
+                  highlightReplyId={highlightReplyId}
+                  expandedAncestorIds={ancestorData?.ancestorIds}
                 />
               </div>
             </motion.div>
