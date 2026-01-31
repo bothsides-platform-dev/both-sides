@@ -50,7 +50,12 @@ export function NotificationDropdown({
   unreadCount,
 }: NotificationDropdownProps) {
   return (
-    <DropdownMenuContent className="w-80" align="end" forceMount>
+    <DropdownMenuContent
+      className="w-[calc(100vw-2rem)] sm:w-80"
+      align="end"
+      sideOffset={8}
+      forceMount
+    >
       <div className="flex items-center justify-between px-2">
         <DropdownMenuLabel className="font-normal">
           <span className="font-semibold">알림</span>
