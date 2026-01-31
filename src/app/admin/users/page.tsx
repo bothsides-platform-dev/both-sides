@@ -13,20 +13,24 @@ import { fetcher } from "@/lib/fetcher";
 import { Loader2, Search } from "lucide-react";
 import type { Role } from "@prisma/client";
 
+type FilterType = "all" | "USER" | "ADMIN" | "blacklisted";
+
 export default function AdminUsersPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [filter, setFilter] = useState<FilterType>("all");
 
   const queryParams = new URLSearchParams();
   queryParams.set("page", page.toString());
   queryParams.set("limit", "20");
   if (search) queryParams.set("search", search);
-  if (roleFilter !== "all") {
-    queryParams.set("role", roleFilter);
+  if (filter === "USER" || filter === "ADMIN") {
+    queryParams.set("role", filter);
+  } else if (filter === "blacklisted") {
+    queryParams.set("isBlacklisted", "true");
   }
 
   const { data, isLoading } = useSWR<{
@@ -37,6 +41,9 @@ export default function AdminUsersPage() {
         name: string | null;
         email: string | null;
         role: Role;
+        isBlacklisted: boolean;
+        blacklistedAt: string | null;
+        blacklistReason: string | null;
         createdAt: string;
         _count: {
           topics: number;
@@ -75,8 +82,8 @@ export default function AdminUsersPage() {
     setPage(1);
   };
 
-  const handleRoleChange = (value: string) => {
-    setRoleFilter(value);
+  const handleFilterChange = (value: string) => {
+    setFilter(value as FilterType);
     setPage(1);
   };
 
@@ -104,11 +111,12 @@ export default function AdminUsersPage() {
               </Button>
             </form>
 
-            <Tabs value={roleFilter} onValueChange={handleRoleChange}>
+            <Tabs value={filter} onValueChange={handleFilterChange}>
               <TabsList>
                 <TabsTrigger value="all">전체</TabsTrigger>
                 <TabsTrigger value="USER">일반</TabsTrigger>
                 <TabsTrigger value="ADMIN">관리자</TabsTrigger>
+                <TabsTrigger value="blacklisted">차단됨</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>

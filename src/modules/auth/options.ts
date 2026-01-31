@@ -18,8 +18,16 @@ export const authOptions: NextAuthOptions = {
         session.user.id = user.id;
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { nickname: true, role: true },
+          select: { nickname: true, role: true, isBlacklisted: true },
         });
+
+        // 차단된 사용자는 세션 거부
+        if (dbUser?.isBlacklisted) {
+          // 세션 삭제
+          await prisma.session.deleteMany({ where: { userId: user.id } });
+          throw new Error("BLACKLISTED_USER");
+        }
+
         session.user.nickname = dbUser?.nickname ?? null;
         session.user.role = dbUser?.role ?? "USER";
       }
