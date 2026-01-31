@@ -21,7 +21,7 @@ export const createTopicSchema = z.object({
     )
     .optional(),
   deadline: z.string().datetime().optional(),
-  referenceLinks: z.array(referenceLinkSchema).max(5, "참고링크는 최대 5개까지 추가할 수 있습니다.").optional().default([]),
+  referenceLinks: z.array(referenceLinkSchema).optional().default([]),
   isAnonymous: z.boolean().default(false),
 });
 
@@ -53,7 +53,7 @@ export const updateTopicSchema = z.object({
     .optional()
     .nullable(),
   deadline: z.string().datetime().optional().nullable(),
-  referenceLinks: z.array(referenceLinkSchema).max(5, "참고링크는 최대 5개까지 추가할 수 있습니다.").optional().nullable(),
+  referenceLinks: z.array(referenceLinkSchema).optional().nullable(),
 });
 
 export const updateHiddenSchema = z.object({

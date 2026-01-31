@@ -15,7 +15,6 @@ interface ReferenceLinkInputProps {
   value: ReferenceLink[];
   onChange: (links: ReferenceLink[]) => void;
   disabled?: boolean;
-  maxLinks?: number;
 }
 
 function isValidUrl(url: string): boolean {
@@ -31,12 +30,10 @@ export function ReferenceLinkInput({
   value,
   onChange,
   disabled = false,
-  maxLinks = 5,
 }: ReferenceLinkInputProps) {
   const [urlError, setUrlError] = useState<number | null>(null);
 
   const handleAddLink = () => {
-    if (value.length >= maxLinks) return;
     onChange([...value, { url: "", title: "" }]);
   };
 
@@ -68,15 +65,10 @@ export function ReferenceLinkInput({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <Label className="flex items-center gap-2">
-          <LinkIcon className="h-4 w-4" />
-          참고링크 (선택)
-        </Label>
-        <span className="text-xs text-muted-foreground">
-          {value.length}/{maxLinks}
-        </span>
-      </div>
+      <Label className="flex items-center gap-2">
+        <LinkIcon className="h-4 w-4" />
+        참고링크 (선택)
+      </Label>
 
       {value.length > 0 && (
         <div className="space-y-3">
@@ -118,19 +110,17 @@ export function ReferenceLinkInput({
         </div>
       )}
 
-      {value.length < maxLinks && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleAddLink}
-          disabled={disabled}
-          className="w-full"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          참고링크 추가
-        </Button>
-      )}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={handleAddLink}
+        disabled={disabled}
+        className="w-full"
+      >
+        <Plus className="mr-2 h-4 w-4" />
+        참고링크 추가
+      </Button>
 
       <p className="text-xs text-muted-foreground">
         관련 기사, 영상, 자료 등의 링크를 추가할 수 있습니다
