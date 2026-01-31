@@ -151,9 +151,9 @@ export function TrendingTicker() {
               </Button>
             </CollapsibleTrigger>
 
-            {/* Ticker Content - Hidden when collapsed, shown inline */}
+            {/* Desktop Ticker - Hidden when collapsed */}
             {isOpen && (
-              <div className="flex-1 ticker-container overflow-hidden">
+              <div className="hidden md:block flex-1 ticker-container overflow-hidden">
                 <div className={`ticker-content flex items-center gap-6 ${popoverOpen ? "ticker-paused" : ""}`}>
                   {duplicatedTrends.map((trend, index) => (
                     <TrendingKeyword
@@ -167,6 +167,22 @@ export function TrendingTicker() {
               </div>
             )}
           </div>
+
+          {/* Mobile Grid - Shows all keywords at once */}
+          {isOpen && (
+            <div className="md:hidden mt-2">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                {trends.map((trend) => (
+                  <TrendingKeyword
+                    key={`mobile-${trend.rank}`}
+                    rank={trend.rank}
+                    query={trend.query}
+                    onOpenChange={setPopoverOpen}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </Collapsible>
       </div>
     </div>
