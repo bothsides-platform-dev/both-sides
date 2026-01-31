@@ -1,6 +1,7 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/db";
+import { generateUniqueNickname } from "@/lib/nickname";
 import type { NextAuthOptions } from "next-auth";
 
 export const authOptions: NextAuthOptions = {
@@ -31,5 +32,15 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "database",
+  },
+  events: {
+    async createUser({ user }) {
+      // 신규 가입시 랜덤 닉네임 설정
+      const nickname = await generateUniqueNickname();
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { nickname },
+      });
+    },
   },
 };
