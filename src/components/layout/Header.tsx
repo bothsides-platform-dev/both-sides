@@ -6,7 +6,6 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "./UserMenu";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { TrendingTicker } from "@/components/TrendingTicker";
 import { PlusCircle } from "lucide-react";
 import logo from "@/app/logo.png";
 
@@ -46,7 +45,6 @@ export function Header() {
           <UserMenu />
         </nav>
       </div>
-      <TrendingTicker />
     </header>
   );
 }
