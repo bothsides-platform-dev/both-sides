@@ -7,6 +7,7 @@ import { OpinionSection } from "@/components/debate/OpinionSection";
 import { TopicShareButton } from "@/components/topics/TopicShareButton";
 import { TopicAuthorSection } from "@/components/topics/TopicAuthorSection";
 import { ViewCountTracker } from "@/components/topics/ViewCountTracker";
+import { InAppBrowserRedirect } from "@/components/InAppBrowserRedirect";
 import { CATEGORY_LABELS } from "@/lib/constants";
 
 interface TopicDetailPageProps {
@@ -111,6 +112,7 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <InAppBrowserRedirect />
       <ViewCountTracker topicId={topic.id} />
       <script
         type="application/ld+json"
