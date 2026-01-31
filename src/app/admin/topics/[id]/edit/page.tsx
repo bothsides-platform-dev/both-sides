@@ -44,6 +44,9 @@ interface Topic {
   isHidden: boolean;
   isFeatured: boolean;
   isAnonymous?: boolean;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  ogImageUrl: string | null;
 }
 
 interface PageParams {
@@ -58,6 +61,9 @@ export default function AdminTopicEditPage({ params }: PageParams) {
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [metaTitle, setMetaTitle] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
+  const [ogImageUrl, setOgImageUrl] = useState("");
 
   const { data, isLoading } = useSWR<{ data: Topic }>(
     session?.user?.role === "ADMIN" ? `/api/admin/topics/${id}` : null,
@@ -73,7 +79,16 @@ export default function AdminTopicEditPage({ params }: PageParams) {
     if (topic?.isAnonymous !== undefined) {
       setIsAnonymous(topic.isAnonymous);
     }
-  }, [topic?.imageUrl, topic?.isAnonymous]);
+    if (topic?.metaTitle) {
+      setMetaTitle(topic.metaTitle);
+    }
+    if (topic?.metaDescription) {
+      setMetaDescription(topic.metaDescription);
+    }
+    if (topic?.ogImageUrl) {
+      setOgImageUrl(topic.ogImageUrl);
+    }
+  }, [topic?.imageUrl, topic?.isAnonymous, topic?.metaTitle, topic?.metaDescription, topic?.ogImageUrl]);
 
   if (sessionStatus === "loading" || isLoading) {
     return (
@@ -113,6 +128,9 @@ export default function AdminTopicEditPage({ params }: PageParams) {
       imageUrl: imageUrl || null,
       deadline: deadlineValue ? new Date(deadlineValue).toISOString() : null,
       isAnonymous,
+      metaTitle: metaTitle || null,
+      metaDescription: metaDescription || null,
+      ogImageUrl: ogImageUrl || null,
     };
 
     try {
@@ -266,6 +284,74 @@ export default function AdminTopicEditPage({ params }: PageParams) {
               >
                 익명으로 표시 (작성자 이름을 숨깁니다)
               </Label>
+            </div>
+
+            {/* SEO 설정 섹션 */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <h3 className="font-medium">SEO 설정</h3>
+              <p className="text-xs text-muted-foreground">
+                검색엔진 최적화를 위한 메타 정보를 설정합니다. 비워두면 자동으로 생성됩니다.
+              </p>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="metaTitle">메타 타이틀</Label>
+                  <span className={`text-xs ${metaTitle.length > 60 ? "text-destructive" : "text-muted-foreground"}`}>
+                    {metaTitle.length}/60
+                  </span>
+                </div>
+                <Input
+                  id="metaTitle"
+                  value={metaTitle}
+                  onChange={(e) => setMetaTitle(e.target.value)}
+                  maxLength={60}
+                  placeholder="검색 결과에 표시될 제목"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="metaDescription">메타 설명</Label>
+                  <span className={`text-xs ${metaDescription.length > 160 ? "text-destructive" : "text-muted-foreground"}`}>
+                    {metaDescription.length}/160
+                  </span>
+                </div>
+                <Textarea
+                  id="metaDescription"
+                  value={metaDescription}
+                  onChange={(e) => setMetaDescription(e.target.value)}
+                  maxLength={160}
+                  placeholder="검색 결과에 표시될 설명"
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ogImageUrl">OG 이미지 URL</Label>
+                <Input
+                  id="ogImageUrl"
+                  type="url"
+                  value={ogImageUrl}
+                  onChange={(e) => setOgImageUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                />
+                {ogImageUrl && (
+                  <div className="mt-2 overflow-hidden rounded-lg border">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={ogImageUrl}
+                      alt="OG 이미지 미리보기"
+                      className="h-auto w-full max-h-48 object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  소셜 미디어 공유 시 표시되는 이미지입니다. 비워두면 자동 생성됩니다.
+                </p>
+              </div>
             </div>
 
             <div className="flex gap-4">

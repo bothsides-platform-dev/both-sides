@@ -55,13 +55,19 @@ export async function generateMetadata({ params }: TopicDetailPageProps) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club";
   const canonicalUrl = new URL(`/topics/${id}`, siteUrl);
 
-  const title = topic.title;
-  const description = topic.description?.trim()
+  // SEO 필드 우선, 없으면 기존 로직 fallback
+  const title = topic.metaTitle || topic.title;
+  const description = topic.metaDescription || (topic.description?.trim()
     ? `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · ${topic.description.trim()}`
-    : `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · 당신의 선택은?`;
+    : `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · 당신의 선택은?`);
 
-  const ogImageUrl = new URL(`/topics/${id}/opengraph-image`, siteUrl);
-  const twitterImageUrl = new URL(`/topics/${id}/twitter-image`, siteUrl);
+  // 커스텀 OG 이미지 URL이 있으면 사용, 없으면 자동 생성 URL
+  const ogImageUrl = topic.ogImageUrl
+    ? new URL(topic.ogImageUrl)
+    : new URL(`/topics/${id}/opengraph-image`, siteUrl);
+  const twitterImageUrl = topic.ogImageUrl
+    ? new URL(topic.ogImageUrl)
+    : new URL(`/topics/${id}/twitter-image`, siteUrl);
 
   const authorName = topic.author.nickname || topic.author.name || "익명";
 
@@ -125,11 +131,15 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club";
   const canonicalUrl = new URL(`/topics/${topic.id}`, siteUrl).toString();
 
+  // JSON-LD 구조화 데이터: SEO 필드 우선 적용
+  const jsonLdDescription = topic.metaDescription || topic.description || `${topic.optionA} vs ${topic.optionB}`;
+  const jsonLdImage = topic.ogImageUrl || `${siteUrl}/topics/${topic.id}/opengraph-image`;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "DiscussionForumPosting",
-    headline: topic.title,
-    description: topic.description ?? `${topic.optionA} vs ${topic.optionB}`,
+    headline: topic.metaTitle || topic.title,
+    description: jsonLdDescription,
     datePublished: topic.createdAt.toISOString(),
     dateModified: topic.updatedAt.toISOString(),
     author: {
@@ -141,7 +151,7 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
       "@id": canonicalUrl,
     },
     url: canonicalUrl,
-    image: `${siteUrl}/topics/${topic.id}/opengraph-image`,
+    image: jsonLdImage,
     inLanguage: "ko",
     keywords: [topic.optionA, topic.optionB, CATEGORY_LABELS[topic.category]].join(", "),
     articleSection: CATEGORY_LABELS[topic.category],

@@ -54,6 +54,11 @@ export const updateTopicSchema = z.object({
     .nullable(),
   deadline: z.string().datetime().optional().nullable(),
   referenceLinks: z.array(referenceLinkSchema).optional().nullable(),
+  // SEO 필드
+  metaTitle: z.string().max(60, "메타 타이틀은 60자 이하여야 합니다.").optional().nullable(),
+  metaDescription: z.string().max(160, "메타 설명은 160자 이하여야 합니다.").optional().nullable(),
+  ogImageUrl: z.string().url("올바른 URL 형식이 아닙니다.").optional().nullable()
+    .or(z.literal("")),  // 빈 문자열도 허용
 });
 
 export const updateHiddenSchema = z.object({

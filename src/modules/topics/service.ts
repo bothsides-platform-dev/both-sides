@@ -332,7 +332,7 @@ export async function updateTopic(id: string, input: UpdateTopicInput) {
     throw new NotFoundError("토론을 찾을 수 없습니다.");
   }
 
-  const { deadline, referenceLinks, ...rest } = input;
+  const { deadline, referenceLinks, metaTitle, metaDescription, ogImageUrl, ...rest } = input;
 
   return prisma.topic.update({
     where: { id },
@@ -344,6 +344,10 @@ export async function updateTopic(id: string, input: UpdateTopicInput) {
         : referenceLinks !== undefined
           ? (referenceLinks as Prisma.InputJsonValue)
           : undefined,
+      // SEO 필드: 빈 문자열이면 null로 변환
+      metaTitle: metaTitle === "" ? null : metaTitle,
+      metaDescription: metaDescription === "" ? null : metaDescription,
+      ogImageUrl: ogImageUrl === "" ? null : ogImageUrl,
     },
     include: {
       author: {
