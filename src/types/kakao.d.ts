@@ -21,8 +21,14 @@ interface KakaoShareFeedSettings {
   buttons?: KakaoShareButton[];
 }
 
+interface KakaoShareCustomSettings {
+  templateId: number;
+  templateArgs?: Record<string, string>;
+}
+
 interface KakaoShare {
   sendDefault(settings: KakaoShareFeedSettings): void;
+  sendCustom(settings: KakaoShareCustomSettings): void;
 }
 
 interface KakaoSDK {

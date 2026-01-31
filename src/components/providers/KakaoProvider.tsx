@@ -52,27 +52,43 @@ export function KakaoProvider({ children }: KakaoProviderProps) {
       return;
     }
 
-    window.Kakao.Share.sendDefault({
-      objectType: "feed",
-      content: {
-        title: options.title,
-        description: options.description,
-        imageUrl: options.imageUrl,
-        link: {
-          mobileWebUrl: options.url,
-          webUrl: options.url,
+    const templateId = process.env.NEXT_PUBLIC_KAKAO_TEMPLATE_ID;
+
+    if (templateId) {
+      // 사용자 정의 템플릿 사용 (원본 비율 유지)
+      window.Kakao.Share.sendCustom({
+        templateId: Number(templateId),
+        templateArgs: {
+          IMG: options.imageUrl || "",
+          TITLE: options.title,
+          DESC: options.description || "",
+          URL: options.url,
         },
-      },
-      buttons: [
-        {
-          title: options.buttonTitle || "자세히 보기",
+      });
+    } else {
+      // 폴백: 기본 템플릿
+      window.Kakao.Share.sendDefault({
+        objectType: "feed",
+        content: {
+          title: options.title,
+          description: options.description,
+          imageUrl: options.imageUrl,
           link: {
             mobileWebUrl: options.url,
             webUrl: options.url,
           },
         },
-      ],
-    });
+        buttons: [
+          {
+            title: options.buttonTitle || "자세히 보기",
+            link: {
+              mobileWebUrl: options.url,
+              webUrl: options.url,
+            },
+          },
+        ],
+      });
+    }
   }, [isReady]);
 
   return (
