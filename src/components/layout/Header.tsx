@@ -16,18 +16,18 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="w-full px-4 md:px-8 lg:px-12 flex h-16 items-center justify-between border-b">
-        <Link href="/" className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center space-x-3">
           <Image
             src={logo}
             alt="BothSides"
-            width={32}
-            height={32}
+            width={40}
+            height={40}
             priority
-            className="h-8 w-8"
+            className="h-10 w-10"
           />
           <span className="hidden sm:inline text-2xl font-bold">
-            <span className="text-blue-500">Both</span>
-            <span className="text-red-500">Sides</span>
+            <span className="text-[#3B82F6]">Both</span>
+            <span className="text-[#EF4444]">Sides</span>
           </span>
         </Link>
 
