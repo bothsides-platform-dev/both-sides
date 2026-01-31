@@ -165,14 +165,14 @@ export function OpinionSection({ topicId, optionA, optionB }: OpinionSectionProp
                   <Textarea
                     value={newOpinion}
                     onChange={(e) => setNewOpinion(e.target.value)}
-                    placeholder="의견을 입력하세요 (최소 10자)"
+                    placeholder="의견을 입력하세요"
                     className="min-h-[80px] resize-none"
                     maxLength={1000}
                   />
                   <Button
                     size="icon"
                     onClick={handleSubmit}
-                    disabled={submitState.isSubmitting || newOpinion.length < 10}
+                    disabled={submitState.isSubmitting || !newOpinion.trim()}
                     className={cn(
                       "shrink-0",
                       myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"

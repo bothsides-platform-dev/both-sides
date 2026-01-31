@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createOpinionSchema = z.object({
-  body: z.string().min(10, "의견은 10자 이상이어야 합니다.").max(1000, "의견은 1000자 이하여야 합니다."),
+  body: z.string().min(1, "의견을 입력해주세요.").max(1000, "의견은 1000자 이하여야 합니다."),
   isAnonymous: z.boolean().default(false),
   parentId: z.string().optional(),
 });

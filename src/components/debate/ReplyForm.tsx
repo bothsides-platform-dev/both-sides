@@ -34,7 +34,7 @@ export function ReplyForm({
   });
 
   const handleSubmit = async () => {
-    if (!body.trim() || body.length < 10) return;
+    if (!body.trim()) return;
 
     setSubmitState({ isSubmitting: true, error: null });
 
@@ -88,7 +88,7 @@ export function ReplyForm({
           <Textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            placeholder="답글을 입력하세요 (최소 10자)"
+            placeholder="답글을 입력하세요"
             className="min-h-[60px] resize-none text-sm"
             maxLength={1000}
           />
@@ -97,7 +97,7 @@ export function ReplyForm({
               size="icon"
               className="h-8 w-8 shrink-0"
               onClick={handleSubmit}
-              disabled={submitState.isSubmitting || body.length < 10}
+              disabled={submitState.isSubmitting || !body.trim()}
             >
               {submitState.isSubmitting ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
