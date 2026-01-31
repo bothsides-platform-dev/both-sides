@@ -7,7 +7,6 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CATEGORY_LABELS } from "@/lib/constants";
-import { formatRelativeTime } from "@/lib/utils";
 import { Eye, MessageSquare, Users, User, Ban } from "lucide-react";
 import { ShareButton } from "@/components/ui/ShareButton";
 import type { Category } from "@prisma/client";
@@ -132,7 +131,6 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
               <Eye className="h-4 w-4" />
               {topic.viewCount}
             </span>
-            <span>{formatRelativeTime(topic.createdAt)}</span>
           </div>
         </CardFooter>
         </Card>
