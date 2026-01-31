@@ -150,8 +150,8 @@ export async function middleware(request: NextRequest) {
       route.limiter
     ) {
       const ip =
-        request.ip ??
         request.headers.get("x-forwarded-for")?.split(",")[0] ??
+        request.headers.get("x-real-ip") ??
         "unknown";
 
       const identifier = `${ip}:${pathname}`;
