@@ -1,8 +1,15 @@
 import { ImageResponse } from "next/og";
+import { readFileSync } from "fs";
+import { join } from "path";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function GET() {
+  // 로고 이미지를 base64로 인코딩
+  const logoPath = join(process.cwd(), "src/app/logo-og.png");
+  const logoData = readFileSync(logoPath);
+  const logoBase64 = `data:image/png;base64,${logoData.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -13,76 +20,44 @@ export async function GET() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: "linear-gradient(135deg, #0ea5e9 0%, #7c3aed 100%)",
           fontFamily: "system-ui, sans-serif",
         }}
       >
-        {/* Logo / Brand */}
+        {/* Logo Image */}
+        <img
+          src={logoBase64}
+          width={280}
+          height={280}
+          style={{
+            marginBottom: 32,
+            filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.25))",
+          }}
+        />
+
+        {/* Brand Name */}
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 40,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 120,
-              height: 120,
-              borderRadius: 24,
-              background: "rgba(255,255,255,0.2)",
-              fontSize: 64,
-              fontWeight: 800,
-            }}
-          >
-            <span style={{ color: "#3b82f6" }}>A</span>
-            <span style={{ color: "white", margin: "0 8px", fontSize: 48 }}>vs</span>
-            <span style={{ color: "#ef4444" }}>B</span>
-          </div>
-        </div>
-
-        {/* Title */}
-        <div
-          style={{
-            fontSize: 72,
+            fontSize: 64,
             fontWeight: 800,
-            color: "white",
             marginBottom: 16,
-            textShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            textShadow: "0 4px 12px rgba(0,0,0,0.2)",
           }}
         >
-          BothSides
+          <span style={{ color: "#3B82F6" }}>Both</span>
+          <span style={{ color: "#EF4444" }}>Sides</span>
         </div>
 
         {/* Tagline */}
         <div
           style={{
-            fontSize: 32,
+            fontSize: 28,
             color: "rgba(255,255,255,0.9)",
             textAlign: "center",
           }}
         >
           양자택일 토론 플랫폼
-        </div>
-
-        {/* CTA */}
-        <div
-          style={{
-            display: "flex",
-            marginTop: 48,
-            padding: "16px 32px",
-            background: "white",
-            borderRadius: 12,
-            fontSize: 24,
-            fontWeight: 600,
-            color: "#667eea",
-          }}
-        >
-          당신의 선택은?
         </div>
       </div>
     ),
