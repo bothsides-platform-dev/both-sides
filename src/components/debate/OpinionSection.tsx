@@ -1,10 +1,16 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+
+// Dynamic import for framer-motion to reduce bundle size (~40KB)
+const MotionDiv = dynamic(
+  () => import("framer-motion").then((mod) => mod.motion.div),
+  { ssr: false }
+);
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -306,7 +312,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
           />
 
           <div className="overflow-hidden">
-            <motion.div
+            <MotionDiv
               className="flex"
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
@@ -350,7 +356,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   expandedAncestorIds={ancestorData?.ancestorIds}
                 />
               </div>
-            </motion.div>
+            </MotionDiv>
           </div>
         </div>
       </CardContent>

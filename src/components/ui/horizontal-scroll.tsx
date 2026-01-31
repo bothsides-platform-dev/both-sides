@@ -35,8 +35,8 @@ export function HorizontalScroll({
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    container.addEventListener("scroll", checkScrollability);
-    window.addEventListener("resize", checkScrollability);
+    container.addEventListener("scroll", checkScrollability, { passive: true });
+    window.addEventListener("resize", checkScrollability, { passive: true });
 
     return () => {
       container.removeEventListener("scroll", checkScrollability);

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -23,7 +24,8 @@ interface TopicDetailPageProps {
   searchParams: Promise<{ highlightReply?: string }>;
 }
 
-async function getTopic(id: string) {
+// Use React.cache() to deduplicate getTopic calls between generateMetadata and page component
+const getTopic = cache(async (id: string) => {
   const topic = await prisma.topic.findUnique({
     where: { id },
     include: {
@@ -40,7 +42,7 @@ async function getTopic(id: string) {
   });
 
   return topic;
-}
+});
 
 export async function generateMetadata({ params }: TopicDetailPageProps) {
   const { id } = await params;

@@ -40,13 +40,6 @@ export const OpinionThread = memo(function OpinionThread({
   const [showReplies, setShowReplies] = useState(shouldAutoExpand);
   const [loadingReplies, setLoadingReplies] = useState(false);
 
-  // Auto-expand when ancestor data changes
-  useEffect(() => {
-    if (shouldAutoExpand && !showReplies) {
-      setShowReplies(true);
-    }
-  }, [shouldAutoExpand, showReplies]);
-
   const repliesCount = opinion._count?.replies || 0;
   const hasReplies = repliesCount > 0;
 
@@ -58,6 +51,20 @@ export const OpinionThread = memo(function OpinionThread({
   );
 
   const replies = repliesData?.data?.opinions || [];
+
+  // Auto-expand when ancestor data changes
+  useEffect(() => {
+    if (shouldAutoExpand && !showReplies) {
+      setShowReplies(true);
+    }
+  }, [shouldAutoExpand, showReplies]);
+
+  // Stop loading once data is fetched (moved from render-phase to useEffect)
+  useEffect(() => {
+    if (loadingReplies && repliesData) {
+      setLoadingReplies(false);
+    }
+  }, [loadingReplies, repliesData]);
 
   const handleToggleReplies = () => {
     if (!showReplies && hasReplies) {
@@ -72,11 +79,6 @@ export const OpinionThread = memo(function OpinionThread({
       onReplySuccess();
     }
   };
-
-  // Stop loading once data is fetched
-  if (loadingReplies && repliesData) {
-    setLoadingReplies(false);
-  }
 
   return (
     <div className="relative">
