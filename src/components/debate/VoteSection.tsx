@@ -30,6 +30,17 @@ interface VoteInfoResponse {
   };
 }
 
+// 편승 효과 감소를 위한 로그 스케일(sqrt 압축) 적용
+// 큰 차이도 시각적으로 접전처럼 보이게 함
+function compressPercentage(percentage: number): number {
+  const deviation = percentage - 50;
+  const sign = deviation >= 0 ? 1 : -1;
+  const absDeviation = Math.abs(deviation);
+  const compressedDeviation =
+    sign * (Math.sqrt(absDeviation) / Math.sqrt(50)) * 50;
+  return 50 + compressedDeviation;
+}
+
 export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
   const [isVoting, setIsVoting] = useState(false);
   const isVisibleRef = useRef(true);
@@ -120,31 +131,20 @@ export function VoteSection({ topicId, optionA, optionB }: VoteSectionProps) {
           </Button>
         </div>
 
-        {/* Vote Stats Bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-blue-600 font-medium">
-              A: {stats.aPercentage}% ({stats.aCount}표)
-            </span>
-            <span className="text-red-600 font-medium">
-              B: {stats.bPercentage}% ({stats.bCount}표)
-            </span>
+        {/* Vote Stats Bar - 숫자 없이 압축된 비율로 표시 */}
+        <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
+          <div className="flex h-full">
+            <div
+              className="bg-blue-500 transition-all duration-300"
+              style={{ width: `${compressPercentage(stats.aPercentage)}%` }}
+            />
+            <div
+              className="bg-red-500 transition-all duration-300"
+              style={{
+                width: `${100 - compressPercentage(stats.aPercentage)}%`,
+              }}
+            />
           </div>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
-            <div className="flex h-full">
-              <div
-                className="bg-blue-500 transition-all duration-300"
-                style={{ width: `${stats.aPercentage}%` }}
-              />
-              <div
-                className="bg-red-500 transition-all duration-300"
-                style={{ width: `${stats.bPercentage}%` }}
-              />
-            </div>
-          </div>
-          <p className="text-center text-sm text-muted-foreground">
-            총 {stats.total}명 참여
-          </p>
         </div>
 
         {myVote && (
