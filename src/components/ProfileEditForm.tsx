@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { Loader2 } from "lucide-react";
+import { containsProfanity } from "@/lib/profanity";
 
 interface ProfileEditFormProps {
   onCancel: () => void;
@@ -38,7 +39,17 @@ export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
   const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setNickname(value);
-    setNicknameError(validateNicknameLength(value));
+
+    // Length validation first
+    const lengthError = validateNicknameLength(value);
+    if (lengthError) {
+      setNicknameError(lengthError);
+    } else if (containsProfanity(value)) {
+      // Profanity check after length validation passes
+      setNicknameError("닉네임에 부적절한 단어가 포함되어 있습니다.");
+    } else {
+      setNicknameError(null);
+    }
     setError(null);
   };
 
@@ -50,6 +61,11 @@ export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
     const lengthError = validateNicknameLength(nickname);
     if (lengthError) {
       setNicknameError(lengthError);
+      return;
+    }
+
+    if (containsProfanity(nickname)) {
+      setNicknameError("닉네임에 부적절한 단어가 포함되어 있습니다.");
       return;
     }
 

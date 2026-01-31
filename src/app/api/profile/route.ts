@@ -2,10 +2,8 @@ import { requireAuth } from "@/lib/auth";
 import { handleApiError, ValidationError, ConflictError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
 import { validateRequest, nicknameSchema } from "@/lib/validation";
+import { containsProfanity } from "@/lib/profanity";
 import { z } from "zod";
-import Filter from "badwords-ko";
-
-const filter = new Filter();
 
 const updateProfileSchema = z.object({
   nickname: nicknameSchema.optional(),
@@ -84,7 +82,7 @@ export async function PATCH(request: Request) {
     // Validate nickname if provided
     if (data.nickname) {
       // Check for profanity
-      if (filter.isProfane(data.nickname)) {
+      if (containsProfanity(data.nickname)) {
         throw new ValidationError("닉네임에 부적절한 단어가 포함되어 있습니다.");
       }
 
