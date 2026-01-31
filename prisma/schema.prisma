@@ -158,6 +158,8 @@ model Topic {
   @@index([isFeatured])
   @@index([isHidden])
   @@index([deadline])
+  @@index([isFeatured, featuredAt]) // Featured 토픽 정렬 쿼리 최적화
+  @@index([isHidden, createdAt]) // 관리자 페이지 필터링 최적화
 }
 
 model TopicView {
@@ -190,6 +192,7 @@ model Vote {
   @@index([topicId])
   @@index([userId])
   @@index([visitorId])
+  @@index([topicId, visitorId, ipAddress]) // Guest 투표 조회 시 full scan 방지
 }
 
 model Opinion {
@@ -236,6 +239,7 @@ model Reaction {
   @@index([opinionId])
   @@index([userId])
   @@index([visitorId])
+  @@index([opinionId, visitorId, ipAddress]) // Guest 반응 조회 시 full scan 방지
 }
 
 model Report {

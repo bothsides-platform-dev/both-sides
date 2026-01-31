@@ -1,6 +1,15 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { handleApiError } from "@/lib/errors";
+import type { Side } from "@prisma/client";
+
+interface AncestorResult {
+  id: string;
+  parentId: string | null;
+  side: Side;
+  topicId: string;
+  depth: number;
+}
 
 export async function GET(
   request: NextRequest,
@@ -9,36 +18,39 @@ export async function GET(
   try {
     const { id: opinionId } = await params;
 
-    // Get the opinion and traverse up the parent chain
-    const opinion = await prisma.opinion.findUnique({
-      where: { id: opinionId },
-      select: {
-        id: true,
-        parentId: true,
-        side: true,
-        topicId: true,
-      },
-    });
+    // Use recursive CTE to fetch all ancestors in a single query
+    // This avoids N+1 queries when traversing up the parent chain
+    const ancestors = await prisma.$queryRaw<AncestorResult[]>`
+      WITH RECURSIVE ancestors AS (
+        -- Base case: start with the target opinion
+        SELECT id, "parentId", side, "topicId", 0 as depth
+        FROM "Opinion"
+        WHERE id = ${opinionId}
 
-    if (!opinion) {
+        UNION ALL
+
+        -- Recursive case: get parent of current opinion
+        SELECT o.id, o."parentId", o.side, o."topicId", a.depth + 1
+        FROM "Opinion" o
+        INNER JOIN ancestors a ON o.id = a."parentId"
+      )
+      SELECT id, "parentId" as "parentId", side, "topicId" as "topicId", depth
+      FROM ancestors
+      ORDER BY depth ASC
+    `;
+
+    if (ancestors.length === 0) {
       return Response.json(
         { error: "의견을 찾을 수 없습니다." },
         { status: 404 }
       );
     }
 
-    // Collect ancestor IDs by traversing up the parent chain
-    const ancestorIds: string[] = [];
-    let currentParentId = opinion.parentId;
+    // First result is the opinion itself (depth 0)
+    const opinion = ancestors[0];
 
-    while (currentParentId) {
-      ancestorIds.push(currentParentId);
-      const parent = await prisma.opinion.findUnique({
-        where: { id: currentParentId },
-        select: { parentId: true },
-      });
-      currentParentId = parent?.parentId ?? null;
-    }
+    // Remaining results are ancestors in order from nearest to farthest parent
+    const ancestorIds = ancestors.slice(1).map(a => a.id);
 
     // The top-level opinion is the last one in the ancestor chain, or this opinion itself if no parent
     const topLevelOpinionId = ancestorIds.length > 0

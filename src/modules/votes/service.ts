@@ -92,11 +92,15 @@ export async function getVote(identifier: VoteIdentifier, topicId: string) {
 }
 
 export async function getVoteStats(topicId: string) {
-  const [aCount, bCount] = await Promise.all([
-    prisma.vote.count({ where: { topicId, side: "A" } }),
-    prisma.vote.count({ where: { topicId, side: "B" } }),
-  ]);
+  // Use groupBy to fetch both counts in a single query
+  const stats = await prisma.vote.groupBy({
+    by: ["side"],
+    where: { topicId },
+    _count: true,
+  });
 
+  const aCount = stats.find((s) => s.side === "A")?._count ?? 0;
+  const bCount = stats.find((s) => s.side === "B")?._count ?? 0;
   const total = aCount + bCount;
 
   return {

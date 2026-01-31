@@ -236,23 +236,6 @@ export async function getTopic(id: string) {
   return topic;
 }
 
-export async function getVoteStats(topicId: string) {
-  const [aCount, bCount] = await Promise.all([
-    prisma.vote.count({ where: { topicId, side: "A" } }),
-    prisma.vote.count({ where: { topicId, side: "B" } }),
-  ]);
-
-  const total = aCount + bCount;
-
-  return {
-    aCount,
-    bCount,
-    total,
-    aPercentage: total > 0 ? Math.round((aCount / total) * 100) : 50,
-    bPercentage: total > 0 ? Math.round((bCount / total) * 100) : 50,
-  };
-}
-
 export async function incrementViewCount(topicId: string, visitorId: string) {
   // 이미 조회한 적이 있는지 확인
   const existingView = await prisma.topicView.findUnique({
