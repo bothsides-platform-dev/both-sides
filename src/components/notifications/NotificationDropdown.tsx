@@ -51,7 +51,7 @@ export function NotificationDropdown({
 }: NotificationDropdownProps) {
   return (
     <DropdownMenuContent
-      className="w-[calc(100vw-2rem)] sm:w-80 max-sm:translate-x-[48px]"
+      className="w-[calc(100vw-2rem)] sm:w-80 max-sm:translate-x-[24px]"
       align="end"
       sideOffset={8}
       forceMount
