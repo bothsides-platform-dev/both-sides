@@ -30,9 +30,9 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
       href={`/topics/${topic.id}`}
       className="flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors hover:bg-muted/50"
     >
-      <div className="relative h-[60px] w-[80px] shrink-0 overflow-hidden rounded-md bg-muted">
+      <div className="relative h-[60px] w-[80px] shrink-0 overflow-hidden rounded-md bg-gradient-to-r from-blue-50 to-red-50">
         {topic.imageUrl ? (
-          <Image src={topic.imageUrl} alt="" fill className="object-cover" />
+          <Image src={topic.imageUrl} alt="" fill className="object-contain" />
         ) : (
           <div className="flex h-full items-center justify-center">
             {/* 좌우 분할 배경 */}
