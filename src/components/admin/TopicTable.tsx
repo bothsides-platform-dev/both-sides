@@ -170,7 +170,7 @@ export function TopicTable({ topics }: TopicTableProps) {
                   <span>
                     작성자: {topic.author.nickname || topic.author.name || "익명"}
                   </span>
-                  <span>조회 {topic.viewCount.toLocaleString()}</span>
+                  <span>{topic.viewCount.toLocaleString()}회</span>
                   <span>투표 {topic._count.votes.toLocaleString()}</span>
                   <span>의견 {topic._count.opinions.toLocaleString()}</span>
                   <span suppressHydrationWarning>{formatRelativeTime(topic.createdAt)}</span>

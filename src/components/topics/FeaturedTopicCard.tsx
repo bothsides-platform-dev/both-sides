@@ -66,7 +66,7 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
               </div>
               <div className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />
-                <span className="text-sm font-medium">{formatNumber(topic.viewCount)}조회</span>
+                <span className="text-sm font-medium">{formatNumber(topic.viewCount)}회</span>
               </div>
             </div>
           </div>

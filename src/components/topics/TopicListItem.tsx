@@ -56,7 +56,7 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
             {topic.title}
           </h4>
           <span className="shrink-0 text-xs text-muted-foreground md:hidden">
-            {topic._count.votes}표 · {topic._count.opinions}의견 · {topic.viewCount}조회
+            {topic._count.votes}표 · {topic._count.opinions}의견 · {topic.viewCount}회
           </span>
         </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">
