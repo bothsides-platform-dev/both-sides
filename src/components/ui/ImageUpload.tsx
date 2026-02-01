@@ -179,12 +179,12 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
   return (
     <div className="space-y-2">
       {value ? (
-        <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-gradient-to-br from-blue-50 to-red-50">
           <Image
             src={value}
             alt="썸네일 미리보기"
             fill
-            className="object-cover"
+            className="object-contain"
           />
           <Button
             type="button"

@@ -40,7 +40,7 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
               src={topic.imageUrl}
               alt={topic.title}
               fill
-              className="object-cover transition-transform group-hover:scale-105"
+              className="object-contain transition-transform group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full items-center justify-center">
