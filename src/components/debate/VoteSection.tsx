@@ -159,11 +159,11 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         </p>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
         <Button
           variant={myVote === "A" ? "sideA" : "sideAOutline"}
           className={cn(
-            "flex-1 h-20 flex-col gap-1.5",
+            "w-full h-16 flex-col gap-1 sm:flex-1 sm:h-20 sm:gap-1.5",
             myVote === "A" && "ring-2 ring-blue-500 ring-offset-2"
           )}
           onClick={() => handleVote("A")}
@@ -173,13 +173,13 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
             <Loader2 className="h-5 w-5 animate-spin" />
           )}
           <span className="text-sm font-medium opacity-70">A</span>
-          <span className="text-lg font-bold">{optionA}</span>
+          <span className="text-base font-bold line-clamp-1 sm:text-lg">{optionA}</span>
         </Button>
 
         <Button
           variant={myVote === "B" ? "sideB" : "sideBOutline"}
           className={cn(
-            "flex-1 h-20 flex-col gap-1.5",
+            "w-full h-16 flex-col gap-1 sm:flex-1 sm:h-20 sm:gap-1.5",
             myVote === "B" && "ring-2 ring-red-500 ring-offset-2"
           )}
           onClick={() => handleVote("B")}
@@ -189,7 +189,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
             <Loader2 className="h-5 w-5 animate-spin" />
           )}
           <span className="text-sm font-medium opacity-70">B</span>
-          <span className="text-lg font-bold">{optionB}</span>
+          <span className="text-base font-bold line-clamp-1 sm:text-lg">{optionB}</span>
         </Button>
       </div>
 
