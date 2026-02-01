@@ -42,7 +42,7 @@ export const OpinionColumn = memo(function OpinionColumn({
   return (
     <div className="flex flex-col rounded-xl border border-border/50 bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border/50">
         <div className="flex items-center gap-2.5">
           <div
             className={cn(

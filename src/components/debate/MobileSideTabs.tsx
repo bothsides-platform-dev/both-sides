@@ -23,12 +23,12 @@ export const MobileSideTabs = memo(function MobileSideTabs({
   countB,
 }: MobileSideTabsProps) {
   return (
-    <div className="relative flex border-b border-border/50 mb-3">
+    <div className="relative flex border-b border-border/50 mb-2">
       {/* Tab buttons */}
       <button
         onClick={() => onTabChange("A")}
         className={cn(
-          "flex-1 py-3 text-sm font-medium transition-colors relative",
+          "flex-1 py-2 text-sm font-medium transition-colors relative",
           activeTab === "A" ? "text-foreground" : "text-muted-foreground/70"
         )}
       >
@@ -50,7 +50,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
       <button
         onClick={() => onTabChange("B")}
         className={cn(
-          "flex-1 py-3 text-sm font-medium transition-colors relative",
+          "flex-1 py-2 text-sm font-medium transition-colors relative",
           activeTab === "B" ? "text-foreground" : "text-muted-foreground/70"
         )}
       >

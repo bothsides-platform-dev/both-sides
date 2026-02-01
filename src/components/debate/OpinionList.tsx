@@ -35,7 +35,7 @@ export const OpinionList = memo(function OpinionList({
 }: OpinionListProps) {
   if (isLoading) {
     return (
-      <div className="flex justify-center py-6">
+      <div className="flex justify-center py-4">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50" />
       </div>
     );
@@ -43,7 +43,7 @@ export const OpinionList = memo(function OpinionList({
 
   if (opinions.length === 0) {
     return (
-      <div className="py-6 text-center text-sm text-muted-foreground/70">
+      <div className="py-4 text-center text-sm text-muted-foreground/70">
         {emptyMessage}
       </div>
     );
