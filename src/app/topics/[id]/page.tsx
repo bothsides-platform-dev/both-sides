@@ -173,23 +173,7 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
           <h1 className="text-2xl font-bold md:text-4xl">{topic.title}</h1>
         </div>
 
-        {/* Hero Image - 제목 바로 아래로 이동 */}
-        {topic.imageUrl && (
-          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl">
-            <Image
-              src={topic.imageUrl}
-              alt={topic.title}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
-        )}
-
-        {topic.description && (
-          <p className="text-lg leading-relaxed text-muted-foreground">{topic.description}</p>
-        )}
-
+        {/* Author & Share - 제목 바로 아래 */}
         <TopicAuthorSection
           topicId={topic.id}
           authorId={topic.author.id}
@@ -209,6 +193,24 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
             />
           }
         />
+
+        {/* Hero Image */}
+        {topic.imageUrl && (
+          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl">
+            <Image
+              src={topic.imageUrl}
+              alt={topic.title}
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
+
+        {/* Description - 더 눈에 띄는 색상 */}
+        {topic.description && (
+          <p className="text-lg leading-relaxed text-foreground/80">{topic.description}</p>
+        )}
       </div>
 
       {/* Vote Section */}
