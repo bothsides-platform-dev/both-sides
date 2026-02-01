@@ -103,7 +103,11 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
 
   const { data: opinionsData, isLoading } = useSWR<{ data: { opinions: Opinion[] } }>(
     `/api/topics/${topicId}/opinions?${queryParams}`,
-    fetcher
+    fetcher,
+    {
+      refreshInterval: 15000,
+      isPaused: () => typeof document !== 'undefined' && document.hidden,
+    }
   );
 
   // Memoize opinions to prevent unnecessary recalculations

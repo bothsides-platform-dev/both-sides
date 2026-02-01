@@ -47,7 +47,11 @@ export const OpinionThread = memo(function OpinionThread({
   const shouldFetch = showReplies && hasReplies;
   const { data: repliesData, mutate: mutateReplies } = useSWR<{ data: { opinions: Opinion[] } }>(
     shouldFetch ? `/api/topics/${opinion.topicId}/opinions?parentId=${opinion.id}&sort=latest&limit=100` : null,
-    fetcher
+    fetcher,
+    {
+      refreshInterval: shouldFetch ? 15000 : 0,
+      isPaused: () => typeof document !== 'undefined' && document.hidden,
+    }
   );
 
   const replies = repliesData?.data?.opinions || [];
