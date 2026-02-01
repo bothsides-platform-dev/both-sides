@@ -19,10 +19,10 @@ export function Header() {
           <Image
             src={logo}
             alt="BothSides"
-            width={40}
-            height={40}
+            width={32}
+            height={32}
             priority
-            className="h-10 w-10"
+            className="h-8 w-8"
           />
           <span className="text-xl sm:text-2xl font-bold">
             <span className="text-[#3B82F6]">Both</span>
