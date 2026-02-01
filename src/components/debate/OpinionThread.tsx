@@ -50,6 +50,7 @@ export const OpinionThread = memo(function OpinionThread({
     fetcher,
     {
       refreshInterval: shouldFetch ? 15000 : 0,
+      dedupingInterval: 10000,
       isPaused: () => typeof document !== 'undefined' && document.hidden,
     }
   );

@@ -106,6 +106,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
     fetcher,
     {
       refreshInterval: 15000,
+      dedupingInterval: 10000,
       isPaused: () => typeof document !== 'undefined' && document.hidden,
     }
   );
