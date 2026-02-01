@@ -64,6 +64,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [ogImageUrl, setOgImageUrl] = useState("");
+  const [isImageUploading, setIsImageUploading] = useState(false);
 
   const { data, isLoading } = useSWR<{ data: Topic }>(
     session?.user?.role === "ADMIN" ? `/api/admin/topics/${id}` : null,
@@ -258,6 +259,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
                 value={imageUrl}
                 onChange={setImageUrl}
                 disabled={isSubmitting}
+                onUploadingChange={setIsImageUploading}
               />
             </div>
 
@@ -365,7 +367,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
               >
                 취소
               </Button>
-              <Button type="submit" className="flex-1" disabled={isSubmitting}>
+              <Button type="submit" className="flex-1" disabled={isSubmitting || isImageUploading}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

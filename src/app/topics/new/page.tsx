@@ -28,6 +28,7 @@ function NewTopicForm() {
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [referenceLinks, setReferenceLinks] = useState<ReferenceLink[]>([]);
+  const [isImageUploading, setIsImageUploading] = useState(false);
 
   if (status === "loading") {
     return (
@@ -178,6 +179,7 @@ function NewTopicForm() {
                 value={imageUrl}
                 onChange={setImageUrl}
                 disabled={isSubmitting}
+                onUploadingChange={setIsImageUploading}
               />
             </div>
 
@@ -214,7 +216,7 @@ function NewTopicForm() {
               </Label>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type="submit" className="w-full" disabled={isSubmitting || isImageUploading}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

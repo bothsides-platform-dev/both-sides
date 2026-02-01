@@ -45,14 +45,21 @@ interface ImageUploadProps {
   value?: string;
   onChange: (url: string | undefined) => void;
   disabled?: boolean;
+  onUploadingChange?: (isUploading: boolean) => void;
 }
 
-export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, disabled, onUploadingChange }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
+
+  // Helper to update uploading state and notify parent
+  const updateUploadingState = useCallback((uploading: boolean) => {
+    setIsUploading(uploading);
+    onUploadingChange?.(uploading);
+  }, [onUploadingChange]);
 
   // Shared upload logic - Best Practice 5.7: Put Interaction Logic in Event Handlers
   const processFile = useCallback(async (file: File) => {
@@ -66,7 +73,7 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
       return;
     }
 
-    setIsUploading(true);
+    updateUploadingState(true);
 
     try {
       // 이미지 압축 (GIF 제외)
@@ -90,9 +97,9 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "업로드 중 오류가 발생했습니다.");
     } finally {
-      setIsUploading(false);
+      updateUploadingState(false);
     }
-  }, [onChange]);
+  }, [onChange, updateUploadingState]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
