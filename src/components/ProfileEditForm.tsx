@@ -24,6 +24,7 @@ export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
+  const [isImageUploading, setIsImageUploading] = useState(false);
 
   // Real-time nickname validation (length only)
   const validateNicknameLength = (value: string) => {
@@ -134,6 +135,7 @@ export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
                 value={image}
                 onChange={setImage}
                 disabled={isLoading}
+                onUploadingChange={setIsImageUploading}
               />
             </div>
           </div>
@@ -177,7 +179,7 @@ export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
         >
           취소
         </Button>
-        <Button type="submit" disabled={isLoading || !!nicknameError}>
+        <Button type="submit" disabled={isLoading || isImageUploading || !!nicknameError}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
