@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -30,7 +30,12 @@ export function ShareButton({
   variant = "button",
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
+  const [canUseWebShare, setCanUseWebShare] = useState(false);
   const { shareKakao } = useKakao();
+
+  useEffect(() => {
+    setCanUseWebShare(typeof navigator !== "undefined" && !!navigator.share);
+  }, []);
 
   const fullUrl = typeof window !== "undefined"
     ? `${window.location.origin}${url}`
@@ -45,6 +50,20 @@ export function ShareButton({
     }
     return `${window.location.origin}${imageUrl}`;
   })();
+
+  const handleNativeShare = async () => {
+    try {
+      await navigator.share({
+        title,
+        text: description,
+        url: fullUrl,
+      });
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        console.error("Share failed:", err);
+      }
+    }
+  };
 
   const handleCopyLink = async () => {
     try {
@@ -85,6 +104,30 @@ export function ShareButton({
       window.location.href = "instagram://app";
     }
   };
+
+  if (canUseWebShare) {
+    return variant === "icon" ? (
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn("h-8 w-8", className)}
+        aria-label="공유하기"
+        onClick={handleNativeShare}
+      >
+        <Share2 className="h-4 w-4" />
+      </Button>
+    ) : (
+      <Button
+        variant="outline"
+        size="sm"
+        className={className}
+        onClick={handleNativeShare}
+      >
+        <Share2 className="mr-2 h-4 w-4" />
+        공유
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu>
