@@ -4,6 +4,7 @@ import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { createOpinionSchema, getOpinionsSchema } from "@/modules/opinions/schema";
 import { createOpinion, getOpinions } from "@/modules/opinions/service";
+import { triggerGroundsSummary, triggerOpinionClassification } from "@/modules/llm/service";
 
 export async function GET(
   request: NextRequest,
@@ -47,6 +48,8 @@ export async function POST(
     const body = await request.json();
     const input = await validateRequest(createOpinionSchema, body);
     const opinion = await createOpinion(user.id, topicId, input);
+    triggerGroundsSummary(topicId).catch(err => console.error("[LLM] Grounds failed:", err));
+    triggerOpinionClassification(opinion.id, topicId, opinion.side).catch(err => console.error("[LLM] Classify failed:", err));
     return Response.json({ data: opinion }, { status: 201 });
   } catch (error) {
     return handleApiError(error);

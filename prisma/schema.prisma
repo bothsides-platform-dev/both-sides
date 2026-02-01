@@ -106,6 +106,7 @@ model User {
   nickname        String?   @unique
   role            Role      @default(USER)
   isBlacklisted   Boolean   @default(false)
+  isBot           Boolean   @default(false)
   blacklistedAt   DateTime?
   blacklistReason String?
   createdAt       DateTime  @default(now())
@@ -151,12 +152,15 @@ model Topic {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  votes         Vote[]
-  opinions      Opinion[]
-  views         TopicView[]
-  reports       Report[]
-  notifications Notification[]
+  author           User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes            Vote[]
+  opinions         Opinion[]
+  views            TopicView[]
+  reports          Report[]
+  notifications    Notification[]
+  topicSummary     TopicSummary?
+  groundsSummaries GroundsSummary[]
+  opinionGrounds   OpinionGround[]
 
   @@index([authorId])
   @@index([category])
@@ -219,8 +223,9 @@ model Opinion {
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   parent    Opinion?   @relation("OpinionReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies   Opinion[]  @relation("OpinionReplies")
-  reactions Reaction[]
-  reports   Report[]
+  reactions     Reaction[]
+  reports       Report[]
+  opinionGround OpinionGround?
   notificationsAsOriginal Notification[] @relation("NotifiedOpinion")
   notificationsAsReply    Notification[] @relation("NotifyingReply")
 
@@ -315,4 +320,50 @@ model Notification {
 
   @@index([userId, isRead])
   @@index([userId, createdAt])
+}
+
+model TopicSummary {
+  id        String   @id @default(cuid())
+  topicId   String   @unique
+  summary   String   @db.Text
+  model     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+}
+
+model GroundsSummary {
+  id                       String   @id @default(cuid())
+  topicId                  String
+  side                     Side
+  groundsJson              Json
+  summaryText              String   @db.Text
+  opinionCountAtGeneration Int
+  isHidden                 Boolean  @default(false)
+  model                    String
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([topicId, side])
+  @@index([topicId])
+}
+
+model OpinionGround {
+  id          String   @id @default(cuid())
+  opinionId   String   @unique
+  topicId     String
+  side        Side
+  groundTitle String
+  groundId    Int
+  confidence  Float
+  model       String
+  createdAt   DateTime @default(now())
+
+  opinion Opinion @relation(fields: [opinionId], references: [id], onDelete: Cascade)
+  topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId, side])
 }
