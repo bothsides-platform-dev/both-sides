@@ -52,6 +52,7 @@ export const OpinionThread = memo(function OpinionThread({
       refreshInterval: shouldFetch ? 15000 : 0,
       dedupingInterval: 10000,
       isPaused: () => typeof document !== 'undefined' && document.hidden,
+      revalidateOnFocus: false,  // 탭 포커스시 불필요한 동시 요청 방지
     }
   );
 
