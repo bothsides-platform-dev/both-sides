@@ -3,7 +3,6 @@ import { put } from "@vercel/blob";
 import { requireAuth } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 
-const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif"];
 const MIME_TO_EXT: Record<string, string[]> = {
   "image/jpeg": ["jpg", "jpeg"],
   "image/png": ["png"],
@@ -35,24 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. 확장자 추출 및 검증
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
-      return NextResponse.json(
-        { error: "지원하지 않는 파일 확장자입니다." },
-        { status: 400 }
-      );
-    }
-
-    // 3. MIME 타입과 확장자 일치 검증
-    if (!allowedExts.includes(ext)) {
-      return NextResponse.json(
-        { error: "파일 형식과 확장자가 일치하지 않습니다." },
-        { status: 400 }
-      );
-    }
-
-    // 4. 파일 크기 검증
+    // 2. 파일 크기 검증
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
         { error: "파일 크기는 5MB 이하여야 합니다." },
@@ -60,7 +42,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. 안전한 파일명 생성 (검증된 확장자 사용)
+    // 3. 안전한 파일명 생성 (MIME 타입 기반 확장자 사용)
+    const ext = allowedExts[0]; // MIME 타입에서 확장자 추출
     const safeFilename = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 
     const token = process.env.BLOB_READ_WRITE_TOKEN;
