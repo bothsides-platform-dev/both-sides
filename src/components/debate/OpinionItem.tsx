@@ -169,27 +169,27 @@ export const OpinionItem = memo(function OpinionItem({
       ref={itemRef}
       id={`opinion-${opinion.id}`}
       className={cn(
-        "py-3 px-1 rounded-lg transition-colors duration-500",
+        "py-2 px-1 rounded-lg transition-colors duration-500",
         indentClass,
         highlightVisible && "bg-blue-100/50 dark:bg-blue-900/30 animate-pulse"
       )}
     >
       <div className="flex items-start gap-3">
         {isAnonymous ? (
-          <Avatar className="h-9 w-9 shrink-0">
-            <AvatarFallback className="text-sm">
-              <User className="h-5 w-5" />
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarFallback className="text-xs">
+              <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
         ) : (
           <Link href={`/users/${opinion.user.id}`}>
-            <Avatar className="h-9 w-9 shrink-0 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
+            <Avatar className="h-8 w-8 shrink-0 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
               <AvatarImage src={opinion.user.image || undefined} />
-              <AvatarFallback className="text-sm">{authorName.charAt(0)}</AvatarFallback>
+              <AvatarFallback className="text-xs">{authorName.charAt(0)}</AvatarFallback>
             </Avatar>
           </Link>
         )}
-        <div className="flex-1 min-w-0 space-y-2">
+        <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             {isAnonymous ? (
               <span className="font-medium text-sm">{authorName}</span>
@@ -227,17 +227,17 @@ export const OpinionItem = memo(function OpinionItem({
               </button>
             )}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <button
               onClick={() => onReaction(opinion.id, "LIKE")}
               className={cn(
-                "flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all",
+                "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-all",
                 userReaction?.type === "LIKE"
                   ? "text-blue-600 bg-blue-50"
                   : "text-muted-foreground hover:text-blue-600 hover:bg-blue-50/50"
               )}
             >
-              <ThumbsUp className="h-3.5 w-3.5" />
+              <ThumbsUp className="h-3 w-3" />
               <span className="font-medium">{opinion.reactionSummary.likes}</span>
             </button>
             {session?.user && (
@@ -248,31 +248,31 @@ export const OpinionItem = memo(function OpinionItem({
                       onClick={handleReplyCountClick}
                       disabled={loadingReplies}
                       className={cn(
-                        "flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all",
+                        "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-all",
                         showRepliesExpanded
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                       )}
                     >
                       {loadingReplies ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <Loader2 className="h-3 w-3 animate-spin" />
                       ) : showRepliesExpanded ? (
-                        <ChevronUp className="h-3.5 w-3.5" />
+                        <ChevronUp className="h-3 w-3" />
                       ) : (
-                        <ChevronDown className="h-3.5 w-3.5" />
+                        <ChevronDown className="h-3 w-3" />
                       )}
                       <span className="font-medium">답글 {repliesCount}</span>
                     </button>
                     <button
                       onClick={handleReplyClick}
                       className={cn(
-                        "flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all",
+                        "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-all",
                         showReplyForm
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                       )}
                     >
-                      <MessageCircle className="h-3.5 w-3.5" />
+                      <MessageCircle className="h-3 w-3" />
                       <span className="font-medium">답글 작성</span>
                     </button>
                   </>
@@ -280,13 +280,13 @@ export const OpinionItem = memo(function OpinionItem({
                   <button
                     onClick={handleReplyClick}
                     className={cn(
-                      "flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all",
+                      "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-all",
                       showReplyForm
                         ? "text-primary bg-primary/10"
                         : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     )}
                   >
-                    <MessageCircle className="h-3.5 w-3.5" />
+                    <MessageCircle className="h-3 w-3" />
                     <span className="font-medium">답글{showRepliesCount && repliesCount > 0 ? ` ${repliesCount}` : ""}</span>
                   </button>
                 )}
