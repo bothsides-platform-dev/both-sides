@@ -122,6 +122,8 @@ function NewTopicForm() {
                 name="description"
                 placeholder="토론에 대한 추가 설명을 입력하세요"
                 maxLength={500}
+                rows={8}
+                className="min-h-[200px]"
               />
             </div>
 
