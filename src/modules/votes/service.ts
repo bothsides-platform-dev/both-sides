@@ -1,6 +1,15 @@
 import { prisma } from "@/lib/db";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
+import { memoryCache, CACHE_KEYS, CACHE_TTL } from "@/lib/cache";
 import type { Side } from "@prisma/client";
+
+interface VoteStats {
+  aCount: number;
+  bCount: number;
+  total: number;
+  aPercentage: number;
+  bPercentage: number;
+}
 
 interface VoteIdentifier {
   userId?: string;
@@ -31,9 +40,11 @@ export async function upsertVote(
   const { userId, visitorId, ipAddress, fingerprint } = identifier;
   const isLoggedIn = !!userId;
 
+  let result;
+
   if (isLoggedIn) {
     // Logged-in user: use upsert with topicId_userId unique constraint
-    return prisma.vote.upsert({
+    result = await prisma.vote.upsert({
       where: {
         vote_topic_user: { topicId, userId: userId! },
       },
@@ -56,7 +67,7 @@ export async function upsertVote(
 
     if (existingVote) {
       // Update existing vote and also update fingerprint if available
-      return prisma.vote.update({
+      result = await prisma.vote.update({
         where: { id: existingVote.id },
         data: {
           side,
@@ -65,7 +76,7 @@ export async function upsertVote(
       });
     } else {
       // Create new vote
-      return prisma.vote.create({
+      result = await prisma.vote.create({
         data: {
           topicId,
           visitorId,
@@ -76,6 +87,11 @@ export async function upsertVote(
       });
     }
   }
+
+  // Invalidate vote stats cache after vote change
+  invalidateVoteStatsCache(topicId);
+
+  return result;
 }
 
 export async function getVote(identifier: VoteIdentifier, topicId: string) {
@@ -102,7 +118,15 @@ export async function getVote(identifier: VoteIdentifier, topicId: string) {
   }
 }
 
-export async function getVoteStats(topicId: string) {
+export async function getVoteStats(topicId: string): Promise<VoteStats> {
+  const cacheKey = CACHE_KEYS.VOTE_STATS(topicId);
+
+  // Check cache first
+  const cached = memoryCache.get<VoteStats>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   // Use groupBy to fetch both counts in a single query
   const stats = await prisma.vote.groupBy({
     by: ["side"],
@@ -114,11 +138,25 @@ export async function getVoteStats(topicId: string) {
   const bCount = stats.find((s) => s.side === "B")?._count ?? 0;
   const total = aCount + bCount;
 
-  return {
+  const result: VoteStats = {
     aCount,
     bCount,
     total,
     aPercentage: total > 0 ? Math.round((aCount / total) * 100) : 50,
     bPercentage: total > 0 ? Math.round((bCount / total) * 100) : 50,
   };
+
+  // Cache the result
+  memoryCache.set(cacheKey, result, CACHE_TTL.VOTE_STATS);
+
+  return result;
+}
+
+/**
+ * Invalidate vote stats cache for a topic
+ * Call this after a vote is cast or updated
+ */
+export function invalidateVoteStatsCache(topicId: string): void {
+  const cacheKey = CACHE_KEYS.VOTE_STATS(topicId);
+  memoryCache.delete(cacheKey);
 }

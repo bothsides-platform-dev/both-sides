@@ -13,7 +13,7 @@ export function SWRProvider({ children }: SWRProviderProps) {
       value={{
         fetcher,
         revalidateOnFocus: false,
-        dedupingInterval: 2000,
+        dedupingInterval: 5000,
         errorRetryCount: 3,
       }}
     >

@@ -125,13 +125,6 @@ export async function getOpinions(topicId: string, input: GetOpinionsInput) {
             isBlacklisted: true,
           },
         },
-        reactions: {
-          select: {
-            id: true,
-            userId: true,
-            type: true,
-          },
-        },
         _count: {
           select: {
             reactions: true,

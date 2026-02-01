@@ -86,7 +86,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
     `/api/topics/${topicId}/vote-info?includeMyVote=true`,
     fetcher,
     {
-      refreshInterval: 5000,
+      refreshInterval: 15000,
       isPaused: () => !isVisibleRef.current,
     }
   );
