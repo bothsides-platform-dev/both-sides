@@ -8,6 +8,7 @@ import { SWRProvider } from "@/components/providers/SWRProvider";
 import { ToastProvider } from "@/components/ui/toast";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { FeedbackFAB } from "@/components/feedback/FeedbackFAB";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -103,6 +104,7 @@ export default function RootLayout({
                 <Header />
                 <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
                 <Footer />
+                <FeedbackFAB />
               </ToastProvider>
             </SWRProvider>
           </SessionProvider>
