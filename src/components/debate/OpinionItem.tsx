@@ -3,6 +3,7 @@
 import { memo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useTruncationDetection } from "@/hooks/useTruncationDetection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,7 @@ export const OpinionItem = memo(function OpinionItem({
   const [highlightVisible, setHighlightVisible] = useState(isHighlighted);
   const [isExpanded, setIsExpanded] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
+  const { textRef, showButton } = useTruncationDetection(opinion.id, isExpanded);
 
   // Handle scroll to highlighted item and fade out animation
   useEffect(() => {
@@ -212,13 +214,16 @@ export const OpinionItem = memo(function OpinionItem({
             </span>
           </div>
           <div>
-            <p className={cn(
-              "text-[15px] leading-relaxed whitespace-pre-wrap text-foreground/90",
-              !isExpanded && "line-clamp-3"
-            )}>
+            <p
+              ref={textRef}
+              className={cn(
+                "text-[15px] leading-relaxed whitespace-pre-wrap text-foreground/90",
+                !isExpanded && "line-clamp-3"
+              )}
+            >
               {opinion.body}
             </p>
-            {opinion.body.length > 150 && (
+            {showButton && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="text-xs text-primary hover:underline mt-1"
