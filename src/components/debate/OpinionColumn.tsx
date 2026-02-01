@@ -59,8 +59,8 @@ export const OpinionColumn = memo(function OpinionColumn({
         </span>
       </div>
 
-      {/* Scrollable content */}
-      <div className="max-h-[600px] overflow-y-auto px-4 py-2">
+      {/* Content */}
+      <div className="px-4 py-2">
         <OpinionList
           opinions={opinions}
           optionA={optionA}

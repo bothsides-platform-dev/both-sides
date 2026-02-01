@@ -168,7 +168,7 @@ export const OpinionItem = memo(function OpinionItem({
       ref={itemRef}
       id={`opinion-${opinion.id}`}
       className={cn(
-        "py-5 px-1 rounded-lg transition-colors duration-500",
+        "py-3 px-1 rounded-lg transition-colors duration-500",
         indentClass,
         highlightVisible && "bg-blue-100/50 dark:bg-blue-900/30 animate-pulse"
       )}
