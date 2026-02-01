@@ -159,7 +159,7 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-8">
       <InAppBrowserRedirect />
       <ViewCountTracker topicId={topic.id} />
       <script
@@ -167,50 +167,13 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* Topic Header */}
-      <div className="space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-2">
-            <Badge variant="secondary">{CATEGORY_LABELS[topic.category]}</Badge>
-            <h1 className="text-2xl font-bold md:text-3xl">{topic.title}</h1>
-          </div>
-          <TopicShareButton
-            topicId={topic.id}
-            title={topic.title}
-            optionA={topic.optionA}
-            optionB={topic.optionB}
-            imageUrl={topic.imageUrl}
-          />
+      <div className="space-y-6 border-b border-border pb-8">
+        <div className="space-y-3">
+          <Badge variant="secondary">{CATEGORY_LABELS[topic.category]}</Badge>
+          <h1 className="text-2xl font-bold md:text-4xl">{topic.title}</h1>
         </div>
 
-        {topic.description && (
-          <p className="text-muted-foreground">{topic.description}</p>
-        )}
-
-        <TopicAuthorSection
-          topicId={topic.id}
-          authorId={topic.author.id}
-          authorName={authorName}
-          authorImage={topic.author.image}
-          isAnonymous={topic.isAnonymous}
-          isBlacklisted={topic.author.isBlacklisted}
-          createdAt={topic.createdAt}
-          viewCount={topic.viewCount}
-        />
-
-        {/* Options Display */}
-        <div className="flex items-center justify-center gap-4 py-4">
-          <div className="flex-1 rounded-xl bg-blue-50 p-6 text-center">
-            <span className="text-xs font-medium text-blue-500">A</span>
-            <p className="mt-1 text-lg font-bold text-blue-700">{topic.optionA}</p>
-          </div>
-          <span className="text-2xl font-bold text-muted-foreground">VS</span>
-          <div className="flex-1 rounded-xl bg-red-50 p-6 text-center">
-            <span className="text-xs font-medium text-red-500">B</span>
-            <p className="mt-1 text-lg font-bold text-red-700">{topic.optionB}</p>
-          </div>
-        </div>
-
-        {/* Hero Image */}
+        {/* Hero Image - 제목 바로 아래로 이동 */}
         {topic.imageUrl && (
           <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl">
             <Image
@@ -222,6 +185,30 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
             />
           </div>
         )}
+
+        {topic.description && (
+          <p className="text-lg leading-relaxed text-muted-foreground">{topic.description}</p>
+        )}
+
+        <TopicAuthorSection
+          topicId={topic.id}
+          authorId={topic.author.id}
+          authorName={authorName}
+          authorImage={topic.author.image}
+          isAnonymous={topic.isAnonymous}
+          isBlacklisted={topic.author.isBlacklisted}
+          createdAt={topic.createdAt}
+          viewCount={topic.viewCount}
+          shareButton={
+            <TopicShareButton
+              topicId={topic.id}
+              title={topic.title}
+              optionA={topic.optionA}
+              optionB={topic.optionB}
+              imageUrl={topic.imageUrl}
+            />
+          }
+        />
       </div>
 
       {/* Vote Section */}
