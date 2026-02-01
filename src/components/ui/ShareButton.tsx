@@ -11,6 +11,7 @@ import {
 import { Share2, Link2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useKakao } from "@/components/providers/KakaoProvider";
+import { useToast } from "@/components/ui/toast";
 
 interface ShareButtonProps {
   url: string;
@@ -31,6 +32,7 @@ export function ShareButton({
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const { shareKakao } = useKakao();
+  const { showToast } = useToast();
 
   const fullUrl = typeof window !== "undefined"
     ? `${window.location.origin}${url}`
@@ -51,8 +53,10 @@ export function ShareButton({
       await navigator.clipboard.writeText(fullUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      showToast("링크가 복사되었습니다", "success", 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
+      showToast("링크 복사에 실패했습니다", "error", 2000);
     }
   };
 
@@ -77,12 +81,22 @@ export function ShareButton({
   };
 
   const handleInstagramShare = async () => {
-    await navigator.clipboard.writeText(fullUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    // 모바일에서 인스타그램 앱 열기 시도
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      window.location.href = "instagram://app";
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        showToast("링크가 복사되었습니다. 인스타그램 스토리나 DM에 붙여넣기 해주세요!", "success", 3000);
+        // 인스타그램 앱 열기 시도
+        window.location.href = "instagram://app";
+      } else {
+        showToast("링크가 복사되었습니다. 인스타그램에서 붙여넣기 해주세요!", "success", 3000);
+      }
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      showToast("링크 복사에 실패했습니다", "error", 2000);
     }
   };
 
