@@ -62,6 +62,7 @@ export const OpinionItem = memo(function OpinionItem({
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [highlightVisible, setHighlightVisible] = useState(isHighlighted);
+  const [isExpanded, setIsExpanded] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
 
   // Handle scroll to highlighted item and fade out animation
@@ -147,7 +148,7 @@ export const OpinionItem = memo(function OpinionItem({
 
   if (opinion.isBlinded) {
     return (
-      <div className="py-6 px-2 text-center text-sm text-muted-foreground">
+      <div className="py-4 px-2 text-center text-sm text-muted-foreground">
         신고로 인해 블라인드 처리된 의견입니다.
       </div>
     );
@@ -188,7 +189,7 @@ export const OpinionItem = memo(function OpinionItem({
             </Avatar>
           </Link>
         )}
-        <div className="flex-1 min-w-0 space-y-2.5">
+        <div className="flex-1 min-w-0 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             {isAnonymous ? (
               <span className="font-medium text-sm">{authorName}</span>
@@ -210,12 +211,27 @@ export const OpinionItem = memo(function OpinionItem({
               {formatRelativeTime(opinion.createdAt)}
             </span>
           </div>
-          <p className="text-[15px] leading-relaxed whitespace-pre-wrap text-foreground/90">{opinion.body}</p>
-          <div className="flex items-center gap-1 pt-1">
+          <div>
+            <p className={cn(
+              "text-[15px] leading-relaxed whitespace-pre-wrap text-foreground/90",
+              !isExpanded && "line-clamp-3"
+            )}>
+              {opinion.body}
+            </p>
+            {opinion.body.length > 150 && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-xs text-primary hover:underline mt-1"
+              >
+                {isExpanded ? "접기" : "더보기"}
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
             <button
               onClick={() => onReaction(opinion.id, "LIKE")}
               className={cn(
-                "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
+                "flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all",
                 userReaction?.type === "LIKE"
                   ? "text-blue-600 bg-blue-50"
                   : "text-muted-foreground hover:text-blue-600 hover:bg-blue-50/50"
@@ -232,7 +248,7 @@ export const OpinionItem = memo(function OpinionItem({
                       onClick={handleReplyCountClick}
                       disabled={loadingReplies}
                       className={cn(
-                        "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
+                        "flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all",
                         showRepliesExpanded
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground hover:text-primary hover:bg-primary/5"
@@ -250,7 +266,7 @@ export const OpinionItem = memo(function OpinionItem({
                     <button
                       onClick={handleReplyClick}
                       className={cn(
-                        "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
+                        "flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all",
                         showReplyForm
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground hover:text-primary hover:bg-primary/5"
@@ -264,7 +280,7 @@ export const OpinionItem = memo(function OpinionItem({
                   <button
                     onClick={handleReplyClick}
                     className={cn(
-                      "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-all",
+                      "flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all",
                       showReplyForm
                         ? "text-primary bg-primary/10"
                         : "text-muted-foreground hover:text-primary hover:bg-primary/5"

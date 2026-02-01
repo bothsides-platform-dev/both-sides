@@ -73,7 +73,7 @@ export function ReplyForm({
   };
 
   return (
-    <div className="mt-3 ml-8 p-3 bg-muted/30 rounded-lg border border-border/50">
+    <div className="mt-2 ml-6 p-2.5 bg-muted/30 rounded-lg border border-border/50">
       {submitState.error && (
         <div className="rounded-lg bg-destructive/10 p-2 text-sm text-destructive mb-2">
           {submitState.error}
@@ -92,7 +92,7 @@ export function ReplyForm({
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <div className="flex gap-2">
           <Textarea
             value={body}

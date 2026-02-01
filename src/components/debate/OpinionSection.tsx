@@ -191,7 +191,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
 
   return (
     <Card>
-      <CardHeader className="pb-3">
+      <CardHeader className="px-4 py-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">의견</CardTitle>
           <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "hot")}>
@@ -202,7 +202,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
           </Tabs>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="p-4 pt-0 space-y-3">
         {/* New Opinion Form */}
         {session?.user ? (
           myVote ? (
@@ -282,7 +282,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
         )}
 
         {/* PC: 2-column layout */}
-        <div className="hidden md:grid md:grid-cols-2 md:gap-6">
+        <div className="hidden md:grid md:grid-cols-2 md:gap-4">
           <OpinionColumn
             side="A"
             sideLabel={optionA}
