@@ -152,7 +152,14 @@ export async function getFeaturedTopics(limit: number = 2) {
 
 export async function getRecommendedTopics(limit: number = 6) {
   return prisma.topic.findMany({
-    where: { isFeatured: false, isHidden: false },
+    where: {
+      isFeatured: false,
+      isHidden: false,
+      OR: [
+        { deadline: null },
+        { deadline: { gt: new Date() } },
+      ],
+    },
     orderBy: { votes: { _count: "desc" } },
     take: limit,
     select: {
