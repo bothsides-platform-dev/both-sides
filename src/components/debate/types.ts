@@ -16,7 +16,7 @@ export interface Opinion {
     image?: string | null;
     isBlacklisted?: boolean;
   };
-  reactions: Array<{
+  reactions?: Array<{
     id: string;
     userId: string;
     type: ReactionType;

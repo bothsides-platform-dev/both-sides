@@ -95,7 +95,7 @@ export const OpinionItem = memo(function OpinionItem({
   const isOwner = currentUserId === opinion.user.id;
 
   // Check if current user has reacted
-  const userReaction = opinion.reactions.find((r) => r.userId === currentUserId);
+  const userReaction = opinion.reactions?.find((r) => r.userId === currentUserId);
 
   const repliesCount = opinion._count?.replies || 0;
 
