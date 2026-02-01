@@ -203,84 +203,6 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-0 space-y-3">
-        {/* New Opinion Form */}
-        {session?.user ? (
-          myVote ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant={myVote === "A" ? "sideA" : "sideB"} className="text-xs">
-                  {myVote === "A" ? optionA : optionB}
-                </Badge>
-                측으로 의견을 작성합니다
-              </div>
-              {submitState.error && (
-                <div className="rounded-lg bg-destructive/10 p-2 text-sm text-destructive">
-                  {submitState.error}
-                </div>
-              )}
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Textarea
-                    value={newOpinion}
-                    onChange={(e) => setNewOpinion(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                        e.preventDefault();
-                        if (!submitState.isSubmitting && newOpinion.trim()) {
-                          handleSubmit();
-                        }
-                      }
-                    }}
-                    placeholder="의견을 입력하세요"
-                    className="min-h-[80px] resize-none"
-                    maxLength={1000}
-                  />
-                  <Button
-                    size="icon"
-                    onClick={handleSubmit}
-                    disabled={submitState.isSubmitting || !newOpinion.trim()}
-                    className={cn(
-                      "shrink-0",
-                      myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
-                    )}
-                  >
-                    {submitState.isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="opinionAnonymous"
-                    checked={isAnonymous}
-                    onCheckedChange={(checked) => setIsAnonymous(checked === true)}
-                  />
-                  <Label
-                    htmlFor="opinionAnonymous"
-                    className="text-xs font-normal cursor-pointer text-muted-foreground"
-                  >
-                    익명으로 작성
-                  </Label>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
-              먼저 투표를 해주세요. 투표한 측에서만 의견을 작성할 수 있습니다.
-            </div>
-          )
-        ) : (
-          <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
-            의견을 작성하려면{" "}
-            <a href="/auth/signin" className="text-primary underline">
-              로그인
-            </a>
-            해주세요.
-          </div>
-        )}
-
         {/* PC: 2-column layout */}
         <div className="hidden md:grid md:grid-cols-2 md:gap-4">
           <OpinionColumn
@@ -374,6 +296,84 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
             </MotionDiv>
           </div>
         </div>
+
+        {/* New Opinion Form - moved below comments */}
+        {session?.user ? (
+          myVote ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Badge variant={myVote === "A" ? "sideA" : "sideB"} className="text-xs">
+                  {myVote === "A" ? optionA : optionB}
+                </Badge>
+                측으로 의견을 작성합니다
+              </div>
+              {submitState.error && (
+                <div className="rounded-lg bg-destructive/10 p-2 text-sm text-destructive">
+                  {submitState.error}
+                </div>
+              )}
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Textarea
+                    value={newOpinion}
+                    onChange={(e) => setNewOpinion(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        if (!submitState.isSubmitting && newOpinion.trim()) {
+                          handleSubmit();
+                        }
+                      }
+                    }}
+                    placeholder="의견을 입력하세요"
+                    className="min-h-[80px] resize-none"
+                    maxLength={1000}
+                  />
+                  <Button
+                    size="icon"
+                    onClick={handleSubmit}
+                    disabled={submitState.isSubmitting || !newOpinion.trim()}
+                    className={cn(
+                      "shrink-0",
+                      myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
+                    )}
+                  >
+                    {submitState.isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="opinionAnonymous"
+                    checked={isAnonymous}
+                    onCheckedChange={(checked) => setIsAnonymous(checked === true)}
+                  />
+                  <Label
+                    htmlFor="opinionAnonymous"
+                    className="text-xs font-normal cursor-pointer text-muted-foreground"
+                  >
+                    익명으로 작성
+                  </Label>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
+              먼저 투표를 해주세요. 투표한 측에서만 의견을 작성할 수 있습니다.
+            </div>
+          )
+        ) : (
+          <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
+            의견을 작성하려면{" "}
+            <a href="/auth/signin" className="text-primary underline">
+              로그인
+            </a>
+            해주세요.
+          </div>
+        )}
       </CardContent>
     </Card>
   );
