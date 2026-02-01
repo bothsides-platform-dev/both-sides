@@ -207,9 +207,9 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
           </div>
         )}
 
-        {/* Description - 더 눈에 띄는 색상 */}
+        {/* Description - 줄바꿈 유지 */}
         {topic.description && (
-          <p className="text-lg leading-relaxed text-foreground/80">{topic.description}</p>
+          <p className="whitespace-pre-line text-lg leading-relaxed text-foreground/80">{topic.description}</p>
         )}
       </div>
 
