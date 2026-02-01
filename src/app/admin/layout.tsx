@@ -25,7 +25,7 @@ const navItems = [
   { href: "/admin/topics", label: "토론 관리", icon: MessageSquare },
   { href: "/admin/opinions", label: "의견 관리", icon: MessageCircle },
   { href: "/admin/reports", label: "신고 관리", icon: Flag },
-  { href: "/admin/feedback", label: "피드백 관리", icon: MessageSquareText },
+  { href: "/admin/feedback", label: "의견 관리", icon: MessageSquareText },
   { href: "/admin/users", label: "사용자 관리", icon: Users },
 ];
 

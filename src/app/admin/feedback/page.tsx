@@ -189,7 +189,7 @@ export default function AdminFeedbackPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>피드백 관리</CardTitle>
+          <CardTitle>의견 관리</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs
@@ -209,7 +209,7 @@ export default function AdminFeedbackPage() {
       {feedbacks.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            피드백이 없습니다.
+            의견이 없습니다.
           </CardContent>
         </Card>
       ) : (

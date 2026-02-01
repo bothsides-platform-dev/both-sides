@@ -65,7 +65,7 @@ export default function FeedbackPage() {
       const result = await res.json();
 
       if (!res.ok) {
-        throw new Error(result.error || "피드백 제출에 실패했습니다.");
+        throw new Error(result.error || "의견 제출에 실패했습니다.");
       }
 
       setIsSuccess(true);
@@ -85,7 +85,7 @@ export default function FeedbackPage() {
           <CardContent className="py-12">
             <div className="flex flex-col items-center gap-4 text-center">
               <CheckCircle className="h-16 w-16 text-green-500" />
-              <h2 className="text-2xl font-bold">피드백이 제출되었습니다</h2>
+              <h2 className="text-2xl font-bold">의견이 제출되었습니다</h2>
               <p className="text-muted-foreground">
                 소중한 의견 감사합니다. 빠른 시일 내에 검토하겠습니다.
               </p>
@@ -94,7 +94,7 @@ export default function FeedbackPage() {
                 onClick={() => setIsSuccess(false)}
                 className="mt-4"
               >
-                추가 피드백 작성하기
+                추가 의견 작성하기
               </Button>
             </div>
           </CardContent>
@@ -107,7 +107,7 @@ export default function FeedbackPage() {
     <div className="mx-auto max-w-2xl">
       <Card>
         <CardHeader>
-          <CardTitle>피드백 보내기</CardTitle>
+          <CardTitle>의견 보내기</CardTitle>
           <CardDescription>
             버그 신고, 기능 제안, 문의 등 무엇이든 남겨주세요
           </CardDescription>
@@ -130,7 +130,7 @@ export default function FeedbackPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="category">피드백 유형 *</Label>
+              <Label htmlFor="category">의견 유형 *</Label>
               <Select name="category" required>
                 <SelectTrigger>
                   <SelectValue placeholder="유형을 선택하세요" />
@@ -150,7 +150,7 @@ export default function FeedbackPage() {
               <Textarea
                 id="content"
                 name="content"
-                placeholder="피드백 내용을 자세히 작성해주세요 (10자 이상)"
+                placeholder="의견 내용을 자세히 작성해주세요 (10자 이상)"
                 required
                 minLength={10}
                 maxLength={2000}
@@ -183,7 +183,7 @@ export default function FeedbackPage() {
                   제출 중...
                 </>
               ) : (
-                "피드백 보내기"
+                "의견 보내기"
               )}
             </Button>
           </form>

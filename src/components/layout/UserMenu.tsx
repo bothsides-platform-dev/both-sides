@@ -64,7 +64,7 @@ export function UserMenu() {
         <DropdownMenuItem asChild>
           <Link href="/feedback" className="cursor-pointer">
             <MessageSquareText className="mr-2 h-4 w-4" />
-            <span>피드백</span>
+            <span>의견 보내기</span>
           </Link>
         </DropdownMenuItem>
         {user.role === "ADMIN" && (

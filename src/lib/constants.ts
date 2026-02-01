@@ -35,7 +35,7 @@ export const BLIND_THRESHOLD = 3;
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;
 
-// 피드백 카테고리 라벨
+// 의견 카테고리 라벨
 export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
   BUG: "버그 신고",
   SUGGESTION: "기능 제안",
@@ -43,7 +43,7 @@ export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
   OTHER: "기타",
 };
 
-// 피드백 상태 라벨
+// 의견 상태 라벨
 export const FEEDBACK_STATUS_LABELS: Record<FeedbackStatus, string> = {
   PENDING: "대기 중",
   REVIEWED: "검토 완료",
