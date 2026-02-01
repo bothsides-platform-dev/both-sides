@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import useSWR, { mutate } from "swr";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,29 +65,19 @@ function getVoteStatusText(
 
 export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSectionProps) {
   const [isVoting, setIsVoting] = useState(false);
-  const isVisibleRef = useRef(true);
   const { showRateLimitError, showToast } = useToast();
 
   // Check if voting is closed
   const isVotingClosed = deadline ? new Date() > new Date(deadline) : false;
   const dDay = formatDDay(deadline ?? null);
 
-  // Track tab visibility to pause polling when hidden
-  useEffect(() => {
-    const handler = () => {
-      isVisibleRef.current = document.visibilityState === "visible";
-    };
-    document.addEventListener("visibilitychange", handler);
-    return () => document.removeEventListener("visibilitychange", handler);
-  }, []);
-
   // Use combined endpoint for vote stats and user's vote
+  // No polling - stats update only on vote (mutate) or page refresh
   const { data: voteInfoData } = useSWR<VoteInfoResponse>(
     `/api/topics/${topicId}/vote-info?includeMyVote=true`,
     fetcher,
     {
-      refreshInterval: 5000,
-      isPaused: () => !isVisibleRef.current,
+      revalidateOnFocus: false,
     }
   );
 

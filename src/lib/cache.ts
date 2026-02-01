@@ -81,9 +81,11 @@ export const memoryCache = new MemoryCache();
 // 캐시 키 상수
 export const CACHE_KEYS = {
   TRENDS: "trends:kr",
+  VOTE_STATS: (topicId: string) => `vote-stats:${topicId}`,
 } as const;
 
 // 기본 TTL 상수 (밀리초)
 export const CACHE_TTL = {
   TRENDS: 3 * 60 * 60 * 1000, // 3시간 (하루 8회, 월 ~240회)
+  VOTE_STATS: 30 * 1000, // 30초
 } as const;
