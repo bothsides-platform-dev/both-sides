@@ -37,7 +37,9 @@ export function isKoreanOrEnglishOnly(text: string): boolean {
   
   // 한국어, 영어, 숫자, 공백, 일반 구두점을 제외한 문자가 있는지 확인
   // 중국어, 일본어 등 다른 언어 문자가 있으면 제외
-  const allowedPattern = /^[\uAC00-\uD7AF\u3130-\u318Fa-zA-Z0-9\s\.\,\!\?\-\'\"\(\)\/\&\:]+$/;
+  // 허용되는 구두점: 마침표(.), 쉼표(,), 느낌표(!), 물음표(?), 하이픈(-), 
+  // 작은따옴표('), 큰따옴표("), 괄호(()), 슬래시(/), 앰퍼샌드(&), 콜론(:)
+  const allowedPattern = /^[\uAC00-\uD7AF\u3130-\u318Fa-zA-Z0-9\s.,!?'"\(\)/&:-]+$/;
   
   return allowedPattern.test(text);
 }
