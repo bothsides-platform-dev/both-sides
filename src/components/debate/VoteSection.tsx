@@ -166,13 +166,17 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <Button
           variant={myVote === "A" ? "sideA" : "sideAOutline"}
           className={cn(
-            "w-full h-16 flex-col gap-1 sm:flex-1 sm:h-20 sm:gap-1.5",
+            "w-full h-16 flex-col gap-1 sm:flex-1 sm:h-20 sm:gap-1.5 relative",
             myVote === "A" && "ring-2 ring-blue-500 ring-offset-2"
           )}
           onClick={() => handleVote("A")}
           disabled={isVoting || isVotingClosed}
         >
-          {showSpinnerA && <Loader2 className="h-5 w-5 animate-spin" />}
+          {showSpinnerA && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          )}
           <span
             className={cn("text-sm font-medium opacity-70", showSpinnerA && "invisible")}
           >
@@ -188,13 +192,17 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <Button
           variant={myVote === "B" ? "sideB" : "sideBOutline"}
           className={cn(
-            "w-full h-16 flex-col gap-1 sm:flex-1 sm:h-20 sm:gap-1.5",
+            "w-full h-16 flex-col gap-1 sm:flex-1 sm:h-20 sm:gap-1.5 relative",
             myVote === "B" && "ring-2 ring-red-500 ring-offset-2"
           )}
           onClick={() => handleVote("B")}
           disabled={isVoting || isVotingClosed}
         >
-          {showSpinnerB && <Loader2 className="h-5 w-5 animate-spin" />}
+          {showSpinnerB && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          )}
           <span
             className={cn("text-sm font-medium opacity-70", showSpinnerB && "invisible")}
           >
