@@ -4,6 +4,7 @@ import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { createTopicSchema, getTopicsSchema } from "@/modules/topics/schema";
 import { createTopic, getTopics, getFeaturedTopics, getRecommendedTopics } from "@/modules/topics/service";
+import { triggerTopicSummary } from "@/modules/llm/service";
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const input = await validateRequest(createTopicSchema, body);
     const topic = await createTopic(user.id, input);
+    triggerTopicSummary(topic.id).catch(err => console.error("[LLM] Topic summary failed:", err));
     return Response.json({ data: topic }, { status: 201 });
   } catch (error) {
     return handleApiError(error);

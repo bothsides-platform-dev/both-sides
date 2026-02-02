@@ -11,6 +11,8 @@ import { ViewCountTracker } from "@/components/topics/ViewCountTracker";
 import { InAppBrowserRedirect } from "@/components/InAppBrowserRedirect";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { ReferenceLinksCollapsible } from "@/components/topics/ReferenceLinksCollapsible";
+import { TopicSummary } from "@/components/debate/TopicSummary";
+import { GroundsSection } from "@/components/debate/GroundsSection";
 
 interface ReferenceLink {
   url: string;
@@ -211,6 +213,9 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         {topic.description && (
           <p className="whitespace-pre-line text-lg leading-relaxed text-foreground/80">{topic.description}</p>
         )}
+
+        {/* AI Summary */}
+        <TopicSummary topicId={topic.id} />
       </div>
 
       {/* Vote Section */}
@@ -227,6 +232,9 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
           links={topic.referenceLinks as unknown as ReferenceLink[]}
         />
       )}
+
+      {/* AI Grounds Analysis */}
+      <GroundsSection topicId={topic.id} optionA={topic.optionA} optionB={topic.optionB} />
 
       {/* Opinions Section */}
       <OpinionSection
