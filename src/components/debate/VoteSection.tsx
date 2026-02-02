@@ -124,6 +124,9 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
     }
   };
 
+  const showSpinnerA = isVoting && myVote !== "A";
+  const showSpinnerB = isVoting && myVote !== "B";
+
   return (
     <div className="rounded-2xl bg-muted/30 p-6 space-y-5">
       <div className="flex items-center justify-between">
@@ -169,11 +172,17 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
           onClick={() => handleVote("A")}
           disabled={isVoting || isVotingClosed}
         >
-          {isVoting && myVote !== "A" && (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          )}
-          <span className="text-sm font-medium opacity-70">A</span>
-          <span className="text-base font-bold line-clamp-1 sm:text-lg">{optionA}</span>
+          {showSpinnerA && <Loader2 className="h-5 w-5 animate-spin" />}
+          <span
+            className={cn("text-sm font-medium opacity-70", showSpinnerA && "invisible")}
+          >
+            A
+          </span>
+          <span
+            className={cn("text-base font-bold line-clamp-1 sm:text-lg", showSpinnerA && "invisible")}
+          >
+            {optionA}
+          </span>
         </Button>
 
         <Button
@@ -185,11 +194,17 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
           onClick={() => handleVote("B")}
           disabled={isVoting || isVotingClosed}
         >
-          {isVoting && myVote !== "B" && (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          )}
-          <span className="text-sm font-medium opacity-70">B</span>
-          <span className="text-base font-bold line-clamp-1 sm:text-lg">{optionB}</span>
+          {showSpinnerB && <Loader2 className="h-5 w-5 animate-spin" />}
+          <span
+            className={cn("text-sm font-medium opacity-70", showSpinnerB && "invisible")}
+          >
+            B
+          </span>
+          <span
+            className={cn("text-base font-bold line-clamp-1 sm:text-lg", showSpinnerB && "invisible")}
+          >
+            {optionB}
+          </span>
         </Button>
       </div>
 
