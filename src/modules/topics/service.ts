@@ -243,33 +243,16 @@ export async function getTopic(id: string) {
   return topic;
 }
 
-export async function incrementViewCount(topicId: string, visitorId: string) {
-  // 이미 조회한 적이 있는지 확인
-  const existingView = await prisma.topicView.findUnique({
-    where: {
-      topicId_visitorId: { topicId, visitorId },
-    },
-  });
-
-  if (existingView) {
-    return { success: false, alreadyViewed: true };
-  }
-
-  // 트랜잭션으로 조회 기록 생성 + 카운트 증가
+export async function incrementViewCount(topicId: string) {
   try {
-    await prisma.$transaction([
-      prisma.topicView.create({
-        data: { topicId, visitorId },
-      }),
-      prisma.topic.update({
-        where: { id: topicId },
-        data: { viewCount: { increment: 1 } },
-      }),
-    ]);
+    await prisma.topic.update({
+      where: { id: topicId },
+      data: { viewCount: { increment: 1 } },
+    });
 
     return { success: true };
-  } catch {
-    // 동시성 문제로 인한 중복 생성 시도 등 에러 무시
+  } catch (error) {
+    console.error("Failed to increment view count", { topicId, error });
     return { success: false };
   }
 }
