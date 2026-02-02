@@ -1,4 +1,5 @@
 import { memoryCache, CACHE_KEYS, CACHE_TTL } from "@/lib/cache";
+import { isKoreanOrEnglishOnly } from "@/lib/language";
 import type {
   TrendItem,
   CachedTrends,
@@ -47,8 +48,13 @@ async function fetchFromSerpApi(): Promise<TrendItem[]> {
 
   const trendingSearches = data.trending_searches || [];
 
+  // 한국어 또는 영어만 포함하는 검색어로 필터링
+  const filteredSearches = trendingSearches.filter((item) =>
+    isKoreanOrEnglishOnly(item.query)
+  );
+
   // TrendItem 형식으로 변환 (상위 20개만)
-  return trendingSearches.slice(0, 20).map((item, index) => ({
+  return filteredSearches.slice(0, 20).map((item, index) => ({
     rank: index + 1,
     query: item.query,
     traffic: item.formattedTraffic,
