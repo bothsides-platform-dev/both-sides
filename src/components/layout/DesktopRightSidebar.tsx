@@ -27,7 +27,7 @@ interface RecentOpinion {
 
 export function DesktopRightSidebar() {
   const { data: opinionsData, isLoading: opinionsLoading } = useSWR<{ data: { opinions: RecentOpinion[] } }>(
-    "/api/opinions?type=recent&limit=5",
+    "/api/opinions?type=recent&limit=10",
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
