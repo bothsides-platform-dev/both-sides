@@ -196,13 +196,15 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
 
         {/* Hero Image */}
         {topic.imageUrl && (
-          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-red-50">
+          <div className="w-full overflow-hidden rounded-xl">
             <Image
               src={topic.imageUrl}
               alt={topic.title}
-              fill
-              className="object-contain"
+              width={1920}
+              height={1080}
+              className="h-auto w-full rounded-xl"
               priority
+              sizes="(max-width: 768px) 100vw, 720px"
             />
           </div>
         )}
