@@ -15,7 +15,7 @@ export interface Opinion {
     name?: string | null;
     image?: string | null;
     isBlacklisted?: boolean;
-  };
+  } | null;
   reactions?: Array<{
     id: string;
     userId: string;

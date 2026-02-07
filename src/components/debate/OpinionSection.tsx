@@ -56,9 +56,9 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
   // Mobile swipe tabs
   const { activeTab, setActiveTab, handleDragEnd } = useSwipeableTabs();
 
-  // Use combined vote-info endpoint
+  // Use combined vote-info endpoint (fetch for both logged-in and guest users)
   const { data: voteInfoData } = useSWR<{ data: { myVote: Side | null } }>(
-    session?.user ? `/api/topics/${topicId}/vote-info?includeMyVote=true` : null,
+    `/api/topics/${topicId}/vote-info?includeMyVote=true`,
     fetcher
   );
 
@@ -127,8 +127,10 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
     [opinions]
   );
 
+  const isLoggedIn = !!session?.user;
+
   const handleSubmit = async () => {
-    if (!newOpinion.trim() || !session?.user) return;
+    if (!newOpinion.trim() || !myVote) return;
 
     setSubmitState({ isSubmitting: true, error: null });
 
@@ -136,7 +138,10 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
       const res = await fetch(`/api/topics/${topicId}/opinions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: newOpinion, isAnonymous }),
+        body: JSON.stringify({
+          body: newOpinion,
+          isAnonymous: isLoggedIn ? isAnonymous : true,
+        }),
       });
 
       if (res.status === 429) {
@@ -302,54 +307,57 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
           </div>
         </div>
 
-        {/* New Opinion Form - moved below comments */}
-        {session?.user ? (
-          myVote ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant={myVote === "A" ? "sideA" : "sideB"} className="text-xs">
-                  {myVote === "A" ? optionA : optionB}
-                </Badge>
-                측으로 의견을 작성합니다
-              </div>
-              {submitState.error && (
-                <div className="rounded-lg bg-destructive/10 p-2 text-sm text-destructive">
-                  {submitState.error}
-                </div>
+        {/* New Opinion Form - shown for logged-in users and guests who have voted */}
+        {myVote ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Badge variant={myVote === "A" ? "sideA" : "sideB"} className="text-xs">
+                {myVote === "A" ? optionA : optionB}
+              </Badge>
+              측으로 의견을 작성합니다
+              {!isLoggedIn && (
+                <span className="text-xs text-muted-foreground/70">(손님)</span>
               )}
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Textarea
-                    value={newOpinion}
-                    onChange={(e) => setNewOpinion(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                        e.preventDefault();
-                        if (!submitState.isSubmitting && newOpinion.trim()) {
-                          handleSubmit();
-                        }
+            </div>
+            {submitState.error && (
+              <div className="rounded-lg bg-destructive/10 p-2 text-sm text-destructive">
+                {submitState.error}
+              </div>
+            )}
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Textarea
+                  value={newOpinion}
+                  onChange={(e) => setNewOpinion(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault();
+                      if (!submitState.isSubmitting && newOpinion.trim()) {
+                        handleSubmit();
                       }
-                    }}
-                    placeholder="의견을 입력하세요"
-                    className="min-h-[80px] resize-none"
-                    maxLength={1000}
-                  />
-                  <Button
-                    size="icon"
-                    onClick={handleSubmit}
-                    disabled={submitState.isSubmitting || !newOpinion.trim()}
-                    className={cn(
-                      "shrink-0",
-                      myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
-                    )}
-                  >
-                    {submitState.isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
+                    }
+                  }}
+                  placeholder="의견을 입력하세요"
+                  className="min-h-[80px] resize-none"
+                  maxLength={1000}
+                />
+                <Button
+                  size="icon"
+                  onClick={handleSubmit}
+                  disabled={submitState.isSubmitting || !newOpinion.trim()}
+                  className={cn(
+                    "shrink-0",
+                    myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
+                  )}
+                >
+                  {submitState.isSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              {isLoggedIn && (
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="opinionAnonymous"
@@ -363,20 +371,12 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                     익명으로 작성
                   </Label>
                 </div>
-              </div>
+              )}
             </div>
-          ) : (
-            <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
-              먼저 투표를 해주세요. 투표한 측에서만 의견을 작성할 수 있습니다.
-            </div>
-          )
+          </div>
         ) : (
           <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
-            의견을 작성하려면{" "}
-            <a href="/auth/signin" className="text-primary underline">
-              로그인
-            </a>
-            해주세요.
+            먼저 투표를 해주세요. 투표한 측에서만 의견을 작성할 수 있습니다.
           </div>
         )}
       </CardContent>

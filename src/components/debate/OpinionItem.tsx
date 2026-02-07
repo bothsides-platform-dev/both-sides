@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThumbsUp, Eye, EyeOff, User, MoreVertical, Flag, MessageCircle, ChevronDown, ChevronUp, Loader2, Ban } from "lucide-react";
+import { ThumbsUp, Eye, EyeOff, User, UserRound, MoreVertical, Flag, MessageCircle, ChevronDown, ChevronUp, Loader2, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils";
 import { ReportDialog } from "./ReportDialog";
@@ -90,11 +90,14 @@ export const OpinionItem = memo(function OpinionItem({
     }
   }, [isHighlighted]);
 
-  const authorName = isAnonymous 
-    ? "익명" 
-    : (opinion.user.nickname || opinion.user.name || "익명");
+  const isGuest = !opinion.user;
+  const authorName = isGuest
+    ? "손님"
+    : isAnonymous 
+      ? "익명" 
+      : (opinion.user!.nickname || opinion.user!.name || "익명");
   const sideLabel = opinion.side === "A" ? optionA : optionB;
-  const isOwner = currentUserId === opinion.user.id;
+  const isOwner = !isGuest && currentUserId === opinion.user?.id;
 
   // Check if current user has reacted
   const userReaction = opinion.reactions?.find((r) => r.userId === currentUserId);
@@ -126,8 +129,8 @@ export const OpinionItem = memo(function OpinionItem({
   };
 
   const handleReplyClick = () => {
-    if (!session?.user) {
-      alert("로그인이 필요합니다.");
+    if (!session?.user && !userVoteSide) {
+      alert("투표를 먼저 해주세요.");
       return;
     }
     setShowReplyForm(!showReplyForm);
@@ -177,28 +180,36 @@ export const OpinionItem = memo(function OpinionItem({
       )}
     >
       <div className="flex items-start gap-3">
-        {isAnonymous ? (
+        {isGuest ? (
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarFallback className="text-xs">
+              <UserRound className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+        ) : isAnonymous ? (
           <Avatar className="h-8 w-8 shrink-0">
             <AvatarFallback className="text-xs">
               <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
         ) : (
-          <Link href={`/users/${opinion.user.id}`}>
+          <Link href={`/users/${opinion.user!.id}`}>
             <Avatar className="h-8 w-8 shrink-0 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
-              <AvatarImage src={opinion.user.image || undefined} />
+              <AvatarImage src={opinion.user!.image || undefined} />
               <AvatarFallback className="text-xs">{authorName.charAt(0)}</AvatarFallback>
             </Avatar>
           </Link>
         )}
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            {isAnonymous ? (
+            {isGuest ? (
+              <span className="font-medium text-sm text-muted-foreground">{authorName}</span>
+            ) : isAnonymous ? (
               <span className="font-medium text-sm">{authorName}</span>
             ) : (
-              <Link href={`/users/${opinion.user.id}`} className="hover:underline flex items-center gap-1.5">
+              <Link href={`/users/${opinion.user!.id}`} className="hover:underline flex items-center gap-1.5">
                 <span className="font-medium text-sm">{authorName}</span>
-                {opinion.user.isBlacklisted && (
+                {opinion.user!.isBlacklisted && (
                   <Badge variant="outline" className="text-[10px] px-1 py-0 text-destructive border-destructive/50">
                     <Ban className="h-2.5 w-2.5 mr-0.5" />
                     차단됨
@@ -245,7 +256,7 @@ export const OpinionItem = memo(function OpinionItem({
               <ThumbsUp className="h-3 w-3" />
               <span className="font-medium">{opinion.reactionSummary.likes}</span>
             </button>
-            {session?.user && (
+            {(session?.user || userVoteSide) && (
               <>
                 {hasReplies && onToggleReplies ? (
                   <>

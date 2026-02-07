@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +28,8 @@ export function ReplyForm({
   optionA,
   optionB,
 }: ReplyFormProps) {
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
   const [body, setBody] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitState, setSubmitState] = useState<{ isSubmitting: boolean; error: string | null }>({
@@ -44,7 +47,7 @@ export function ReplyForm({
       const res = await fetch(`/api/opinions/${parentId}/replies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body, isAnonymous }),
+        body: JSON.stringify({ body, isAnonymous: isLoggedIn ? isAnonymous : true }),
       });
 
       if (res.status === 429) {
@@ -135,19 +138,23 @@ export function ReplyForm({
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id={`reply-anonymous-${parentId}`}
-              checked={isAnonymous}
-              onCheckedChange={(checked) => setIsAnonymous(checked === true)}
-            />
-            <Label
-              htmlFor={`reply-anonymous-${parentId}`}
-              className="text-xs font-normal cursor-pointer text-muted-foreground"
-            >
-              익명으로 작성
-            </Label>
-          </div>
+          {isLoggedIn ? (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id={`reply-anonymous-${parentId}`}
+                checked={isAnonymous}
+                onCheckedChange={(checked) => setIsAnonymous(checked === true)}
+              />
+              <Label
+                htmlFor={`reply-anonymous-${parentId}`}
+                className="text-xs font-normal cursor-pointer text-muted-foreground"
+              >
+                익명으로 작성
+              </Label>
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground/70">손님으로 작성됩니다</span>
+          )}
           <span className="text-xs text-muted-foreground">
             {body.length} / 1000
           </span>
