@@ -73,6 +73,7 @@ interface PublicProfileData {
     nickname?: string | null;
     name?: string | null;
     image?: string | null;
+    joinOrder?: number | null;
   };
   votes: VoteItem[];
   opinions: OpinionItem[];
@@ -120,6 +121,11 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
             </Avatar>
             <div className="flex-1 space-y-1">
               <h1 className="text-2xl font-bold">{displayName}</h1>
+              {profile.user.joinOrder && (
+                <p className="text-sm text-muted-foreground">
+                  {profile.user.joinOrder}번째 가입자
+                </p>
+              )}
               <div className="flex items-center gap-4 pt-2 text-sm">
                 <span className="flex items-center gap-1">
                   <Vote className="h-4 w-4" />

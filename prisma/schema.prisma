@@ -108,6 +108,7 @@ model User {
   isBlacklisted   Boolean   @default(false)
   blacklistedAt   DateTime?
   blacklistReason String?
+  joinOrder       Int?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

@@ -17,6 +17,7 @@ export async function GET(
         nickname: true,
         name: true,
         image: true,
+        joinOrder: true,
       },
     });
 
