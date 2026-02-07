@@ -7,7 +7,6 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import {
   Home,
-  Search,
   PlusCircle,
   User,
   Moon,
@@ -21,7 +20,6 @@ import type { Category } from "@prisma/client";
 
 const NAV_ITEMS = [
   { href: "/", icon: Home, label: "홈" },
-  { href: "/explore", icon: Search, label: "탐색" },
   { href: "/topics/new", icon: PlusCircle, label: "토론 만들기" },
   { href: "/profile", icon: User, label: "프로필" },
 ] as const;
@@ -110,7 +108,7 @@ export function DesktopSidebar() {
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <Icon className={cn("h-4 w-4 shrink-0", meta.color)} />
+                <Icon className="h-4 w-4 shrink-0" />
                 {meta.label}
               </Link>
             );

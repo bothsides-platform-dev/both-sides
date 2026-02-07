@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, Search, PlusCircle, Bell, User } from "lucide-react";
+import { Home, PlusCircle, Bell, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -16,7 +16,6 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/", icon: Home, label: "홈" },
-  { href: "/explore", icon: Search, label: "탐색" },
   { href: "/topics/new", icon: PlusCircle, label: "만들기", accent: true },
   { href: "/notifications", icon: Bell, label: "알림", requiresAuth: true },
   { href: "/profile", icon: User, label: "프로필" },
