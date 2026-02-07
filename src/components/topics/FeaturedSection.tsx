@@ -4,10 +4,11 @@ import useSWR from "swr";
 import { FeaturedTopicCard, type FeaturedTopicCardProps } from "./FeaturedTopicCard";
 import { Loader2, Sparkles } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
+import { HorizontalScroll, HorizontalScrollItem } from "@/components/ui/horizontal-scroll";
 
 export function FeaturedSection() {
   const { data, error, isLoading } = useSWR<{ data: { topics: FeaturedTopicCardProps["topic"][] } }>(
-    "/api/topics?type=featured&limit=2",
+    "/api/topics?type=featured&limit=10",
     fetcher
   );
 
@@ -41,11 +42,13 @@ export function FeaturedSection() {
         <Sparkles className="h-5 w-5 text-orange-500" />
         <h2 className="text-xl font-bold">오늘의 토론</h2>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <HorizontalScroll>
         {topics.map((topic: FeaturedTopicCardProps["topic"]) => (
-          <FeaturedTopicCard key={topic.id} topic={topic} />
+          <HorizontalScrollItem key={topic.id} className="w-[360px]">
+            <FeaturedTopicCard topic={topic} />
+          </HorizontalScrollItem>
         ))}
-      </div>
+      </HorizontalScroll>
     </section>
   );
 }
