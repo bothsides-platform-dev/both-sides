@@ -306,7 +306,7 @@ export function getBadgeTierColors(tier: BadgeTier): {
     case BadgeTier.SILVER:
       return {
         bg: "bg-gradient-to-r from-slate-300 to-slate-400",
-        text: "text-slate-900",
+        text: "text-slate-900 dark:text-slate-100",
         border: "border-slate-400",
       };
     case BadgeTier.BRONZE:
