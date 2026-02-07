@@ -38,10 +38,24 @@
 src/
 ├── app/           # Next.js App Router pages
 ├── components/    # React components
-├── lib/           # Utilities (auth, db, validation)
+│   └── badges/    # Badge system components (UserBadges, BadgeShowcase)
+├── lib/           # Utilities (auth, db, validation, badges)
 ├── modules/       # Business logic (opinions, votes, reports)
 └── types/         # TypeScript type definitions
+
+docs/
+└── features/      # Feature documentation
+    └── badge-system.md  # Badge system documentation
 ```
+
+## Features
+
+### Badge System (뱃지 시스템)
+사용자 활동 기반 게이미피케이션 시스템
+- 14개 활동 뱃지 (투표, 의견, 토론, 참여, 종합)
+- 실시간 진행률 추적 및 동기부여 메시지
+- DB 스키마 변경 없이 기존 데이터로 계산
+- 자세한 내용: [docs/features/badge-system.md](./docs/features/badge-system.md)
 
 ## Common Issues
 - **Vercel build fails with `ERR_PNPM_OUTDATED_LOCKFILE`**: Run `pnpm install` locally and commit the updated lockfile

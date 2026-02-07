@@ -3,6 +3,7 @@ import { handleApiError, ValidationError, ConflictError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
 import { validateRequest, nicknameSchema } from "@/lib/validation";
 import { containsProfanity } from "@/lib/profanity";
+import { computeBadges, computeBadgeProgress } from "@/lib/badges";
 import { z } from "zod";
 
 const updateProfileSchema = z.object({
@@ -14,7 +15,7 @@ export async function GET() {
   try {
     const user = await requireAuth();
 
-    const [votes, opinions, topics, votesCount, opinionsCount] = await Promise.all([
+    const [votes, opinions, topics, votesCount, opinionsCount, topicsCount, reactionsCount] = await Promise.all([
       prisma.vote.findMany({
         where: { userId: user.id },
         orderBy: { createdAt: "desc" },
@@ -51,7 +52,19 @@ export async function GET() {
       }),
       prisma.vote.count({ where: { userId: user.id } }),
       prisma.opinion.count({ where: { userId: user.id } }),
+      prisma.topic.count({ where: { authorId: user.id } }),
+      prisma.reaction.count({ where: { userId: user.id } }),
     ]);
+
+    // Compute badges
+    const stats = {
+      votesCount,
+      opinionsCount,
+      topicsCount,
+      reactionsCount,
+    };
+    const badges = computeBadges(stats);
+    const badgeProgress = computeBadgeProgress(stats);
 
     return Response.json({
       data: {
@@ -60,6 +73,10 @@ export async function GET() {
         topics,
         votesCount,
         opinionsCount,
+        topicsCount,
+        reactionsCount,
+        badges,
+        badgeProgress,
       },
     });
   } catch (error) {

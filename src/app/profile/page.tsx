@@ -10,12 +10,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileEditForm } from "@/components/ProfileEditForm";
+import { UserBadges } from "@/components/badges/UserBadges";
+import { BadgeShowcase } from "@/components/badges/BadgeShowcase";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
+import { getNextBadge } from "@/lib/badges";
 import { fetcher } from "@/lib/fetcher";
-import { Loader2, MessageSquare, Vote, Pencil } from "lucide-react";
+import { Loader2, MessageSquare, Vote, Pencil, ListChecks, Heart } from "lucide-react";
 import Link from "next/link";
 import type { Category, Side } from "@prisma/client";
+import type { EarnedBadge, BadgeProgress, UserActivityStats } from "@/lib/badges";
 
 interface VoteItem {
   id: string;
@@ -53,9 +57,13 @@ interface TopicItem {
 interface ProfileData {
   votesCount: number;
   opinionsCount: number;
+  topicsCount: number;
+  reactionsCount: number;
   votes: VoteItem[];
   opinions: OpinionItem[];
   topics: TopicItem[];
+  badges: EarnedBadge[];
+  badgeProgress: BadgeProgress[];
 }
 
 export default function ProfilePage() {
@@ -90,6 +98,16 @@ export default function ProfilePage() {
   const displayName = user.nickname || user.name || "사용자";
   const profile = profileData?.data;
 
+  // Get next achievable badge
+  const nextBadge = profile
+    ? getNextBadge({
+        votesCount: profile.votesCount,
+        opinionsCount: profile.opinionsCount,
+        topicsCount: profile.topicsCount,
+        reactionsCount: profile.reactionsCount,
+      })
+    : null;
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Profile Header */}
@@ -101,35 +119,71 @@ export default function ProfilePage() {
               onSuccess={handleEditSuccess}
             />
           ) : (
-            <div className="flex items-center gap-6">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={user.image || undefined} />
-                <AvatarFallback className="text-2xl">
-                  {displayName.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 space-y-1">
-                <h1 className="text-2xl font-bold">{displayName}</h1>
-                <p className="text-muted-foreground">{user.email}</p>
-                <div className="flex items-center gap-4 pt-2 text-sm">
-                  <span className="flex items-center gap-1">
-                    <Vote className="h-4 w-4" />
-                    {profile?.votesCount ?? 0}개 투표
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MessageSquare className="h-4 w-4" />
-                    {profile?.opinionsCount ?? 0}개 의견
-                  </span>
+            <div className="space-y-4">
+              {/* Profile Info */}
+              <div className="flex items-center gap-4 sm:gap-6">
+                <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
+                  <AvatarImage src={user.image || undefined} />
+                  <AvatarFallback className="text-xl sm:text-2xl">
+                    {displayName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-1">
+                  <h1 className="text-xl sm:text-2xl font-bold">{displayName}</h1>
+                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-1 text-sm">
+                    <span className="flex items-center gap-1">
+                      <Vote className="h-4 w-4" />
+                      {profile?.votesCount ?? 0}개 투표
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MessageSquare className="h-4 w-4" />
+                      {profile?.opinionsCount ?? 0}개 의견
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <ListChecks className="h-4 w-4" />
+                      {profile?.topicsCount ?? 0}개 토론
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Heart className="h-4 w-4" />
+                      {profile?.reactionsCount ?? 0}개 반응
+                    </span>
+                  </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsEditing(true)}
+                  aria-label="프로필 편집"
+                  className="shrink-0"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setIsEditing(true)}
-                aria-label="프로필 편집"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
+
+              {/* Badges */}
+              {profile?.badges && profile.badges.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <UserBadges badges={profile.badges} maxDisplay={4} />
+                    {profile.badgeProgress && (
+                      <BadgeShowcase
+                        stats={{
+                          votesCount: profile.votesCount,
+                          opinionsCount: profile.opinionsCount,
+                          topicsCount: profile.topicsCount,
+                          reactionsCount: profile.reactionsCount,
+                        }}
+                      />
+                    )}
+                  </div>
+                  {nextBadge && (
+                    <p className="text-xs text-muted-foreground">
+                      💡 다음 목표: {nextBadge.name} ({nextBadge.progress.percentage}% 달성)
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </CardContent>
