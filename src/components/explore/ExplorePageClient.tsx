@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
+import { TopicBubbleMap } from "@/components/explore/TopicBubbleMap";
 import type { Category } from "@prisma/client";
 
 interface PaginationInfo {
@@ -72,6 +73,9 @@ function ExplorePageContent() {
 
   return (
     <div className="space-y-4">
+      {/* Bubble Map */}
+      <TopicBubbleMap />
+
       {/* Category Chips */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         <button

@@ -126,6 +126,16 @@ export const SIDE_COLORS: Record<Side, { bg: string; text: string; border: strin
   },
 };
 
+export const CATEGORY_COLORS: Record<Category, { light: string; dark: string }> = {
+  DAILY: { light: "#f59e0b", dark: "#fbbf24" },
+  POLITICS: { light: "#3b82f6", dark: "#60a5fa" },
+  SOCIAL: { light: "#22c55e", dark: "#4ade80" },
+  RELATIONSHIP: { light: "#ec4899", dark: "#f472b6" },
+  HISTORY: { light: "#78716c", dark: "#a8a29e" },
+  GAME: { light: "#a855f7", dark: "#c084fc" },
+  TECH: { light: "#06b6d4", dark: "#22d3ee" },
+};
+
 // 블라인드 처리 기준 (신고 누적 수)
 export const BLIND_THRESHOLD = 3;
 
