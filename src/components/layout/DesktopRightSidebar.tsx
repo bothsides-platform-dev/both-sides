@@ -61,7 +61,7 @@ export function DesktopRightSidebar() {
               return (
                 <Link
                   key={opinion.id}
-                  href={`/topics/${opinion.topicId}`}
+                  href={`/topics/${opinion.topicId}?highlightReply=${opinion.id}`}
                   className="block rounded-lg px-3 py-2.5 transition-colors hover:bg-accent group"
                 >
                   <div className="flex items-center gap-1.5 mb-1">
