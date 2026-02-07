@@ -1,6 +1,5 @@
-import { handleApiError, ForbiddenError, NotFoundError } from "@/lib/errors";
+import { handleApiError, NotFoundError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export async function GET(
@@ -8,13 +7,6 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSession();
-
-    // 인증되지 않은 사용자는 다른 사용자의 프로필을 볼 수 없음
-    if (!session?.user) {
-      throw new ForbiddenError("로그인이 필요합니다.");
-    }
-
     const { id: userId } = await params;
 
     // Check if user exists
