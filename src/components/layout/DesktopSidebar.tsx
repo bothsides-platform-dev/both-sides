@@ -109,7 +109,7 @@ export function DesktopSidebar() {
         )}
 
         {/* Category Filter */}
-        <div className="pt-4">
+        <div className="pt-3 mt-3 border-t">
           <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             카테고리
           </p>
@@ -118,7 +118,7 @@ export function DesktopSidebar() {
               key={value}
               href={`/?category=${value}`}
               className={cn(
-                "block rounded-lg px-3 py-2 text-sm transition-colors",
+                "block rounded-lg px-3 py-1.5 text-sm transition-colors",
                 "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               )}
             >

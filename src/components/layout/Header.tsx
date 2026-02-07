@@ -40,7 +40,7 @@ export function Header() {
         {/* Desktop with sidebar: hidden since sidebar has logo */}
         <Link
           href="/"
-          className="flex items-center space-x-2.5 lg:hidden"
+          className="flex items-center space-x-2.5"
         >
           <Image
             src={logo}
@@ -56,8 +56,6 @@ export function Header() {
           </span>
         </Link>
 
-        {/* Desktop with sidebar: Spacer to push actions right */}
-        <div className="hidden lg:block" />
 
         {/* Actions */}
         <nav className="flex items-center gap-2 sm:gap-3">

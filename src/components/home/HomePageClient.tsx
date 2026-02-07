@@ -13,7 +13,7 @@ export function HomePageClient() {
         <TrendingTicker />
       </div>
 
-      <div className="space-y-10 mt-6">
+      <div className="space-y-10 mt-6 max-w-5xl mx-auto">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">
             <span className="text-blue-500">A</span> vs{" "}
