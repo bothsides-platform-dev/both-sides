@@ -40,7 +40,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
             className={cn(
               "text-xs tabular-nums",
               activeTab === "A"
-                ? "text-blue-600"
+                ? "text-sideA"
                 : "text-muted-foreground/50"
             )}
           >
@@ -64,7 +64,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
             className={cn(
               "text-xs tabular-nums",
               activeTab === "B"
-                ? "text-red-600"
+                ? "text-sideB"
                 : "text-muted-foreground/50"
             )}
           >
@@ -77,7 +77,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
       <motion.div
         className={cn(
           "absolute bottom-0 h-[2px] w-1/2",
-          activeTab === "A" ? "bg-blue-500" : "bg-red-500"
+          activeTab === "A" ? "bg-sideA" : "bg-sideB"
         )}
         initial={false}
         animate={{

@@ -43,9 +43,9 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
 
             {/* 컴팩트 A vs B */}
             <div className="relative z-10 flex items-center gap-1">
-              <span className="text-xs font-bold text-blue-600">A</span>
-              <span className="text-[10px] text-muted-foreground">vs</span>
-              <span className="text-xs font-bold text-red-600">B</span>
+              <span className="text-xs font-bold text-sideA">A</span>
+              <span className="text-2xs text-muted-foreground">vs</span>
+              <span className="text-xs font-bold text-sideB">B</span>
             </div>
           </div>
         )}
@@ -60,9 +60,9 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
           </span>
         </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">
-          <span className="text-blue-600">{topic.optionA}</span>
+          <span className="text-sideA">{topic.optionA}</span>
           <span className="mx-1">vs</span>
-          <span className="text-red-600">{topic.optionB}</span>
+          <span className="text-sideB">{topic.optionB}</span>
         </p>
       </div>
       <div className="hidden shrink-0 items-center gap-4 text-sm text-muted-foreground md:flex">

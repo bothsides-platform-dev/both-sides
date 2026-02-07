@@ -48,8 +48,8 @@ export function Header() {
               className="h-6 w-6"
             />
             <span className="text-xl sm:text-2xl font-bold">
-              <span className="text-[#3B82F6]">Both</span>
-              <span className="text-[#EF4444]">Sides</span>
+              <span className="text-sideA">Both</span>
+              <span className="text-sideB">Sides</span>
             </span>
           </Link>
         </div>

@@ -137,7 +137,7 @@ function NewTopicForm() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="optionA" className="text-blue-600">
+                <Label htmlFor="optionA" className="text-sideA">
                   A 옵션 *
                 </Label>
                 <Input
@@ -146,11 +146,11 @@ function NewTopicForm() {
                   placeholder="예: 짜장면"
                   required
                   maxLength={50}
-                  className="border-blue-200 focus:border-blue-500"
+                  className="border-sideA/30 focus:border-sideA"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="optionB" className="text-red-600">
+                <Label htmlFor="optionB" className="text-sideB">
                   B 옵션 *
                 </Label>
                 <Input
@@ -159,7 +159,7 @@ function NewTopicForm() {
                   placeholder="예: 짬뽕"
                   required
                   maxLength={50}
-                  className="border-red-200 focus:border-red-500"
+                  className="border-sideB/30 focus:border-sideB"
                 />
               </div>
             </div>

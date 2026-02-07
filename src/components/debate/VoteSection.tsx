@@ -172,7 +172,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
           className={cn(
             "flex-1 h-16 flex-col gap-1 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
             "active:scale-[0.98]",
-            myVote === "A" && "ring-2 ring-blue-500 ring-offset-2 shadow-lg"
+            myVote === "A" && "ring-2 ring-sideA ring-offset-2 shadow-lg"
           )}
           onClick={() => handleVote("A")}
           disabled={isVoting || isVotingClosed}
@@ -201,7 +201,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
           className={cn(
             "flex-1 h-16 flex-col gap-1 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
             "active:scale-[0.98]",
-            myVote === "B" && "ring-2 ring-red-500 ring-offset-2 shadow-lg"
+            myVote === "B" && "ring-2 ring-sideB ring-offset-2 shadow-lg"
           )}
           onClick={() => handleVote("B")}
           disabled={isVoting || isVotingClosed}
@@ -231,11 +231,11 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <div className="h-4 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
           <div className="flex h-full">
             <div
-              className="bg-blue-500 transition-all duration-300"
+              className="bg-sideA transition-all duration-300"
               style={{ width: `${compressPercentage(stats.aPercentage)}%` }}
             />
             <div
-              className="bg-red-500 transition-all duration-300"
+              className="bg-sideB transition-all duration-300"
               style={{
                 width: `${100 - compressPercentage(stats.aPercentage)}%`,
               }}

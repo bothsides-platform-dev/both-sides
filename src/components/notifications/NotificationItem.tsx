@@ -62,17 +62,17 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
       onClick={handleClick}
       className={cn(
         "flex items-start gap-3 p-3 hover:bg-muted/50 transition-colors border-b last:border-b-0",
-        !notification.isRead && "bg-blue-50/50 dark:bg-blue-950/20"
+        !notification.isRead && "bg-sideA/5 dark:bg-sideA/10"
       )}
     >
       <div className="flex-shrink-0 mt-0.5">
         <div className={cn(
           "p-2 rounded-full",
-          notification.isRead ? "bg-muted" : "bg-blue-100 dark:bg-blue-900"
+          notification.isRead ? "bg-muted" : "bg-sideA/20 dark:bg-sideA/30"
         )}>
           <MessageSquare className={cn(
             "h-4 w-4",
-            notification.isRead ? "text-muted-foreground" : "text-blue-600 dark:text-blue-400"
+            notification.isRead ? "text-muted-foreground" : "text-sideA"
           )} />
         </div>
       </div>
@@ -98,7 +98,7 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
       </div>
       {!notification.isRead && (
         <div className="flex-shrink-0">
-          <div className="h-2 w-2 rounded-full bg-blue-500" />
+          <div className="h-2 w-2 rounded-full bg-sideA" />
         </div>
       )}
     </Link>

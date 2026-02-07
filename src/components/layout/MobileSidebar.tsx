@@ -148,7 +148,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                 <div className="relative">
                   <Icon className="h-5 w-5 shrink-0" />
                   {showBadge && (
-                    <span className="absolute -top-1 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+                    <span className="absolute -top-1 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-sideB text-2xs font-medium text-sideB-foreground">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}

@@ -33,7 +33,7 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
   return (
     <Link href={`/topics/${topic.id}`} className="group">
       <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-blue-100 to-red-100">
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-sideA/20 to-sideB/20">
           {topic.imageUrl ? (
             <Image
               src={topic.imageUrl}
@@ -44,14 +44,14 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
           ) : (
             <div className="flex h-full items-center justify-center">
               {/* 애니메이션 그라데이션 배경 */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-50 to-red-100 transition-all duration-500 group-hover:from-blue-200 group-hover:to-red-200" />
+              <div className="absolute inset-0 bg-gradient-to-br from-sideA/20 via-purple-50 to-sideB/20 transition-all duration-500 group-hover:from-sideA/30 group-hover:to-sideB/30" />
 
               {/* VS 배지 */}
               <div className="relative z-10 text-center">
                 <div className="flex items-baseline gap-3">
-                  <span className="text-5xl font-bold text-blue-500 drop-shadow-sm">A</span>
+                  <span className="text-5xl font-bold text-sideA drop-shadow-sm">A</span>
                   <span className="text-2xl font-medium text-muted-foreground/70">vs</span>
-                  <span className="text-5xl font-bold text-red-500 drop-shadow-sm">B</span>
+                  <span className="text-5xl font-bold text-sideB drop-shadow-sm">B</span>
                 </div>
               </div>
             </div>
@@ -74,7 +74,7 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
               dDay === "마감"
                 ? "bg-gray-800/80 text-gray-300"
                 : dDay === "D-Day"
-                  ? "bg-red-500 text-white animate-pulse"
+                  ? "bg-sideB text-sideB-foreground animate-pulse"
                   : "bg-black/70 text-white backdrop-blur-sm"
             }`}>
               {dDay}
@@ -86,9 +86,9 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
             {topic.title}
           </h3>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="font-medium text-blue-600">{topic.optionA}</span>
+            <span className="font-medium text-sideA">{topic.optionA}</span>
             <span>vs</span>
-            <span className="font-medium text-red-600">{topic.optionB}</span>
+            <span className="font-medium text-sideB">{topic.optionB}</span>
           </div>
         </CardContent>
       </Card>

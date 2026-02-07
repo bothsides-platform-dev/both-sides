@@ -39,7 +39,7 @@ export function DesktopRightSidebar() {
       {/* Recent Opinions Section */}
       <div className="px-4 mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <MessageCircle className="h-4 w-4 text-blue-500" />
+          <MessageCircle className="h-4 w-4 text-sideA" />
           <h3 className="text-sm font-semibold">최근 의견</h3>
         </div>
 
@@ -65,7 +65,7 @@ export function DesktopRightSidebar() {
                   className="block rounded-lg px-3 py-2.5 transition-colors hover:bg-accent group"
                 >
                   <div className="flex items-center gap-1.5 mb-1">
-                    <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-[10px] px-1.5 py-0 h-4">
+                    <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-2xs px-1.5 py-0 h-4">
                       {opinion.side}
                     </Badge>
                     <span className="text-xs text-muted-foreground truncate">

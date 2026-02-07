@@ -48,20 +48,20 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
     <div className="relative h-full">
       <Link href={`/topics/${topic.id}`}>
         <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
-          <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-blue-50 to-red-50 dark:from-blue-950/40 dark:to-red-950/40">
+          <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-sideA/10 to-sideB/10 dark:from-sideA/20 dark:to-sideB/20">
             {topic.imageUrl ? (
               <Image src={topic.imageUrl} alt="" fill className="object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center">
                 {/* 대각선 분할 배경 */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-transparent to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-tl from-red-500/20 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-br from-sideA/20 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-tl from-sideB/20 via-transparent to-transparent" />
 
                 {/* 중앙 VS 배지 */}
                 <div className="relative z-10 flex items-center gap-2 rounded-full bg-white/90 dark:bg-background/90 px-4 py-2 shadow-sm">
-                  <span className="text-lg font-bold text-blue-600">A</span>
+                  <span className="text-lg font-bold text-sideA">A</span>
                   <span className="text-sm font-medium text-muted-foreground">vs</span>
-                  <span className="text-lg font-bold text-red-600">B</span>
+                  <span className="text-lg font-bold text-sideB">B</span>
                 </div>
               </div>
             )}
@@ -78,14 +78,14 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
         </CardHeader>
         <CardContent className="pb-3">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex-1 rounded-lg bg-blue-50 dark:bg-blue-950/30 p-3 text-center">
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            <div className="flex-1 rounded-lg bg-sideA/10 p-3 text-center">
+              <span className="text-sm font-medium text-sideA">
                 A. {topic.optionA}
               </span>
             </div>
             <span className="text-lg font-bold text-muted-foreground">VS</span>
-            <div className="flex-1 rounded-lg bg-red-50 dark:bg-red-950/30 p-3 text-center">
-              <span className="text-sm font-medium text-red-700 dark:text-red-300">
+            <div className="flex-1 rounded-lg bg-sideB/10 p-3 text-center">
+              <span className="text-sm font-medium text-sideB">
                 B. {topic.optionB}
               </span>
             </div>
@@ -117,7 +117,7 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
               </Avatar>
               <span className="text-sm text-muted-foreground">{authorName}</span>
               {topic.author.isBlacklisted && (
-                <Badge variant="outline" className="text-[10px] px-1 py-0 text-destructive border-destructive/50">
+                <Badge variant="outline" className="text-2xs px-1 py-0 text-destructive border-destructive/50">
                   <Ban className="h-2.5 w-2.5 mr-0.5" />
                   차단됨
                 </Badge>

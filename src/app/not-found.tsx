@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center px-4 text-center">
       {/* 404 그라데이션 숫자 */}
-      <h1 className="bg-gradient-to-r from-[#3B82F6] to-[#EF4444] bg-clip-text text-8xl font-bold text-transparent md:text-9xl">
+      <h1 className="bg-gradient-to-r from-sideA to-sideB bg-clip-text text-8xl font-bold text-transparent md:text-9xl">
         404
       </h1>
 
@@ -17,11 +17,11 @@ export default function NotFound() {
 
       {/* A vs B 서브 메시지 */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground sm:gap-3">
-        <span className="text-[#3B82F6] line-through opacity-50">
+        <span className="text-sideA line-through opacity-50">
           A: 이 페이지는 존재한다
         </span>
         <span className="font-bold">VS</span>
-        <span className="font-semibold text-[#EF4444]">
+        <span className="font-semibold text-sideB">
           B: 이 페이지는 존재하지 않는다
         </span>
       </div>

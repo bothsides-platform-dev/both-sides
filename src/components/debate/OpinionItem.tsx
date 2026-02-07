@@ -216,14 +216,14 @@ export const OpinionItem = memo(function OpinionItem({
               <Link href={`/users/${opinion.user!.id}`} className="hover:underline flex items-center gap-1.5">
                 <span className="font-medium text-sm">{authorName}</span>
                 {opinion.user!.isBlacklisted && (
-                  <Badge variant="outline" className="text-[10px] px-1 py-0 text-destructive border-destructive/50">
+                  <Badge variant="outline" className="text-2xs px-1 py-0 text-destructive border-destructive/50">
                     <Ban className="h-2.5 w-2.5 mr-0.5" />
                     차단됨
                   </Badge>
                 )}
               </Link>
             )}
-            <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-[11px] px-1.5 py-0">
+            <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-xs px-1.5 py-0">
               {sideLabel}
             </Badge>
             <span className="text-xs text-muted-foreground/70" suppressHydrationWarning>
@@ -234,7 +234,7 @@ export const OpinionItem = memo(function OpinionItem({
             <p
               ref={textRef}
               className={cn(
-                "text-[15px] leading-relaxed whitespace-pre-wrap text-foreground/90",
+                "text-sm leading-relaxed whitespace-pre-wrap text-foreground/90",
                 !isExpanded && "line-clamp-3"
               )}
             >

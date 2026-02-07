@@ -382,7 +382,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   disabled={submitState.isSubmitting || !newOpinion.trim()}
                   className={cn(
                     "shrink-0 h-10 w-10 md:h-10 md:w-10",
-                    myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
+                    myVote === "A" ? "bg-sideA hover:bg-sideA/90" : "bg-sideB hover:bg-sideB/90"
                   )}
                 >
                   {submitState.isSubmitting ? (

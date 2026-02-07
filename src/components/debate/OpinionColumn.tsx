@@ -47,7 +47,7 @@ export const OpinionColumn = memo(function OpinionColumn({
           <div
             className={cn(
               "w-2 h-2 rounded-full",
-              isA ? "bg-blue-500" : "bg-red-500"
+              isA ? "bg-sideA" : "bg-sideB"
             )}
           />
           <h3 className="font-medium text-foreground">

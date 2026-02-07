@@ -219,7 +219,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
                           y={bubble.y}
                           textAnchor="middle"
                           dominantBaseline="central"
-                          className="fill-foreground text-[11px] font-medium pointer-events-none"
+                          className="fill-foreground text-xs font-medium pointer-events-none"
                         >
                           {truncateText(bubble.topic.title, Math.floor(r / 6))}
                         </text>
@@ -229,7 +229,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
                           y={bubble.y}
                           textAnchor="middle"
                           dominantBaseline="central"
-                          className="fill-foreground text-[10px] pointer-events-none"
+                          className="fill-foreground text-2xs pointer-events-none"
                         >
                           {truncateText(bubble.topic.title, Math.floor(r / 5))}
                         </text>

@@ -67,16 +67,16 @@
 /* Custom utilities */
 @layer utilities {
   .side-a {
-    @apply bg-blue-500 text-white;
+    @apply bg-sideA text-sideA-foreground;
   }
   .side-b {
-    @apply bg-red-500 text-white;
+    @apply bg-sideB text-sideB-foreground;
   }
   .side-a-outline {
-    @apply border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/30;
+    @apply border-sideA text-sideA hover:bg-sideA/10;
   }
   .side-b-outline {
-    @apply border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30;
+    @apply border-sideB text-sideB hover:bg-sideB/10;
   }
 }
 
@@ -114,6 +114,12 @@
 .ticker-content:hover,
 .ticker-content.ticker-paused {
   animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-content {
+    animation: none;
+  }
 }
 
 /* Mobile bottom nav safe area */
