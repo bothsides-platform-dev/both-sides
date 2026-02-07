@@ -153,21 +153,6 @@ export function DesktopRightSidebar() {
         )}
       </div>
 
-      {/* Quick Info */}
-      <div className="px-4 pt-4 border-t">
-        <div className="rounded-lg bg-muted/50 p-4 space-y-3">
-          <h4 className="text-sm font-semibold">BothSides</h4>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            A vs B, 당신의 선택은? 양자택일 토론에 참여하고 다양한 의견을 나눠보세요.
-          </p>
-          <div className="flex gap-2">
-            <Badge variant="secondary" className="text-xs">양자택일</Badge>
-            <Badge variant="secondary" className="text-xs">토론</Badge>
-            <Badge variant="secondary" className="text-xs">투표</Badge>
-          </div>
-        </div>
-      </div>
-
       {/* Footer info */}
       <div className="px-4 pt-4 pb-6">
         <p className="text-xs text-muted-foreground">
