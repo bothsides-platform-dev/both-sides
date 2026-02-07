@@ -59,6 +59,7 @@ interface ProfileData {
   opinionsCount: number;
   topicsCount: number;
   reactionsCount: number;
+  joinOrder?: number | null;
   votes: VoteItem[];
   opinions: OpinionItem[];
   topics: TopicItem[];
@@ -131,6 +132,11 @@ export default function ProfilePage() {
                 <div className="flex-1 space-y-1">
                   <h1 className="text-xl sm:text-2xl font-bold">{displayName}</h1>
                   <p className="text-sm text-muted-foreground">{user.email}</p>
+                  {profile?.joinOrder && (
+                    <p className="text-sm text-muted-foreground">
+                      {profile.joinOrder}번째 가입자
+                    </p>
+                  )}
                   <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-1 text-sm">
                     <span className="flex items-center gap-1">
                       <Vote className="h-4 w-4" />

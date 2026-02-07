@@ -15,7 +15,7 @@ export async function GET() {
   try {
     const user = await requireAuth();
 
-    const [votes, opinions, topics, votesCount, opinionsCount, topicsCount, reactionsCount] = await Promise.all([
+    const [votes, opinions, topics, votesCount, opinionsCount, topicsCount, reactionsCount, userInfo] = await Promise.all([
       prisma.vote.findMany({
         where: { userId: user.id },
         orderBy: { createdAt: "desc" },
@@ -54,6 +54,7 @@ export async function GET() {
       prisma.opinion.count({ where: { userId: user.id } }),
       prisma.topic.count({ where: { authorId: user.id } }),
       prisma.reaction.count({ where: { userId: user.id } }),
+      prisma.user.findUnique({ where: { id: user.id }, select: { joinOrder: true } }),
     ]);
 
     // Compute badges
@@ -75,6 +76,7 @@ export async function GET() {
         opinionsCount,
         topicsCount,
         reactionsCount,
+        joinOrder: userInfo?.joinOrder,
         badges,
         badgeProgress,
       },
