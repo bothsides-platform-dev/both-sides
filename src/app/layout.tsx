@@ -134,7 +134,7 @@ export default function RootLayout({
                     <ToastProvider>
                       <Header />
                       <AppShell>
-                        <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-4 md:py-6 pb-20 md:pb-6">
+                        <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-4 md:py-6 pb-6">
                           {children}
                         </main>
                         <Footer />

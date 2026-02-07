@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { MobileBottomNav } from "./MobileBottomNav";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { DesktopRightSidebar } from "./DesktopRightSidebar";
 
@@ -35,9 +34,6 @@ export function AppShell({ children }: AppShellProps) {
       <div className="lg:pl-[220px] xl:pr-[280px]">
         {children}
       </div>
-
-      {/* Mobile Bottom Nav */}
-      <MobileBottomNav />
     </>
   );
 }
