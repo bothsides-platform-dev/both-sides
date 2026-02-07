@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/button";
 import { UserMenu } from "./UserMenu";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { PlusCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 import logo from "@/app/logo.png";
+
+/** Routes where sidebars are hidden (must match AppShell.EXCLUDED_ROUTES) */
+const SIDEBAR_EXCLUDED_ROUTES = ["/admin", "/auth"];
 
 export function Header() {
   const { data: session } = useSession();
@@ -17,10 +21,20 @@ export function Header() {
   // Hide default header on admin pages (admin has its own layout)
   const isAdmin = pathname.startsWith("/admin");
 
+  // Match AppShell: sidebars only show on non-excluded routes
+  const hasSidebars = !SIDEBAR_EXCLUDED_ROUTES.some((route) =>
+    pathname.startsWith(route)
+  );
+
   // On desktop with sidebar, the header only needs search + user actions
   // On mobile, compact header with logo + icons only (nav is in bottom bar)
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-[padding] duration-200",
+        hasSidebars && "lg:pl-[220px] xl:pr-[280px]"
+      )}
+    >
       <div className="w-full px-4 md:px-8 lg:px-12 flex h-14 md:h-16 items-center justify-between border-b">
         {/* Mobile: Logo (always visible) */}
         {/* Desktop with sidebar: hidden since sidebar has logo */}
