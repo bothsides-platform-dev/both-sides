@@ -6,13 +6,12 @@ import { DesktopRightSidebar } from "./DesktopRightSidebar";
 
 interface AppShellProps {
   children: React.ReactNode;
-  header?: React.ReactNode;
 }
 
 /** Routes where the shell layout (sidebars, bottom nav) should be hidden */
 const EXCLUDED_ROUTES = ["/admin", "/auth"];
 
-export function AppShell({ children, header }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
 
   const isExcluded = EXCLUDED_ROUTES.some((route) =>
@@ -20,12 +19,7 @@ export function AppShell({ children, header }: AppShellProps) {
   );
 
   if (isExcluded) {
-    return (
-      <>
-        {header}
-        {children}
-      </>
-    );
+    return <>{children}</>;
   }
 
   return (
@@ -36,9 +30,8 @@ export function AppShell({ children, header }: AppShellProps) {
       {/* Desktop Right Sidebar */}
       <DesktopRightSidebar />
 
-      {/* Header and Main Content - offset for sidebars */}
+      {/* Main Content - offset for sidebars */}
       <div className="lg:pl-[220px] xl:pr-[280px]">
-        {header}
         {children}
       </div>
     </>
