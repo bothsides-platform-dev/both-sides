@@ -28,9 +28,11 @@ export const MobileSideTabs = memo(function MobileSideTabs({
       <button
         onClick={() => onTabChange("A")}
         className={cn(
-          "flex-1 py-2 text-sm font-medium transition-colors relative",
+          "flex-1 min-h-[44px] py-3 md:py-2 text-sm font-medium transition-colors relative",
           activeTab === "A" ? "text-foreground" : "text-muted-foreground/70"
         )}
+        role="tab"
+        aria-selected={activeTab === "A"}
       >
         <span className="flex items-center justify-center gap-2">
           {optionA}
@@ -50,9 +52,11 @@ export const MobileSideTabs = memo(function MobileSideTabs({
       <button
         onClick={() => onTabChange("B")}
         className={cn(
-          "flex-1 py-2 text-sm font-medium transition-colors relative",
+          "flex-1 min-h-[44px] py-3 md:py-2 text-sm font-medium transition-colors relative",
           activeTab === "B" ? "text-foreground" : "text-muted-foreground/70"
         )}
+        role="tab"
+        aria-selected={activeTab === "B"}
       >
         <span className="flex items-center justify-center gap-2">
           {optionB}

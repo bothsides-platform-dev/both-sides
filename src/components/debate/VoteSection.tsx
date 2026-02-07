@@ -170,11 +170,14 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <Button
           variant={myVote === "A" ? "sideA" : "sideAOutline"}
           className={cn(
-            "flex-1 h-16 flex-col gap-1 sm:h-20 sm:gap-1.5 relative",
-            myVote === "A" && "ring-2 ring-blue-500 ring-offset-2"
+            "flex-1 h-16 flex-col gap-1 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
+            "active:scale-[0.98]",
+            myVote === "A" && "ring-2 ring-blue-500 ring-offset-2 shadow-lg"
           )}
           onClick={() => handleVote("A")}
           disabled={isVoting || isVotingClosed}
+          aria-pressed={myVote === "A"}
+          aria-label={`${optionA}에 투표`}
         >
           {showSpinnerA && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -196,11 +199,14 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <Button
           variant={myVote === "B" ? "sideB" : "sideBOutline"}
           className={cn(
-            "flex-1 h-16 flex-col gap-1 sm:h-20 sm:gap-1.5 relative",
-            myVote === "B" && "ring-2 ring-red-500 ring-offset-2"
+            "flex-1 h-16 flex-col gap-1 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
+            "active:scale-[0.98]",
+            myVote === "B" && "ring-2 ring-red-500 ring-offset-2 shadow-lg"
           )}
           onClick={() => handleVote("B")}
           disabled={isVoting || isVotingClosed}
+          aria-pressed={myVote === "B"}
+          aria-label={`${optionB}에 투표`}
         >
           {showSpinnerB && (
             <div className="absolute inset-0 flex items-center justify-center">

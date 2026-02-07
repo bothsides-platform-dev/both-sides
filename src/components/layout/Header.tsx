@@ -59,17 +59,16 @@ export function Header() {
         <nav className="flex items-center gap-2 sm:gap-3">
           {session?.user && !isAdmin && (
             <>
-              {/* Create button: hidden on mobile (sidebar handles it) */}
-              <Button asChild variant="outline" size="sm" className="hidden lg:inline-flex">
-                <Link href="/topics/new">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  토론 만들기
+              {/* Create button: Icon on mobile, full button on desktop */}
+              <Button asChild variant="outline" size="sm" className="lg:inline-flex">
+                <Link href="/topics/new" className="flex items-center">
+                  <PlusCircle className="h-5 w-5 lg:mr-2 lg:h-4 lg:w-4" />
+                  <span className="hidden lg:inline">토론 만들기</span>
+                  <span className="sr-only lg:hidden">토론 만들기</span>
                 </Link>
               </Button>
-              {/* Notification bell: hidden on mobile (sidebar handles it) */}
-              <div className="hidden lg:block">
-                <NotificationBell />
-              </div>
+              {/* Notification bell: Always visible */}
+              <NotificationBell />
             </>
           )}
           <UserMenu />

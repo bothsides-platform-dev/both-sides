@@ -115,9 +115,9 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-3/4 sm:max-w-sm p-0 flex flex-col">
+      <SheetContent className="w-[280px] sm:w-[320px] sm:max-w-sm p-0 flex flex-col">
         {/* Main Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
           {NAV_ITEMS.map((item) => {
             const href =
               item.requiresAuth && !session?.user
@@ -179,6 +179,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
             <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               카테고리
             </p>
+            <div className="max-h-[240px] overflow-y-auto space-y-0.5">
             {categories.map(([value, meta]) => {
               const slug = CATEGORY_TO_SLUG[value];
               const href = `/explore?category=${slug}`;
@@ -201,6 +202,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                 </Link>
               );
             })}
+            </div>
           </div>
         </nav>
 
@@ -216,6 +218,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
               size="sm"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
               className="w-full justify-start gap-3 text-muted-foreground"
+              aria-label={resolvedTheme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
             >
               {resolvedTheme === "dark" ? (
                 <>

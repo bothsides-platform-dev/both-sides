@@ -52,6 +52,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
     isSubmitting: false,
     error: null,
   });
+  const [isOpinionFocused, setIsOpinionFocused] = useState(false);
   const { showRateLimitError } = useToast();
 
   // Mobile swipe tabs
@@ -360,6 +361,8 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                 <Textarea
                   value={newOpinion}
                   onChange={(e) => setNewOpinion(e.target.value)}
+                  onFocus={() => setIsOpinionFocused(true)}
+                  onBlur={() => setIsOpinionFocused(false)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                       e.preventDefault();
@@ -371,6 +374,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   placeholder="의견을 입력하세요"
                   className="min-h-[60px] md:min-h-[80px] resize-none text-sm md:text-base"
                   maxLength={1000}
+                  aria-label="의견 입력"
                 />
                 <Button
                   size="icon"
@@ -388,21 +392,30 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   )}
                 </Button>
               </div>
-              {isLoggedIn && (
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="opinionAnonymous"
-                    checked={isAnonymous}
-                    onCheckedChange={(checked) => setIsAnonymous(checked === true)}
-                  />
-                  <Label
-                    htmlFor="opinionAnonymous"
-                    className="text-xs font-normal cursor-pointer text-muted-foreground"
-                  >
-                    익명으로 작성
-                  </Label>
-                </div>
-              )}
+              <div className="flex items-center justify-between">
+                {isLoggedIn ? (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="opinionAnonymous"
+                      checked={isAnonymous}
+                      onCheckedChange={(checked) => setIsAnonymous(checked === true)}
+                    />
+                    <Label
+                      htmlFor="opinionAnonymous"
+                      className="text-xs font-normal cursor-pointer text-muted-foreground"
+                    >
+                      익명으로 작성
+                    </Label>
+                  </div>
+                ) : (
+                  <div />
+                )}
+                {(isOpinionFocused || newOpinion.length > 0) && (
+                  <div className="text-xs text-muted-foreground text-right">
+                    {newOpinion.length} / 1000
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ) : (

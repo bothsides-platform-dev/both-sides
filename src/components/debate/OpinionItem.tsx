@@ -162,20 +162,26 @@ export const OpinionItem = memo(function OpinionItem({
   // Tailwind는 동적 클래스(ml-${n})를 컴파일하지 않으므로 정적 매핑 사용
   const indentClasses: Record<number, string> = {
     0: "",
-    1: "ml-8",
-    2: "ml-16",
-    3: "ml-24",
-    4: "ml-32",
+    1: "ml-4 md:ml-8",
+    2: "ml-8 md:ml-16",
+    3: "ml-12 md:ml-24",
+    4: "ml-16 md:ml-32",
   };
   const indentClass = indentClasses[Math.min(depth, 4)] || "";
+
+  // Visual depth indicator for mobile
+  const depthIndicatorClass = depth > 0
+    ? "border-l-2 border-muted-foreground/20 pl-2 md:border-l-0 md:pl-0"
+    : "";
 
   return (
     <div
       ref={itemRef}
       id={`opinion-${opinion.id}`}
       className={cn(
-        "py-2 px-1 rounded-lg transition-colors duration-500",
+        "py-3 px-1 md:py-2 rounded-lg transition-colors duration-500",
         indentClass,
+        depthIndicatorClass,
         highlightVisible && "bg-blue-100/50 dark:bg-blue-900/30 animate-pulse"
       )}
     >
@@ -247,13 +253,15 @@ export const OpinionItem = memo(function OpinionItem({
             <button
               onClick={() => onReaction(opinion.id, "LIKE")}
               className={cn(
-                "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-all",
+                "flex items-center gap-1.5 text-xs min-h-[44px] min-w-[44px] px-2 py-2 rounded-lg transition-all",
+                "md:min-h-[36px] md:min-w-[36px] md:px-1.5 md:py-0.5 md:rounded",
                 userReaction?.type === "LIKE"
-                  ? "text-blue-600 bg-blue-50"
-                  : "text-muted-foreground hover:text-blue-600 hover:bg-blue-50/50"
+                  ? "text-blue-600 bg-blue-50 dark:bg-blue-950/30"
+                  : "text-muted-foreground hover:text-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-950/20"
               )}
+              aria-label={`좋아요 ${opinion.reactionSummary.likes}개`}
             >
-              <ThumbsUp className="h-3 w-3" />
+              <ThumbsUp className="h-4 w-4 md:h-3 md:w-3" />
               <span className="font-medium">{opinion.reactionSummary.likes}</span>
             </button>
             {(session?.user || userVoteSide) && (
@@ -264,31 +272,35 @@ export const OpinionItem = memo(function OpinionItem({
                       onClick={handleReplyCountClick}
                       disabled={loadingReplies}
                       className={cn(
-                        "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-all",
+                        "flex items-center gap-1.5 text-xs min-h-[44px] min-w-[44px] px-2 py-2 rounded-lg transition-all",
+                        "md:min-h-[36px] md:min-w-[36px] md:px-1.5 md:py-0.5 md:rounded",
                         showRepliesExpanded
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                       )}
+                      aria-label={`답글 ${repliesCount}개 ${showRepliesExpanded ? "접기" : "펼치기"}`}
                     >
                       {loadingReplies ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <Loader2 className="h-4 w-4 md:h-3 md:w-3 animate-spin" />
                       ) : showRepliesExpanded ? (
-                        <ChevronUp className="h-3 w-3" />
+                        <ChevronUp className="h-4 w-4 md:h-3 md:w-3" />
                       ) : (
-                        <ChevronDown className="h-3 w-3" />
+                        <ChevronDown className="h-4 w-4 md:h-3 md:w-3" />
                       )}
                       <span className="font-medium">답글 {repliesCount}</span>
                     </button>
                     <button
                       onClick={handleReplyClick}
                       className={cn(
-                        "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-all",
+                        "flex items-center gap-1.5 text-xs min-h-[44px] min-w-[44px] px-2 py-2 rounded-lg transition-all",
+                        "md:min-h-[36px] md:min-w-[36px] md:px-1.5 md:py-0.5 md:rounded",
                         showReplyForm
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                       )}
+                      aria-label="답글 작성"
                     >
-                      <MessageCircle className="h-3 w-3" />
+                      <MessageCircle className="h-4 w-4 md:h-3 md:w-3" />
                       <span className="font-medium">답글 작성</span>
                     </button>
                   </>
@@ -296,13 +308,15 @@ export const OpinionItem = memo(function OpinionItem({
                   <button
                     onClick={handleReplyClick}
                     className={cn(
-                      "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-all",
+                      "flex items-center gap-1.5 text-xs min-h-[44px] min-w-[44px] px-2 py-2 rounded-lg transition-all",
+                      "md:min-h-[36px] md:min-w-[36px] md:px-1.5 md:py-0.5 md:rounded",
                       showReplyForm
                         ? "text-primary bg-primary/10"
                         : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     )}
+                    aria-label={`답글${showRepliesCount && repliesCount > 0 ? ` ${repliesCount}개` : ""}`}
                   >
-                    <MessageCircle className="h-3 w-3" />
+                    <MessageCircle className="h-4 w-4 md:h-3 md:w-3" />
                     <span className="font-medium">답글{showRepliesCount && repliesCount > 0 ? ` ${repliesCount}` : ""}</span>
                   </button>
                 )}
@@ -316,9 +330,10 @@ export const OpinionItem = memo(function OpinionItem({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                className="min-h-[44px] min-w-[44px] md:h-8 md:w-8 p-0 text-muted-foreground hover:text-foreground"
+                aria-label="의견 메뉴 열기"
               >
-                <MoreVertical className="h-4 w-4" />
+                <MoreVertical className="h-5 w-5 md:h-4 md:w-4" />
                 <span className="sr-only">더보기</span>
               </Button>
             </DropdownMenuTrigger>

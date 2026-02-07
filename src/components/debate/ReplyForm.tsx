@@ -111,29 +111,31 @@ export function ReplyForm({
               }
             }}
             placeholder="답글을 입력하세요"
-            className="min-h-[60px] resize-none text-sm"
+            className="min-h-[60px] md:min-h-[80px] resize-none text-sm md:text-base"
             maxLength={1000}
           />
           <div className="flex flex-col gap-1">
             <Button
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="h-10 w-10 md:h-8 md:w-8 shrink-0"
               onClick={handleSubmit}
               disabled={submitState.isSubmitting || !body.trim()}
+              aria-label="답글 전송"
             >
               {submitState.isSubmitting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-4 w-4 md:h-3.5 md:w-3.5 animate-spin" />
               ) : (
-                <Send className="h-3.5 w-3.5" />
+                <Send className="h-4 w-4 md:h-3.5 md:w-3.5" />
               )}
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8 shrink-0"
+              className="h-10 w-10 md:h-8 md:w-8 shrink-0"
               onClick={onCancel}
+              aria-label="답글 취소"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4 md:h-3.5 md:w-3.5" />
             </Button>
           </div>
         </div>
