@@ -4,7 +4,7 @@ import useSWR from "swr";
 import { FeaturedTopicCard, type FeaturedTopicCardProps } from "./FeaturedTopicCard";
 import { Loader2, Sparkles } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
-import { HorizontalScroll, HorizontalScrollItem } from "@/components/ui/horizontal-scroll";
+import { HorizontalScroll } from "@/components/ui/horizontal-scroll";
 
 export function FeaturedSection() {
   const { data, error, isLoading } = useSWR<{ data: { topics: FeaturedTopicCardProps["topic"][] } }>(
@@ -44,9 +44,9 @@ export function FeaturedSection() {
       </div>
       <HorizontalScroll>
         {topics.map((topic: FeaturedTopicCardProps["topic"]) => (
-          <HorizontalScrollItem key={topic.id} className="w-[360px]">
+          <div key={topic.id} className="flex-1 flex-shrink-0 min-w-[300px]">
             <FeaturedTopicCard topic={topic} />
-          </HorizontalScrollItem>
+          </div>
         ))}
       </HorizontalScroll>
     </section>
