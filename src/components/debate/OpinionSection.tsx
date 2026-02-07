@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
@@ -57,6 +57,11 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
   // Mobile swipe tabs
   const { activeTab, setActiveTab, handleDragEnd } = useSwipeableTabs();
 
+  // Dynamic height for mobile swipe container
+  const sideARef = useRef<HTMLDivElement>(null);
+  const sideBRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState<number | undefined>(undefined);
+
   // Use combined vote-info endpoint (fetch for both logged-in and guest users)
   const { data: voteInfoData } = useSWR<{ data: { myVote: Side | null } }>(
     `/api/topics/${topicId}/vote-info?includeMyVote=true`,
@@ -93,6 +98,22 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
 
     fetchAncestorData();
   }, [highlightReplyId, setActiveTab]);
+
+  // Track active tab's content height for mobile swipe container
+  useEffect(() => {
+    const activeRef = activeTab === "A" ? sideARef : sideBRef;
+    if (!activeRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerHeight(entry.contentRect.height);
+      }
+    });
+
+    setContainerHeight(activeRef.current.scrollHeight);
+    observer.observe(activeRef.current);
+    return () => observer.disconnect();
+  }, [activeTab]);
 
   // Fetch only top-level opinions (parentId=null)
   const queryParams = useMemo(() => {
@@ -264,7 +285,10 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
             countB={opinionsB.length}
           />
 
-          <div className="overflow-hidden">
+          <div
+            className="overflow-hidden transition-[height] duration-300"
+            style={containerHeight ? { height: containerHeight } : undefined}
+          >
             <MotionDiv
               className="flex"
               drag="x"
@@ -275,7 +299,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               {/* Side A opinions */}
-              <div className="w-full flex-shrink-0 px-1">
+              <div ref={sideARef} className="w-full flex-shrink-0 px-1">
                 <OpinionList
                   opinions={opinionsA}
                   optionA={optionA}
@@ -293,7 +317,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
               </div>
 
               {/* Side B opinions */}
-              <div className="w-full flex-shrink-0 px-1">
+              <div ref={sideBRef} className="w-full flex-shrink-0 px-1">
                 <OpinionList
                   opinions={opinionsB}
                   optionA={optionA}
