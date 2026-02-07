@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -21,9 +22,63 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/profile", icon: User, label: "프로필" },
 ];
 
+const POLL_INTERVAL = 30000;
+
 export function MobileBottomNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notifications/unread-count");
+      if (res.ok) {
+        const data = await res.json();
+        setUnreadCount(data.data.unreadCount);
+      }
+    } catch {
+      // Silently fail
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user) return;
+
+    let interval: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      if (interval) clearInterval(interval);
+      interval = setInterval(fetchUnreadCount, POLL_INTERVAL);
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchUnreadCount();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    fetchUnreadCount();
+    if (document.visibilityState === "visible") {
+      startPolling();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [session?.user, fetchUnreadCount]);
 
   // Hide on admin pages
   if (pathname.startsWith("/admin")) return null;
@@ -46,6 +101,7 @@ export function MobileBottomNav() {
               : pathname.startsWith(item.href);
 
           const Icon = item.icon;
+          const showBadge = item.href === "/notifications" && session?.user && unreadCount > 0;
 
           return (
             <Link
@@ -60,13 +116,20 @@ export function MobileBottomNav() {
                     : "text-muted-foreground"
               )}
             >
-              <Icon
-                className={cn(
-                  "h-5 w-5",
-                  item.accent && "h-6 w-6"
+              <div className="relative">
+                <Icon
+                  className={cn(
+                    "h-5 w-5",
+                    item.accent && "h-6 w-6"
+                  )}
+                  strokeWidth={isActive || item.accent ? 2.5 : 2}
+                />
+                {showBadge && (
+                  <span className="absolute -top-1 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
                 )}
-                strokeWidth={isActive || item.accent ? 2.5 : 2}
-              />
+              </div>
               <span className="text-[10px] font-medium leading-none">
                 {item.label}
               </span>

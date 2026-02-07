@@ -82,7 +82,9 @@ export function NotificationDropdown({
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <NotificationList notifications={notifications} onRead={onRead} />
+        <div className="max-h-[400px] overflow-y-auto">
+          <NotificationList notifications={notifications} onRead={onRead} />
+        </div>
       )}
     </DropdownMenuContent>
   );
