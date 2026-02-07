@@ -25,7 +25,14 @@ import { MessageSquareText, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { FeedbackCategory } from "@prisma/client";
 
-export function FeedbackFAB() {
+interface FeedbackFABProps {
+  /** If true, renders as inline button without FAB styling */
+  inline?: boolean;
+  /** Callback when dialog opens (for closing parent menus) */
+  onDialogOpen?: () => void;
+}
+
+export function FeedbackFAB({ inline = false, onDialogOpen }: FeedbackFABProps = {}) {
   const { data: session } = useSession();
   const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -85,20 +92,34 @@ export function FeedbackFAB() {
     setIsOpen(open);
     if (!open) {
       resetForm();
+    } else {
+      onDialogOpen?.();
     }
   };
 
   return (
     <>
-      {/* FAB 버튼 */}
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed right-4 bottom-[4.5rem] md:right-6 md:bottom-6 h-12 w-12 md:h-14 md:w-14 rounded-full shadow-lg z-40 hover:scale-105 transition-transform"
-        size="icon"
-        aria-label="의견 보내기"
-      >
-        <MessageSquareText className="h-6 w-6" />
-      </Button>
+      {/* FAB 버튼 or 인라인 버튼 */}
+      {inline ? (
+        <Button
+          onClick={() => setIsOpen(true)}
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start gap-3 text-muted-foreground"
+        >
+          <MessageSquareText className="h-5 w-5" />
+          의견 보내기
+        </Button>
+      ) : (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="fixed right-4 bottom-6 lg:right-6 h-12 w-12 lg:h-14 lg:w-14 rounded-full shadow-lg z-40 hover:scale-105 transition-transform"
+          size="icon"
+          aria-label="의견 보내기"
+        >
+          <MessageSquareText className="h-6 w-6" />
+        </Button>
+      )}
 
       {/* 모달 */}
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>

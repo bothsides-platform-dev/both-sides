@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { CATEGORY_META, CATEGORY_TO_SLUG } from "@/lib/constants";
+import { FeedbackFAB } from "@/components/feedback/FeedbackFAB";
 import type { Category } from "@prisma/client";
 
 interface NavItem {
@@ -203,8 +204,12 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
           </div>
         </nav>
 
-        {/* Theme Toggle */}
-        <div className="px-3 py-4 border-t mt-auto">
+        {/* Bottom Actions */}
+        <div className="px-3 py-4 border-t mt-auto space-y-2">
+          {/* Feedback Button */}
+          <FeedbackFAB inline onDialogOpen={() => onOpenChange(false)} />
+
+          {/* Theme Toggle */}
           {mounted && (
             <Button
               variant="ghost"

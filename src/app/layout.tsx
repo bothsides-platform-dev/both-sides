@@ -139,7 +139,10 @@ export default function RootLayout({
                         </main>
                         <Footer />
                       </AppShell>
-                      <FeedbackFAB />
+                      {/* Feedback FAB: hidden on mobile (in sidebar), visible on desktop */}
+                      <div className="hidden lg:block">
+                        <FeedbackFAB />
+                      </div>
                     </ToastProvider>
                   </SWRProvider>
                 </SessionProvider>
