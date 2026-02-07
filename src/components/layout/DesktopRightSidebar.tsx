@@ -27,7 +27,7 @@ export function DesktopRightSidebar() {
   const topics = data?.data?.topics ?? [];
 
   return (
-    <aside className="hidden xl:block xl:w-[280px] xl:fixed xl:right-0 xl:top-0 xl:bottom-0 xl:z-30 xl:border-l xl:bg-background xl:pt-4 xl:overflow-y-auto">
+    <aside className="hidden xl:block xl:w-[280px] xl:fixed xl:right-0 xl:top-16 xl:bottom-0 xl:z-30 xl:border-l xl:bg-background xl:pt-4 xl:overflow-y-auto">
       {/* Trending Section */}
       <div className="px-4 mb-6">
         <div className="flex items-center gap-2 mb-3">
