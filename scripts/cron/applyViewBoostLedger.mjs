@@ -3,9 +3,11 @@ import { PrismaClient } from "@prisma/client";
 /**
  * CRON script: apply "boost" view counts without schema/API changes.
  *
- * - Uses TopicView as a ledger with special visitorId values: boost:000 ~ boost:119
+ * - Uses TopicView as a ledger with special visitorId values: boost:000 ~ boost:NNN
  * - Every inserted ledger row increments Topic.viewCount by 1 (idempotent via unique(topicId, visitorId))
- * - Boost increases every 30 minutes with a concave (log) curve and saturates at +120 by ~24h
+ * - Boost increases every 30 minutes with a concave (log) curve
+ * - Per-topic deterministic randomness varies both the total cap and curve speed
+ *   so each topic gets a natural-looking, unique boost trajectory.
  *
  * Usage:
  *   node scripts/cron/applyViewBoostLedger.mjs
@@ -17,7 +19,10 @@ const prisma = new PrismaClient();
 
 const INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 const STEPS_TOTAL = 48; // 24 hours / 30 minutes
-const TARGET_TOTAL = 120; // total boost to reach by 24h
+const TARGET_BASE = 120; // base boost target
+const TARGET_JITTER = 0.35; // ±35% → per-topic target ∈ [~78, ~162]
+const STEP_JITTER = 3; // ±3 step offset on the curve per topic
+const TARGET_MAX_POSSIBLE = Math.ceil(TARGET_BASE * (1 + TARGET_JITTER)); // 162
 const LEDGER_PREFIX = "boost:";
 const LEDGER_PAD = 3;
 
@@ -55,14 +60,62 @@ function clampInt(n, min, max) {
   return n;
 }
 
-function desiredBoostForAgeMs(ageMs) {
+// ── Deterministic per-topic random helpers ──────────────────────────
+// Uses a seeded PRNG so the same topicId always yields the same random
+// values across cron runs, while different topics get different values.
+
+function hashCode(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return h;
+}
+
+/** Mulberry32 – single-shot deterministic random in [0, 1). */
+function mulberry32(seed) {
+  let t = (seed + 0x6d2b79f5) | 0;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+/** Deterministic random [0, 1) for a (topicId, variant) pair. */
+function topicRand(topicId, variant) {
+  return mulberry32(hashCode(topicId + ":" + variant));
+}
+
+// ── Boost calculation ───────────────────────────────────────────────
+
+/**
+ * Per-topic target total (the cap).
+ * Returns an integer in [TARGET_BASE*(1-JITTER) .. TARGET_BASE*(1+JITTER)].
+ */
+function topicTargetTotal(topicId) {
+  const r = topicRand(topicId, "target"); // 0..1
+  return Math.round(TARGET_BASE * (1 + TARGET_JITTER * (2 * r - 1)));
+}
+
+/**
+ * Per-topic step offset (curve speed jitter).
+ * Returns a float in [-STEP_JITTER, +STEP_JITTER].
+ */
+function topicStepOffset(topicId) {
+  const r = topicRand(topicId, "step"); // 0..1
+  return STEP_JITTER * (2 * r - 1);
+}
+
+function desiredBoostForTopic(ageMs, topicId) {
   if (ageMs <= 0) return 0;
 
-  const step = Math.floor(ageMs / INTERVAL_MS);
-  const t = clampInt(step, 0, STEPS_TOTAL);
-  const progress = Math.log1p(t) / Math.log1p(STEPS_TOTAL); // concave, 0..1
-  const desired = Math.round(TARGET_TOTAL * progress);
-  return clampInt(desired, 0, TARGET_TOTAL);
+  const targetTotal = topicTargetTotal(topicId);
+  const stepOffset = topicStepOffset(topicId);
+
+  const rawStep = ageMs / INTERVAL_MS;
+  const step = clampInt(Math.floor(rawStep + stepOffset), 0, STEPS_TOTAL);
+  const progress = Math.log1p(step) / Math.log1p(STEPS_TOTAL); // concave, 0..1
+  const desired = Math.round(targetTotal * progress);
+  return clampInt(desired, 0, targetTotal);
 }
 
 function boostVisitorId(i) {
@@ -118,7 +171,7 @@ async function main() {
       if (!set) continue;
       const suffix = r.visitorId.slice(LEDGER_PREFIX.length);
       const n = Number(suffix);
-      if (Number.isInteger(n) && n >= 0 && n < TARGET_TOTAL) {
+      if (Number.isInteger(n) && n >= 0 && n < TARGET_MAX_POSSIBLE) {
         set.add(n);
       }
     }
@@ -132,7 +185,7 @@ async function main() {
     if (ageMs < 0) continue;
     if (ageMs > MAX_AGE_MS) continue;
 
-    const desiredBoost = desiredBoostForAgeMs(ageMs);
+    const desiredBoost = desiredBoostForTopic(ageMs, t.id);
     if (desiredBoost <= 0) continue;
 
     const existingSet = existingBoostByTopic.get(t.id) ?? new Set();
