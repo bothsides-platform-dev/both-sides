@@ -5,15 +5,16 @@
  * All events automatically include UTM parameters from the current session.
  */
 
-// Extend Window interface for gtag
+// Extend Window interface for gtag (GA4)
 declare global {
   interface Window {
     dataLayer: unknown[];
-    gtag: (
-      command: "config" | "event" | "set" | "js",
-      targetId: string | Date,
-      config?: Record<string, unknown>
-    ) => void;
+    gtag: {
+      (command: "config", targetId: string, config?: Record<string, unknown>): void;
+      (command: "event", eventName: string, eventParams?: Record<string, unknown>): void;
+      (command: "set", config: Record<string, unknown>): void;
+      (command: "js", date: Date): void;
+    };
   }
 }
 
