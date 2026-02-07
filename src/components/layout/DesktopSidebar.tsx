@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CATEGORY_META, CATEGORY_TO_SLUG } from "@/lib/constants";
 import type { Category } from "@prisma/client";
+import { FeedbackFAB } from "@/components/feedback/FeedbackFAB";
 
 const NAV_ITEMS = [
   { href: "/", icon: Home, label: "홈" },
@@ -117,8 +118,8 @@ export function DesktopSidebar() {
         </div>
       </nav>
 
-      {/* Theme Toggle */}
-      <div className="px-3 pt-4 border-t mt-2">
+      {/* Theme Toggle & Feedback */}
+      <div className="px-3 pt-4 border-t mt-2 space-y-1">
         {mounted && (
           <Button
             variant="ghost"
@@ -139,6 +140,7 @@ export function DesktopSidebar() {
             )}
           </Button>
         )}
+        <FeedbackFAB inline />
       </div>
     </aside>
   );

@@ -12,7 +12,6 @@ import { ToastProvider } from "@/components/ui/toast";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AppShell } from "@/components/layout/AppShell";
-import { FeedbackFAB } from "@/components/feedback/FeedbackFAB";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -139,10 +138,6 @@ export default function RootLayout({
                         </main>
                         <Footer />
                       </AppShell>
-                      {/* Feedback FAB: hidden on mobile (in sidebar), visible on desktop */}
-                      <div className="hidden lg:block">
-                        <FeedbackFAB />
-                      </div>
                     </ToastProvider>
                   </SWRProvider>
                 </SessionProvider>
