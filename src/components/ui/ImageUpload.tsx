@@ -186,7 +186,7 @@ export function ImageUpload({ value, onChange, disabled, onUploadingChange }: Im
   return (
     <div className="space-y-2">
       {value ? (
-        <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-gradient-to-br from-blue-50 to-red-50">
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-gradient-to-br from-blue-50 to-red-50 dark:from-blue-950/40 dark:to-red-950/40">
           <Image
             src={value}
             alt="썸네일 미리보기"

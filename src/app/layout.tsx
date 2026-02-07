@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { KakaoProvider } from "@/components/providers/KakaoProvider";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { UTMProvider } from "@/components/providers/UTMProvider";
@@ -80,7 +81,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
@@ -113,20 +114,27 @@ export default function RootLayout({
           `}
         </Script>
         <Suspense fallback={null}>
-          <UTMProvider>
-            <KakaoProvider>
-              <SessionProvider>
-                <SWRProvider>
-                  <ToastProvider>
-                    <Header />
-                    <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
-                    <Footer />
-                    <FeedbackFAB />
-                  </ToastProvider>
-                </SWRProvider>
-              </SessionProvider>
-            </KakaoProvider>
-          </UTMProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            storageKey="bothsides-theme"
+          >
+            <UTMProvider>
+              <KakaoProvider>
+                <SessionProvider>
+                  <SWRProvider>
+                    <ToastProvider>
+                      <Header />
+                      <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
+                      <Footer />
+                      <FeedbackFAB />
+                    </ToastProvider>
+                  </SWRProvider>
+                </SessionProvider>
+              </KakaoProvider>
+            </UTMProvider>
+          </ThemeProvider>
         </Suspense>
       </body>
     </html>

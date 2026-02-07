@@ -110,7 +110,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
                 <p className="text-sm font-medium flex-1">{toast.message}</p>
                 <button
                   onClick={() => removeToast(toast.id)}
-                  className="shrink-0 p-0.5 rounded hover:bg-black/5 transition-colors"
+                  className="shrink-0 p-0.5 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>

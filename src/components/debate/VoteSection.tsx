@@ -222,7 +222,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
 
       {/* Vote Stats Bar - 숫자 없이 압축된 비율로 표시 */}
       <div className="space-y-2">
-        <div className="h-4 w-full overflow-hidden rounded-full bg-gray-200">
+        <div className="h-4 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
           <div className="flex h-full">
             <div
               className="bg-blue-500 transition-all duration-300"

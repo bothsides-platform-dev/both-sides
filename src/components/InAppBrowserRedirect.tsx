@@ -73,20 +73,20 @@ export function InAppBrowserRedirect() {
   };
 
   return (
-    <div className="relative rounded-lg border border-amber-200 bg-amber-50 p-4">
+    <div className="relative rounded-lg border border-amber-200 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/30 p-4">
       <button
         onClick={handleDismiss}
-        className="absolute right-2 top-2 rounded-full p-1 text-amber-600 hover:bg-amber-100"
+        className="absolute right-2 top-2 rounded-full p-1 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40"
         aria-label="알림 닫기"
       >
         <X className="h-4 w-4" />
       </button>
 
       <div className="pr-8">
-        <p className="text-sm font-medium text-amber-800">
+        <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
           카카오톡 인앱 브라우저로 접속 중입니다
         </p>
-        <p className="mt-1 text-xs text-amber-700">
+        <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
           일부 기능이 제한될 수 있습니다. 더 나은 경험을 위해 외부 브라우저를 이용해 주세요.
         </p>
 
@@ -94,7 +94,7 @@ export function InAppBrowserRedirect() {
           onClick={handleOpenInBrowser}
           variant="outline"
           size="sm"
-          className="mt-3 border-amber-300 bg-white text-amber-700 hover:bg-amber-100"
+          className="mt-3 border-amber-300 dark:border-amber-600 bg-white dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40"
         >
           <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
           외부 브라우저로 열기

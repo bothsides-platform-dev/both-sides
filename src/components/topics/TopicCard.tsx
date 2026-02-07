@@ -46,7 +46,7 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
     <div className="relative h-full">
       <Link href={`/topics/${topic.id}`}>
         <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
-          <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-blue-50 to-red-50">
+          <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-blue-50 to-red-50 dark:from-blue-950/40 dark:to-red-950/40">
             {topic.imageUrl ? (
               <Image src={topic.imageUrl} alt="" fill className="object-contain" />
             ) : (
@@ -56,7 +56,7 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
                 <div className="absolute inset-0 bg-gradient-to-tl from-red-500/20 via-transparent to-transparent" />
 
                 {/* 중앙 VS 배지 */}
-                <div className="relative z-10 flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 shadow-sm">
+                <div className="relative z-10 flex items-center gap-2 rounded-full bg-white/90 dark:bg-background/90 px-4 py-2 shadow-sm">
                   <span className="text-lg font-bold text-blue-600">A</span>
                   <span className="text-sm font-medium text-muted-foreground">vs</span>
                   <span className="text-lg font-bold text-red-600">B</span>
@@ -76,14 +76,14 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
         </CardHeader>
         <CardContent className="pb-3">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex-1 rounded-lg bg-blue-50 p-3 text-center">
-              <span className="text-sm font-medium text-blue-700">
+            <div className="flex-1 rounded-lg bg-blue-50 dark:bg-blue-950/30 p-3 text-center">
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
                 A. {topic.optionA}
               </span>
             </div>
             <span className="text-lg font-bold text-muted-foreground">VS</span>
-            <div className="flex-1 rounded-lg bg-red-50 p-3 text-center">
-              <span className="text-sm font-medium text-red-700">
+            <div className="flex-1 rounded-lg bg-red-50 dark:bg-red-950/30 p-3 text-center">
+              <span className="text-sm font-medium text-red-700 dark:text-red-300">
                 B. {topic.optionB}
               </span>
             </div>
