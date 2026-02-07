@@ -4,9 +4,8 @@ import { memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { formatDDay, formatNumber } from "@/lib/utils";
-import { Eye, Users, Clock } from "lucide-react";
+import { Eye, Users } from "lucide-react";
 import type { Category } from "@prisma/client";
 
 export interface FeaturedTopicCardProps {
@@ -70,25 +69,26 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
               </div>
             </div>
           </div>
+          {dDay && (
+            <div className={`absolute top-2.5 right-2.5 rounded-md px-2 py-1 text-xs font-bold shadow-md ${
+              dDay === "마감"
+                ? "bg-gray-800/80 text-gray-300"
+                : dDay === "D-Day"
+                  ? "bg-red-500 text-white animate-pulse"
+                  : "bg-black/70 text-white backdrop-blur-sm"
+            }`}>
+              {dDay}
+            </div>
+          )}
         </div>
         <CardContent className="p-4">
           <h3 className="mb-3 line-clamp-2 text-lg font-bold leading-tight">
             {topic.title}
           </h3>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-medium text-blue-600">{topic.optionA}</span>
-              <span>vs</span>
-              <span className="font-medium text-red-600">{topic.optionB}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {dDay && (
-                <Badge variant={dDay === "마감" ? "secondary" : "default"} className="shrink-0">
-                  <Clock className="mr-1 h-3 w-3" />
-                  {dDay}
-                </Badge>
-              )}
-            </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="font-medium text-blue-600">{topic.optionA}</span>
+            <span>vs</span>
+            <span className="font-medium text-red-600">{topic.optionB}</span>
           </div>
         </CardContent>
       </Card>
