@@ -320,7 +320,8 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
               <Badge variant={myVote === "A" ? "sideA" : "sideB"} className="text-xs">
                 {myVote === "A" ? optionA : optionB}
               </Badge>
-              측으로 의견을 작성합니다
+              <span className="hidden sm:inline">측으로 의견을 작성합니다</span>
+              <span className="sm:hidden">측</span>
               {!isLoggedIn && (
                 <span className="text-xs text-muted-foreground/70">(손님)</span>
               )}
@@ -344,7 +345,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                     }
                   }}
                   placeholder="의견을 입력하세요"
-                  className="min-h-[80px] resize-none"
+                  className="min-h-[60px] md:min-h-[80px] resize-none text-sm md:text-base"
                   maxLength={1000}
                 />
                 <Button
@@ -352,7 +353,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   onClick={handleSubmit}
                   disabled={submitState.isSubmitting || !newOpinion.trim()}
                   className={cn(
-                    "shrink-0",
+                    "shrink-0 h-10 w-10 md:h-10 md:w-10",
                     myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
                   )}
                 >
@@ -381,7 +382,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
             </div>
           </div>
         ) : (
-          <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg bg-muted p-3 md:p-4 text-center text-sm text-muted-foreground">
             먼저 투표를 해주세요. 투표한 측에서만 의견을 작성할 수 있습니다.
           </div>
         )}

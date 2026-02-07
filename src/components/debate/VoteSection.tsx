@@ -166,11 +166,11 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         </p>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+      <div className="flex flex-row gap-3 sm:gap-4">
         <Button
           variant={myVote === "A" ? "sideA" : "sideAOutline"}
           className={cn(
-            "w-full h-16 flex-col gap-1 sm:flex-1 sm:h-20 sm:gap-1.5 relative",
+            "flex-1 h-16 flex-col gap-1 sm:h-20 sm:gap-1.5 relative",
             myVote === "A" && "ring-2 ring-blue-500 ring-offset-2"
           )}
           onClick={() => handleVote("A")}
@@ -182,12 +182,12 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
             </div>
           )}
           <span
-            className={cn("text-sm font-medium opacity-70", showSpinnerA && "invisible")}
+            className={cn("text-xs sm:text-sm font-medium opacity-70", showSpinnerA && "invisible")}
           >
             A
           </span>
           <span
-            className={cn("text-base font-bold line-clamp-1 sm:text-lg", showSpinnerA && "invisible")}
+            className={cn("text-sm sm:text-base md:text-lg font-bold line-clamp-1", showSpinnerA && "invisible")}
           >
             {optionA}
           </span>
@@ -196,7 +196,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <Button
           variant={myVote === "B" ? "sideB" : "sideBOutline"}
           className={cn(
-            "w-full h-16 flex-col gap-1 sm:flex-1 sm:h-20 sm:gap-1.5 relative",
+            "flex-1 h-16 flex-col gap-1 sm:h-20 sm:gap-1.5 relative",
             myVote === "B" && "ring-2 ring-red-500 ring-offset-2"
           )}
           onClick={() => handleVote("B")}
@@ -208,12 +208,12 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
             </div>
           )}
           <span
-            className={cn("text-sm font-medium opacity-70", showSpinnerB && "invisible")}
+            className={cn("text-xs sm:text-sm font-medium opacity-70", showSpinnerB && "invisible")}
           >
             B
           </span>
           <span
-            className={cn("text-base font-bold line-clamp-1 sm:text-lg", showSpinnerB && "invisible")}
+            className={cn("text-sm sm:text-base md:text-lg font-bold line-clamp-1", showSpinnerB && "invisible")}
           >
             {optionB}
           </span>

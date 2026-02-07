@@ -93,7 +93,7 @@ export function FeedbackFAB() {
       {/* FAB 버튼 */}
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed right-6 bottom-6 h-14 w-14 rounded-full shadow-lg z-40 hover:scale-105 transition-transform"
+        className="fixed right-4 bottom-[4.5rem] md:right-6 md:bottom-6 h-12 w-12 md:h-14 md:w-14 rounded-full shadow-lg z-40 hover:scale-105 transition-transform"
         size="icon"
         aria-label="의견 보내기"
       >

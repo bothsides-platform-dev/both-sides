@@ -116,3 +116,17 @@
   animation-play-state: paused;
 }
 
+/* Mobile bottom nav safe area */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Sidebar transition */
+@layer utilities {
+  .sidebar-transition {
+    @apply transition-[padding] duration-200 ease-in-out;
+  }
+}
+

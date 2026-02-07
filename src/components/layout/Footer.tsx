@@ -18,16 +18,19 @@ export function Footer() {
   };
 
   return (
-    <footer className="border-t py-6">
+    // Hidden on mobile (bottom nav replaces footer), visible on desktop
+    // On lg+ with sidebar, theme toggle is in sidebar, so footer is simpler
+    <footer className="hidden md:block border-t py-6">
       <div className="w-full px-4 md:px-8 lg:px-12 flex flex-col items-center justify-between gap-4 md:flex-row">
         <div className="flex items-center gap-4">
+          {/* Theme toggle: hidden on lg+ (sidebar has it) */}
           {mounted && (
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
               aria-label={theme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
-              className="h-8 w-8"
+              className="h-8 w-8 lg:hidden"
             >
               {theme === "dark" ? (
                 <Sun className="h-4 w-4" />

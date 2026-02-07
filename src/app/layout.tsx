@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
 import { Suspense } from "react";
@@ -11,6 +11,7 @@ import { UTMProvider } from "@/components/providers/UTMProvider";
 import { ToastProvider } from "@/components/ui/toast";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { AppShell } from "@/components/layout/AppShell";
 import { FeedbackFAB } from "@/components/feedback/FeedbackFAB";
 
 const geistSans = localFont({
@@ -23,6 +24,12 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club"),
@@ -126,8 +133,12 @@ export default function RootLayout({
                   <SWRProvider>
                     <ToastProvider>
                       <Header />
-                      <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
-                      <Footer />
+                      <AppShell>
+                        <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-4 md:py-6 pb-20 md:pb-6">
+                          {children}
+                        </main>
+                        <Footer />
+                      </AppShell>
                       <FeedbackFAB />
                     </ToastProvider>
                   </SWRProvider>

@@ -111,22 +111,22 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Profile Header */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-6">
-            <Avatar className="h-20 w-20">
+        <CardContent className="p-4 md:p-6">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
               <AvatarImage src={profile.user.image || undefined} />
-              <AvatarFallback className="text-2xl">
+              <AvatarFallback className="text-xl sm:text-2xl">
                 {displayName.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 space-y-1">
-              <h1 className="text-2xl font-bold">{displayName}</h1>
+            <div className="flex-1 space-y-1 text-center sm:text-left">
+              <h1 className="text-xl sm:text-2xl font-bold">{displayName}</h1>
               {profile.user.joinOrder && (
                 <p className="text-sm text-muted-foreground">
                   {profile.user.joinOrder}번째 가입자
                 </p>
               )}
-              <div className="flex items-center gap-4 pt-2 text-sm">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 pt-2 text-sm">
                 <span className="flex items-center gap-1">
                   <Vote className="h-4 w-4" />
                   {profile.votesCount}개 투표
