@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { CATEGORY_META, CATEGORY_TO_SLUG } from "@/lib/constants";
 import logo from "@/app/logo.png";
 import type { Category } from "@prisma/client";
 
@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { href: "/profile", icon: User, label: "프로필" },
 ] as const;
 
-const categories = Object.entries(CATEGORY_LABELS) as [Category, string][];
+const categories = Object.entries(CATEGORY_META) as [Category, (typeof CATEGORY_META)[Category]][];
 
 export function DesktopSidebar() {
   const pathname = usePathname();
@@ -113,18 +113,28 @@ export function DesktopSidebar() {
           <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             카테고리
           </p>
-          {categories.map(([value, label]) => (
-            <Link
-              key={value}
-              href={`/?category=${value}`}
-              className={cn(
-                "block rounded-lg px-3 py-1.5 text-sm transition-colors",
-                "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              {label}
-            </Link>
-          ))}
+          {categories.map(([value, meta]) => {
+            const slug = CATEGORY_TO_SLUG[value];
+            const href = `/explore/${slug}`;
+            const isActive = pathname === href;
+            const Icon = meta.icon;
+
+            return (
+              <Link
+                key={value}
+                href={href}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                  isActive
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Icon className={cn("h-4 w-4 shrink-0", meta.color)} />
+                {meta.label}
+              </Link>
+            );
+          })}
         </div>
       </nav>
 
