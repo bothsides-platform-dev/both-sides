@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { ReferenceLinkInput, type ReferenceLink } from "@/components/ui/ReferenceLinkInput";
 import { CATEGORY_LABELS } from "@/lib/constants";
+import { trackTopicCreate } from "@/lib/analytics";
 import { Loader2 } from "lucide-react";
 import type { Category } from "@prisma/client";
 
@@ -76,6 +77,12 @@ function NewTopicForm() {
 
       if (!res.ok) {
         throw new Error(result.error || "토론 생성에 실패했습니다.");
+      }
+
+      // Track topic creation event
+      const category = formData.get("category") as string;
+      if (category) {
+        trackTopicCreate(category);
       }
 
       router.push(`/topics/${result.data.id}`);

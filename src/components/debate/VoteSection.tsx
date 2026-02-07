@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api-error";
+import { trackVote } from "@/lib/analytics";
 import type { Side } from "@prisma/client";
 
 interface VoteSectionProps {
@@ -107,6 +108,9 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         const data = await res.json();
         throw new ApiError(data.error || "투표에 실패했습니다.", res.status);
       }
+
+      // Track vote event
+      trackVote(topicId, side);
 
       // Refresh combined vote info data
       mutate(`/api/topics/${topicId}/vote-info?includeMyVote=true`);

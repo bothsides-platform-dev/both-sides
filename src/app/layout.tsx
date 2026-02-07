@@ -5,6 +5,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { KakaoProvider } from "@/components/providers/KakaoProvider";
 import { SWRProvider } from "@/components/providers/SWRProvider";
+import { UTMProvider } from "@/components/providers/UTMProvider";
 import { ToastProvider } from "@/components/ui/toast";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -110,18 +111,20 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "v6eobm9gc5");
           `}
         </Script>
-        <KakaoProvider>
-          <SessionProvider>
-            <SWRProvider>
-              <ToastProvider>
-                <Header />
-                <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
-                <Footer />
-                <FeedbackFAB />
-              </ToastProvider>
-            </SWRProvider>
-          </SessionProvider>
-        </KakaoProvider>
+        <UTMProvider>
+          <KakaoProvider>
+            <SessionProvider>
+              <SWRProvider>
+                <ToastProvider>
+                  <Header />
+                  <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
+                  <Footer />
+                  <FeedbackFAB />
+                </ToastProvider>
+              </SWRProvider>
+            </SessionProvider>
+          </KakaoProvider>
+        </UTMProvider>
       </body>
     </html>
   );

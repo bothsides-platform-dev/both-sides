@@ -25,6 +25,7 @@ import { useToast } from "@/components/ui/toast";
 import { MobileSideTabs } from "./MobileSideTabs";
 import { OpinionColumn } from "./OpinionColumn";
 import { OpinionList } from "./OpinionList";
+import { trackOpinionCreate } from "@/lib/analytics";
 import type { Opinion } from "./types";
 import type { Side, ReactionType } from "@prisma/client";
 
@@ -155,6 +156,11 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
 
       if (!res.ok) {
         throw new Error(result.error);
+      }
+
+      // Track opinion creation event
+      if (myVote) {
+        trackOpinionCreate(topicId, myVote);
       }
 
       setNewOpinion("");
