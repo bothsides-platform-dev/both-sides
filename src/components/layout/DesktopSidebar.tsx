@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
@@ -18,7 +17,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CATEGORY_META, CATEGORY_TO_SLUG } from "@/lib/constants";
-import logo from "@/app/logo.png";
 import type { Category } from "@prisma/client";
 
 const NAV_ITEMS = [
@@ -41,25 +39,7 @@ export function DesktopSidebar() {
   }, []);
 
   return (
-    <aside className="hidden lg:flex lg:w-[220px] lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:border-r lg:bg-background lg:pt-4 lg:pb-4">
-      {/* Logo */}
-      <div className="px-4 mb-6">
-        <Link href="/" className="flex items-center space-x-2.5">
-          <Image
-            src={logo}
-            alt="BothSides"
-            width={28}
-            height={28}
-            priority
-            className="h-7 w-7"
-          />
-          <span className="text-xl font-bold">
-            <span className="text-[#3B82F6]">Both</span>
-            <span className="text-[#EF4444]">Sides</span>
-          </span>
-        </Link>
-      </div>
-
+    <aside className="hidden lg:flex lg:w-[220px] lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:border-r lg:bg-background lg:pt-20 lg:pb-4">
       {/* Main Navigation */}
       <nav className="flex-1 px-3 space-y-1">
         {NAV_ITEMS.map((item) => {
