@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -28,6 +28,7 @@ const categories = Object.entries(CATEGORY_META) as [Category, (typeof CATEGORY_
 
 export function DesktopSidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -93,8 +94,8 @@ export function DesktopSidebar() {
           </p>
           {categories.map(([value, meta]) => {
             const slug = CATEGORY_TO_SLUG[value];
-            const href = `/explore/${slug}`;
-            const isActive = pathname === href;
+            const href = `/explore?category=${slug}`;
+            const isActive = pathname === "/explore" && searchParams.get("category") === slug;
             const Icon = meta.icon;
 
             return (
