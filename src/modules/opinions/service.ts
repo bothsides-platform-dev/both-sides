@@ -267,6 +267,39 @@ export async function updateOpinionAnonymity(id: string, userId: string, input: 
   });
 }
 
+export async function getRecentOpinions(limit: number = 5) {
+  return prisma.opinion.findMany({
+    where: {
+      isBlinded: false,
+      parentId: null,
+      topic: { isHidden: false },
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    select: {
+      id: true,
+      topicId: true,
+      side: true,
+      body: true,
+      isAnonymous: true,
+      createdAt: true,
+      user: {
+        select: {
+          nickname: true,
+          name: true,
+          image: true,
+        },
+      },
+      topic: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
+    },
+  });
+}
+
 // Admin functions
 export async function getOpinionsForAdmin(input: GetOpinionsAdminInput) {
   const { page, limit, search, topicId, isBlinded } = input;
