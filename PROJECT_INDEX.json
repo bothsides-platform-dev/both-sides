@@ -1,0 +1,159 @@
+{
+  "project": "BothSides",
+  "description": "Korean binary-choice (A vs B) debate platform",
+  "generated": "2026-02-07",
+  "techStack": {
+    "framework": "Next.js 16.1.6 (App Router)",
+    "language": "TypeScript",
+    "runtime": "React 18",
+    "database": "PostgreSQL + Prisma 6.19",
+    "auth": "NextAuth.js 4.24 (Kakao OAuth)",
+    "styling": "Tailwind CSS + Radix UI",
+    "hosting": "Vercel",
+    "packageManager": "pnpm"
+  },
+  "entryPoints": {
+    "app": "src/app/layout.tsx",
+    "home": "src/app/page.tsx",
+    "api": "src/app/api/",
+    "middleware": "src/middleware.ts",
+    "database": "prisma/schema.prisma"
+  },
+  "pages": [
+    { "route": "/", "file": "src/app/page.tsx", "description": "Home - Featured, Recommended, Community sections" },
+    { "route": "/topics/[id]", "file": "src/app/topics/[id]/page.tsx", "description": "Topic detail with voting and opinions" },
+    { "route": "/topics/new", "file": "src/app/topics/new/page.tsx", "description": "Create new topic form" },
+    { "route": "/profile", "file": "src/app/profile/page.tsx", "description": "User profile with badges and activity" },
+    { "route": "/users/[id]", "file": "src/app/users/[id]/page.tsx", "description": "Public user profile" },
+    { "route": "/feedback", "file": "src/app/feedback/page.tsx", "description": "Feedback submission" },
+    { "route": "/auth/signin", "file": "src/app/auth/signin/page.tsx", "description": "Kakao OAuth sign-in" },
+    { "route": "/auth/error", "file": "src/app/auth/error/page.tsx", "description": "Auth error page" },
+    { "route": "/admin", "file": "src/app/admin/page.tsx", "description": "Admin dashboard" },
+    { "route": "/admin/topics", "file": "src/app/admin/topics/page.tsx", "description": "Admin topic management" },
+    { "route": "/admin/topics/[id]/edit", "file": "src/app/admin/topics/[id]/edit/page.tsx", "description": "Admin topic edit" },
+    { "route": "/admin/opinions", "file": "src/app/admin/opinions/page.tsx", "description": "Admin opinion management" },
+    { "route": "/admin/users", "file": "src/app/admin/users/page.tsx", "description": "Admin user management" },
+    { "route": "/admin/reports", "file": "src/app/admin/reports/page.tsx", "description": "Admin reports view" },
+    { "route": "/admin/feedback", "file": "src/app/admin/feedback/page.tsx", "description": "Admin feedback view" }
+  ],
+  "apiRoutes": {
+    "topics": [
+      "GET|POST /api/topics",
+      "GET|PUT /api/topics/[id]",
+      "PUT /api/topics/[id]/vote",
+      "GET|POST /api/topics/[id]/opinions",
+      "GET|POST /api/topics/[id]/reports",
+      "POST /api/topics/[id]/view",
+      "GET /api/topics/[id]/vote-info",
+      "GET /api/topics/[id]/vote-stats",
+      "GET /api/topics/[id]/my-vote",
+      "PATCH /api/topics/[id]/anonymity"
+    ],
+    "opinions": [
+      "POST|DELETE /api/opinions/[id]/reactions",
+      "GET|POST /api/opinions/[id]/reports",
+      "GET|POST /api/opinions/[id]/replies",
+      "GET /api/opinions/[id]/ancestors",
+      "PATCH /api/opinions/[id]/anonymity"
+    ],
+    "notifications": [
+      "GET /api/notifications",
+      "GET /api/notifications/unread-count",
+      "PATCH /api/notifications/[id]/read",
+      "PATCH /api/notifications/read-all"
+    ],
+    "other": [
+      "GET /api/trends",
+      "GET|POST /api/feedback",
+      "GET|PATCH /api/profile",
+      "GET|PATCH /api/users/[id]",
+      "POST /api/upload"
+    ],
+    "admin": [
+      "GET /api/admin/stats",
+      "GET /api/admin/topics",
+      "GET|PUT /api/admin/topics/[id]",
+      "PATCH /api/admin/topics/[id]/feature",
+      "PATCH /api/admin/topics/[id]/hide",
+      "PATCH /api/admin/topics/[id]/anonymity",
+      "GET /api/admin/opinions",
+      "DELETE /api/admin/opinions/[id]",
+      "PATCH /api/admin/opinions/[id]/anonymity",
+      "GET /api/admin/users",
+      "PATCH /api/admin/users/[id]",
+      "PATCH /api/admin/users/[id]/blacklist",
+      "GET /api/admin/reports",
+      "GET /api/admin/feedback",
+      "GET /api/admin/feedback/stats"
+    ]
+  },
+  "modules": {
+    "topics": { "path": "src/modules/topics/", "files": ["schema.ts", "service.ts"], "exports": ["createTopic", "getTopics", "getFeaturedTopics", "getRecommendedTopics", "updateTopic", "updateFeatured", "updateHidden", "updateTopicAnonymity"] },
+    "votes": { "path": "src/modules/votes/", "files": ["schema.ts", "service.ts"], "exports": ["upsertVote", "getVote", "getVoteStats"] },
+    "opinions": { "path": "src/modules/opinions/", "files": ["schema.ts", "service.ts"], "exports": ["createOpinion", "getOpinions", "getOpinionAncestors", "updateOpinionAnonymity"] },
+    "reactions": { "path": "src/modules/reactions/", "files": ["service.ts"], "exports": ["toggleReaction"] },
+    "reports": { "path": "src/modules/reports/", "files": ["service.ts"], "exports": ["createReport", "createTopicReport"] },
+    "notifications": { "path": "src/modules/notifications/", "files": ["schema.ts", "service.ts"], "exports": ["createReplyNotification", "getNotifications", "markAsRead", "markAllAsRead"] },
+    "users": { "path": "src/modules/users/", "files": ["schema.ts", "service.ts"], "exports": ["getUsersForAdmin", "getUser", "blacklistUser", "updateProfile"] },
+    "feedback": { "path": "src/modules/feedback/", "files": ["schema.ts", "service.ts"], "exports": ["createFeedback", "getFeedback", "getFeedbackStats"] },
+    "trends": { "path": "src/modules/trends/", "files": ["types.ts", "service.ts"], "exports": ["getTrends"] },
+    "auth": { "path": "src/modules/auth/", "files": ["options.ts"], "exports": ["authOptions"] }
+  },
+  "lib": {
+    "auth.ts": "requireAuth(), requireAuthStrict(), requireAdmin()",
+    "badges.ts": "Badge engine: 14 badges, 5 categories, computeBadges()",
+    "cache.ts": "In-memory TTL cache",
+    "constants.ts": "CATEGORY_LABELS, SIDE_COLORS, BLIND_THRESHOLD",
+    "db.ts": "Prisma singleton client",
+    "errors.ts": "AppError hierarchy",
+    "fetcher.ts": "SWR fetcher",
+    "validation.ts": "Zod validation helpers",
+    "visitor.ts": "Guest tracking (visitorId, IP, fingerprint)",
+    "profanity.ts": "Korean profanity filter",
+    "nickname.ts": "Random Korean nicknames",
+    "utils.ts": "cn(), formatDate(), formatRelativeTime(), formatNumber()",
+    "analytics.ts": "GA4 event tracking",
+    "api-error.ts": "ApiError + apiFetch<T>()",
+    "language.ts": "isKoreanOrEnglishOnly()",
+    "inapp.ts": "Kakao in-app browser detection"
+  },
+  "components": {
+    "layout": ["AppShell", "Header", "Footer", "DesktopSidebar", "DesktopRightSidebar", "MobileBottomNav", "UserMenu"],
+    "home": ["HomePageClient"],
+    "topics": ["TopicCard", "TopicListItem", "FeaturedTopicCard", "TopicList", "FeaturedSection", "RecommendedSection", "CommunitySection", "TopicAuthorSection", "TopicShareButton", "ViewCountTracker", "ReferenceLinksCollapsible"],
+    "debate": ["VoteSection", "OpinionSection", "OpinionList", "OpinionItem", "OpinionColumn", "OpinionThread", "ReplyForm", "MobileSideTabs", "ReportDialog"],
+    "badges": ["UserBadges", "BadgeShowcase"],
+    "notifications": ["NotificationBell", "NotificationDropdown", "NotificationItem", "NotificationList"],
+    "admin": ["AdminDashboard", "AdminTopics", "TopicTable", "OpinionTable", "UserTable", "StatsCard"],
+    "feedback": ["FeedbackFAB"],
+    "providers": ["SessionProvider", "ThemeProvider", "KakaoProvider", "SWRProvider", "UTMProvider", "ToastProvider"],
+    "standalone": ["ErrorBoundary", "InAppBrowserRedirect", "ProfileEditForm", "TrendingTicker", "TrendingTopics"]
+  },
+  "hooks": ["useMediaQuery", "useIsMobile", "useIsDesktop", "useSwipeableTabs", "useTruncationDetection"],
+  "database": {
+    "models": ["User", "Account", "Session", "VerificationToken", "Topic", "TopicView", "Vote", "Opinion", "Reaction", "Report", "Feedback", "Notification"],
+    "enums": ["Role", "Side", "Category", "ReactionType", "ReportStatus", "FeedbackCategory", "FeedbackStatus", "NotificationType"],
+    "migrations": 3
+  },
+  "security": {
+    "csrf": "Origin-based validation",
+    "rateLimiting": "Upstash Redis sliding window",
+    "validation": "Zod schemas on all API inputs",
+    "profanityFilter": "badwords-ko",
+    "csp": "Strict Content-Security-Policy",
+    "authGuards": "requireAuth(), requireAdmin()",
+    "bodySizeLimit": "5MB uploads, 100KB default",
+    "blacklisting": "Session-level enforcement"
+  },
+  "stats": {
+    "pages": 15,
+    "apiRoutes": 40,
+    "components": 65,
+    "modules": 10,
+    "libUtilities": 16,
+    "hooks": 3,
+    "dbModels": 12,
+    "dbEnums": 8,
+    "migrations": 3
+  }
+}
