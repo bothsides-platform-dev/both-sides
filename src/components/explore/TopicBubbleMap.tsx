@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect, memo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback, memo } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import * as d3 from "d3";
 import { useTheme } from "next-themes";
 import { fetcher } from "@/lib/fetcher";
 import { CATEGORY_META, CATEGORY_COLORS } from "@/lib/constants";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Eye, MessageSquare, Users } from "lucide-react";
 import type { Category } from "@prisma/client";
 
@@ -40,6 +39,13 @@ interface BubbleNode {
   r: number;
   topic: BubbleTopic;
   children?: BubbleNode[];
+}
+
+interface BubbleData {
+  x: number;
+  y: number;
+  r: number;
+  topic: BubbleTopic;
 }
 
 const categories = Object.keys(CATEGORY_META) as Category[];
@@ -94,12 +100,36 @@ function BubblePopoverContent({ topic }: { topic: BubbleTopic }) {
   );
 }
 
+function getPopoverPosition(
+  bubble: BubbleData,
+  containerWidth: number,
+  popoverWidth: number,
+  popoverHeight: number
+) {
+  const gap = 8;
+  let left = bubble.x - popoverWidth / 2;
+  let top = bubble.y - bubble.r - gap - popoverHeight;
+
+  // Clamp horizontally
+  if (left < 4) left = 4;
+  if (left + popoverWidth > containerWidth - 4) left = containerWidth - popoverWidth - 4;
+
+  // If not enough space above, show below
+  if (top < 4) {
+    top = bubble.y + bubble.r + gap;
+  }
+
+  return { left, top };
+}
+
 export const TopicBubbleMap = memo(function TopicBubbleMap() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [highlightCategory, setHighlightCategory] = useState<Category | null>(null);
+  const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
 
   const { data, isLoading } = useSWR<TopicsResponse>(
     "/api/topics?sort=popular&limit=50",
@@ -108,6 +138,35 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
   );
 
   const topics = data?.data?.topics ?? [];
+
+  // Close popover when category filter changes
+  useEffect(() => {
+    setSelectedBubbleId(null);
+  }, [highlightCategory]);
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!selectedBubbleId) return;
+
+    function handleClick(e: MouseEvent) {
+      if (popoverRef.current && popoverRef.current.contains(e.target as Node)) return;
+      // Check if click is on an SVG bubble (handled by bubble onClick)
+      const target = e.target as Element;
+      if (target.closest("[data-bubble-id]")) return;
+      setSelectedBubbleId(null);
+    }
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setSelectedBubbleId(null);
+    }
+
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedBubbleId]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -161,6 +220,25 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
     return Math.ceil(maxY + 10);
   }, [bubbles]);
 
+  const selectedBubble = useMemo(
+    () => bubbles.find((b) => b.topic.id === selectedBubbleId) ?? null,
+    [bubbles, selectedBubbleId]
+  );
+
+  const handleBubbleClick = useCallback((id: string) => {
+    setSelectedBubbleId((prev) => (prev === id ? null : id));
+  }, []);
+
+  const handleBubbleKeyDown = useCallback(
+    (e: React.KeyboardEvent, id: string) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleBubbleClick(id);
+      }
+    },
+    [handleBubbleClick]
+  );
+
   if (isLoading) {
     return (
       <div className="rounded-xl border bg-card p-6">
@@ -177,85 +255,115 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
 
   if (!topics.length) return null;
 
+  const popoverWidth = 288; // w-72
+  const popoverHeight = 220; // approximate
+
   return (
     <div className="rounded-xl border bg-card p-4 sm:p-6">
       <h2 className="mb-4 text-base font-semibold">토픽 버블맵</h2>
-      <div ref={containerRef} className="w-full overflow-hidden">
+      <div ref={containerRef} className="relative w-full overflow-visible min-h-[200px]">
         {containerWidth > 0 && (
-          <svg
-            width={containerWidth}
-            height={svgHeight}
-            viewBox={`0 0 ${containerWidth} ${svgHeight}`}
-            className="select-none"
-          >
-            {bubbles.map((bubble) => {
-              const color = CATEGORY_COLORS[bubble.topic.category];
-              const fill = isDark ? color.dark : color.light;
-              const isHighlighted =
-                !highlightCategory || highlightCategory === bubble.topic.category;
-              const r = bubble.r;
-              const meta = CATEGORY_META[bubble.topic.category];
-              const Icon = meta.icon;
+          <>
+            <svg
+              width={containerWidth}
+              height={svgHeight}
+              viewBox={`0 0 ${containerWidth} ${svgHeight}`}
+              className="select-none"
+            >
+              {bubbles.map((bubble) => {
+                const color = CATEGORY_COLORS[bubble.topic.category];
+                const fill = isDark ? color.dark : color.light;
+                const isHighlighted =
+                  !highlightCategory || highlightCategory === bubble.topic.category;
+                const isSelected = selectedBubbleId === bubble.topic.id;
+                const r = isSelected ? bubble.r + 2 : bubble.r;
+                const meta = CATEGORY_META[bubble.topic.category];
+                const Icon = meta.icon;
 
-              return (
-                <Popover key={bubble.topic.id}>
-                  <PopoverTrigger asChild>
-                    <g
-                      className="cursor-pointer transition-opacity duration-200"
-                      style={{ opacity: isHighlighted ? 1 : 0.15 }}
-                    >
-                      <circle
-                        cx={bubble.x}
-                        cy={bubble.y}
-                        r={r}
-                        fill={fill}
-                        fillOpacity={isDark ? 0.25 : 0.15}
-                        stroke={fill}
-                        strokeWidth={1.5}
-                      />
-                      {r > 40 ? (
-                        <text
-                          x={bubble.x}
-                          y={bubble.y}
-                          textAnchor="middle"
-                          dominantBaseline="central"
-                          className="fill-foreground text-xs font-medium pointer-events-none"
-                        >
-                          {truncateText(bubble.topic.title, Math.floor(r / 6))}
-                        </text>
-                      ) : r > 25 ? (
-                        <text
-                          x={bubble.x}
-                          y={bubble.y}
-                          textAnchor="middle"
-                          dominantBaseline="central"
-                          className="fill-foreground text-2xs pointer-events-none"
-                        >
-                          {truncateText(bubble.topic.title, Math.floor(r / 5))}
-                        </text>
-                      ) : (
-                        <foreignObject
-                          x={bubble.x - 7}
-                          y={bubble.y - 7}
-                          width={14}
-                          height={14}
-                          className="pointer-events-none"
-                        >
-                          <Icon
-                            className="h-3.5 w-3.5"
-                            style={{ color: fill }}
-                          />
-                        </foreignObject>
-                      )}
-                    </g>
-                  </PopoverTrigger>
-                  <PopoverContent side="top" className="w-72">
-                    <BubblePopoverContent topic={bubble.topic} />
-                  </PopoverContent>
-                </Popover>
+                return (
+                  <g
+                    key={bubble.topic.id}
+                    data-bubble-id={bubble.topic.id}
+                    className="cursor-pointer"
+                    style={{
+                      opacity: isHighlighted ? 1 : 0.15,
+                      transition: "opacity 0.2s",
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleBubbleClick(bubble.topic.id)}
+                    onKeyDown={(e) => handleBubbleKeyDown(e, bubble.topic.id)}
+                  >
+                    <circle
+                      cx={bubble.x}
+                      cy={bubble.y}
+                      r={r}
+                      fill={fill}
+                      fillOpacity={isDark ? 0.35 : 0.3}
+                      stroke={fill}
+                      strokeWidth={isSelected ? 2.5 : 2}
+                    />
+                    {bubble.r > 40 ? (
+                      <text
+                        x={bubble.x}
+                        y={bubble.y}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        className="fill-foreground text-xs font-medium pointer-events-none"
+                      >
+                        {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
+                      </text>
+                    ) : bubble.r > 25 ? (
+                      <text
+                        x={bubble.x}
+                        y={bubble.y}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        className="fill-foreground text-2xs pointer-events-none"
+                      >
+                        {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
+                      </text>
+                    ) : (
+                      <foreignObject
+                        x={bubble.x - 7}
+                        y={bubble.y - 7}
+                        width={14}
+                        height={14}
+                        className="pointer-events-none"
+                      >
+                        <Icon
+                          className="h-3.5 w-3.5"
+                          style={{ color: fill }}
+                        />
+                      </foreignObject>
+                    )}
+                  </g>
+                );
+              })}
+            </svg>
+
+            {/* HTML popover overlay */}
+            {selectedBubble && (() => {
+              const pos = getPopoverPosition(
+                selectedBubble,
+                containerWidth,
+                popoverWidth,
+                popoverHeight
               );
-            })}
-          </svg>
+              return (
+                <div
+                  ref={popoverRef}
+                  className="absolute z-50 w-72 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
+                  style={{
+                    left: pos.left,
+                    top: pos.top,
+                  }}
+                >
+                  <BubblePopoverContent topic={selectedBubble.topic} />
+                </div>
+              );
+            })()}
+          </>
         )}
       </div>
 
