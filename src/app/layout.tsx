@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
+import { Suspense } from "react";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { KakaoProvider } from "@/components/providers/KakaoProvider";
@@ -111,20 +112,22 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "v6eobm9gc5");
           `}
         </Script>
-        <UTMProvider>
-          <KakaoProvider>
-            <SessionProvider>
-              <SWRProvider>
-                <ToastProvider>
-                  <Header />
-                  <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
-                  <Footer />
-                  <FeedbackFAB />
-                </ToastProvider>
-              </SWRProvider>
-            </SessionProvider>
-          </KakaoProvider>
-        </UTMProvider>
+        <Suspense fallback={null}>
+          <UTMProvider>
+            <KakaoProvider>
+              <SessionProvider>
+                <SWRProvider>
+                  <ToastProvider>
+                    <Header />
+                    <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
+                    <Footer />
+                    <FeedbackFAB />
+                  </ToastProvider>
+                </SWRProvider>
+              </SessionProvider>
+            </KakaoProvider>
+          </UTMProvider>
+        </Suspense>
       </body>
     </html>
   );
