@@ -32,7 +32,7 @@ export function AppShell({ children }: AppShellProps) {
       <DesktopRightSidebar />
 
       {/* Main Content - offset for sidebars */}
-      <div className="lg:pl-[220px] xl:pr-[280px]">
+      <div className="lg:pl-[220px] xl:pr-[280px] lg:pt-16">
         {children}
       </div>
 
