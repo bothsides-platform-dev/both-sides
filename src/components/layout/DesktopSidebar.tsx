@@ -33,7 +33,7 @@ const categories = Object.entries(CATEGORY_LABELS) as [Category, string][];
 export function DesktopSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -134,10 +134,10 @@ export function DesktopSidebar() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
             className="w-full justify-start gap-3 text-muted-foreground"
           >
-            {theme === "dark" ? (
+            {resolvedTheme === "dark" ? (
               <>
                 <Sun className="h-5 w-5" />
                 라이트 모드
