@@ -153,12 +153,6 @@ export function DesktopRightSidebar() {
         )}
       </div>
 
-      {/* Footer info */}
-      <div className="px-4 pt-4 pb-6">
-        <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} BothSides
-        </p>
-      </div>
     </aside>
   );
 }
