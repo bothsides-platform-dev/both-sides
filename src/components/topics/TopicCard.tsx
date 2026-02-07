@@ -3,6 +3,7 @@
 import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,8 +38,9 @@ export interface TopicCardProps {
 }
 
 export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
-  const authorName = topic.isAnonymous 
-    ? "익명" 
+  const router = useRouter();
+  const authorName = topic.isAnonymous
+    ? "익명"
     : (topic.author.nickname || topic.author.name || "익명");
   const shareDescription = `${topic.optionA} vs ${topic.optionB}`;
 
@@ -100,9 +102,13 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
               <span className="text-sm text-muted-foreground">{authorName}</span>
             </div>
           ) : (
-            <Link
-              href={`/users/${topic.author.id}`}
-              onClick={(e) => e.stopPropagation()}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                router.push(`/users/${topic.author.id}`);
+              }}
               className="flex items-center gap-2 hover:underline"
             >
               <Avatar className="h-6 w-6">
@@ -116,7 +122,7 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
                   차단됨
                 </Badge>
               )}
-            </Link>
+            </button>
           )}
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
