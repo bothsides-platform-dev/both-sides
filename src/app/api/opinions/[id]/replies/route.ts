@@ -4,7 +4,7 @@ import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { createOpinionSchema } from "@/modules/opinions/schema";
 import { createOpinion } from "@/modules/opinions/service";
-import { getOrCreateVisitorId, getIpAddress, setVisitorIdCookie } from "@/lib/visitor";
+import { getOrCreateVisitorId, getIpAddress, setVisitorIdCookie, generateDeviceFingerprint } from "@/lib/visitor";
 
 export async function POST(
   request: NextRequest,
@@ -28,11 +28,12 @@ export async function POST(
       );
       return Response.json({ data: opinion }, { status: 201 });
     } else {
-      // Guest user
+      // Guest user (fingerprint used so vote is found even if IP changed)
       const { visitorId, isNew } = await getOrCreateVisitorId();
       const ipAddress = getIpAddress(request);
+      const fingerprint = generateDeviceFingerprint(request);
       const opinion = await createOpinion(
-        { type: "guest", visitorId, ipAddress: ipAddress || undefined },
+        { type: "guest", visitorId, ipAddress: ipAddress || undefined, fingerprint },
         "",
         input
       );

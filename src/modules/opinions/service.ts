@@ -2,10 +2,11 @@ import { prisma } from "@/lib/db";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { CreateOpinionInput, GetOpinionsInput, UpdateOpinionAnonymityInput, GetOpinionsAdminInput } from "./schema";
 import { createReplyNotification } from "@/modules/notifications/service";
+import { getVote } from "@/modules/votes/service";
 
 type OpinionAuthor =
   | { type: "user"; userId: string }
-  | { type: "guest"; visitorId: string; ipAddress?: string };
+  | { type: "guest"; visitorId: string; ipAddress?: string; fingerprint?: string };
 
 export async function createOpinion(
   author: OpinionAuthor,
@@ -30,25 +31,22 @@ export async function createOpinion(
     actualTopicId = parentOpinion.topicId;
   }
 
-  // Check if user/guest has voted on this topic
-  let vote;
-  if (author.type === "user") {
-    vote = await prisma.vote.findUnique({
-      where: {
-        vote_topic_user: { topicId: actualTopicId, userId: author.userId },
-      },
-    });
-  } else {
-    vote = await prisma.vote.findUnique({
-      where: {
-        vote_topic_visitor: {
-          topicId: actualTopicId,
-          visitorId: author.visitorId,
-          ipAddress: author.ipAddress || "",
-        },
-      },
-    });
-  }
+  // Check if user/guest has voted on this topic (guests: same logic as upsertVote/getVote — fingerprint OR visitorId+ipAddress)
+  const vote =
+    author.type === "user"
+      ? await prisma.vote.findUnique({
+          where: {
+            vote_topic_user: { topicId: actualTopicId, userId: author.userId },
+          },
+        })
+      : await getVote(
+          {
+            visitorId: author.visitorId,
+            ipAddress: author.ipAddress,
+            fingerprint: author.fingerprint,
+          },
+          actualTopicId
+        );
 
   if (!vote) {
     throw new ForbiddenError("투표를 먼저 해주세요. 투표한 측에서만 의견을 작성할 수 있습니다.");
