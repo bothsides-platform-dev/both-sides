@@ -29,7 +29,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
         onClick={() => onTabChange("A")}
         className={cn(
           "flex-1 min-h-[44px] py-3 md:py-2 text-sm font-medium transition-colors relative",
-          activeTab === "A" ? "text-foreground" : "text-muted-foreground/70"
+          activeTab === "A" ? "text-foreground" : "text-muted-foreground/80"
         )}
         role="tab"
         aria-selected={activeTab === "A"}
@@ -41,7 +41,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
               "text-xs tabular-nums",
               activeTab === "A"
                 ? "text-sideA"
-                : "text-muted-foreground/50"
+                : "text-muted-foreground/70"
             )}
           >
             {countA}
@@ -53,7 +53,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
         onClick={() => onTabChange("B")}
         className={cn(
           "flex-1 min-h-[44px] py-3 md:py-2 text-sm font-medium transition-colors relative",
-          activeTab === "B" ? "text-foreground" : "text-muted-foreground/70"
+          activeTab === "B" ? "text-foreground" : "text-muted-foreground/80"
         )}
         role="tab"
         aria-selected={activeTab === "B"}
@@ -65,7 +65,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
               "text-xs tabular-nums",
               activeTab === "B"
                 ? "text-sideB"
-                : "text-muted-foreground/50"
+                : "text-muted-foreground/70"
             )}
           >
             {countB}

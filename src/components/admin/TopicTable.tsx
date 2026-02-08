@@ -177,7 +177,8 @@ export function TopicTable({ topics }: TopicTableProps) {
                     target="_blank"
                   >
                     {topic.title}
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                    <span className="sr-only">(새 창에서 열림)</span>
                   </Link>
                 </div>
 

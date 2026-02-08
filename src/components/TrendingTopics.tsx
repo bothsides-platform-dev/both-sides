@@ -28,6 +28,7 @@ function TrendItemRow({ trend }: { trend: TrendItem }) {
           title={trend.query}
         >
           {trend.query}
+          <span className="sr-only">(새 창에서 열림)</span>
         </a>
         {trend.traffic && (
           <span className="text-xs text-muted-foreground whitespace-nowrap">
@@ -62,8 +63,9 @@ function TrendItemRow({ trend }: { trend: TrendItem }) {
               <span className="group-hover:underline line-clamp-2">
                 {article.title}
                 {article.source && (
-                  <span className="text-muted-foreground/70"> - {article.source}</span>
+                  <span className="text-muted-foreground/80"> - {article.source}</span>
                 )}
+                <span className="sr-only">(새 창에서 열림)</span>
               </span>
             </a>
           ))}

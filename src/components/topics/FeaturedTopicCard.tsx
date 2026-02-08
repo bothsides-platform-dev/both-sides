@@ -60,7 +60,7 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
               <div className="relative z-10 text-center">
                 <div className="flex items-baseline gap-3">
                   <span className="text-5xl font-bold text-sideA drop-shadow-sm">A</span>
-                  <span className="text-2xl font-medium text-muted-foreground/70">vs</span>
+                  <span className="text-2xl font-medium text-muted-foreground/80">vs</span>
                   <span className="text-5xl font-bold text-sideB drop-shadow-sm">B</span>
                 </div>
               </div>

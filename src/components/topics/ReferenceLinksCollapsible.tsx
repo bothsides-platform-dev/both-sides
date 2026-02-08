@@ -42,8 +42,9 @@ export function ReferenceLinksCollapsible({
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-primary hover:underline"
             >
-              <ExternalLink className="h-4 w-4 shrink-0" />
+              <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span className="truncate">{link.title || link.url}</span>
+              <span className="sr-only">(새 창에서 열림)</span>
             </a>
           ))}
         </div>

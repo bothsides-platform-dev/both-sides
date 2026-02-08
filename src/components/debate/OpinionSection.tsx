@@ -343,7 +343,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
               <span className="hidden sm:inline">측으로 의견을 작성합니다</span>
               <span className="sm:hidden">측</span>
               {!isLoggedIn && (
-                <span className="text-xs text-muted-foreground/70">(손님)</span>
+                <span className="text-xs text-muted-foreground/80">(손님)</span>
               )}
             </div>
             {submitState.error && (

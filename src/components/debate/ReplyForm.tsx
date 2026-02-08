@@ -155,7 +155,7 @@ export function ReplyForm({
               </Label>
             </div>
           ) : (
-            <span className="text-xs text-muted-foreground/70">손님으로 작성됩니다</span>
+            <span className="text-xs text-muted-foreground/80">손님으로 작성됩니다</span>
           )}
           <span className="text-xs text-muted-foreground">
             {body.length} / 1000

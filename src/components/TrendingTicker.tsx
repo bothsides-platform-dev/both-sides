@@ -66,6 +66,7 @@ function TrendingKeyword({ rank, query, onOpenChange }: TrendingKeywordProps) {
           >
             <Search className="h-4 w-4 text-muted-foreground" />
             Google에서 검색
+            <span className="sr-only">(새 창에서 열림)</span>
           </a>
         </div>
       </PopoverContent>

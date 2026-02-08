@@ -37,14 +37,14 @@ export const OpinionList = memo(function OpinionList({
   if (isLoading) {
     return (
       <div className="flex justify-center py-4">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50" />
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/70" />
       </div>
     );
   }
 
   if (opinions.length === 0) {
     return (
-      <div className="py-4 text-center text-sm text-muted-foreground/70">
+      <div className="py-4 text-center text-sm text-muted-foreground/80">
         {emptyMessage}
       </div>
     );
