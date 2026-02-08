@@ -7,7 +7,8 @@ import { hierarchy, pack } from "d3-hierarchy";
 import { useTheme } from "next-themes";
 import { fetcher } from "@/lib/fetcher";
 import { CATEGORY_META, CATEGORY_COLORS } from "@/lib/constants";
-import { Eye, MessageSquare, Users } from "lucide-react";
+import { Eye, Info, MessageSquare, Users } from "lucide-react";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import type { Category } from "@prisma/client";
 
 interface BubbleTopic {
@@ -270,7 +271,28 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
 
   return (
     <div className="rounded-xl border bg-card p-4 sm:p-6">
-      <h2 className="mb-4 text-base font-semibold">토픽 버블맵</h2>
+      <div className="mb-4 flex items-center gap-1.5">
+        <h2 className="text-base font-semibold">토픽 버블맵</h2>
+        <Tooltip.Provider delayDuration={200}>
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Info className="h-4 w-4" />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content
+                side="bottom"
+                sideOffset={4}
+                className="z-50 max-w-[240px] rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
+              >
+                인기 토픽을 버블 크기로 시각화한 맵이에요. 투표가 많을수록 버블이 커지고, 색상은 카테고리를 나타내요. 버블을 클릭하면 상세 정보를 볼 수 있어요.
+                <Tooltip.Arrow className="fill-border" />
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        </Tooltip.Provider>
+      </div>
       <div ref={containerCallbackRef} className="relative w-full overflow-visible min-h-[200px]">
         {containerWidth > 0 && (
           <>
