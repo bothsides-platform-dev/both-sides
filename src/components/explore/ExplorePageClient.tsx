@@ -80,7 +80,7 @@ function ExplorePageContent() {
       <TopicBubbleMap highlightCategory={categoryEnum ?? null} />
 
       {/* Category Chips */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" role="toolbar" aria-label="카테고리 필터">
         <button
           onClick={() => handleCategoryChange(null)}
           className={cn(

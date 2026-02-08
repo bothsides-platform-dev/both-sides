@@ -355,13 +355,14 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                   <g
                     key={bubble.topic.id}
                     data-bubble-id={bubble.topic.id}
-                    className="cursor-pointer"
+                    className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
                     style={{
                       opacity: isHighlighted ? 1 : 0.15,
                       transition: "opacity 0.2s",
                     }}
                     role="button"
                     tabIndex={0}
+                    aria-label={`${bubble.topic.title} - ${meta.label}`}
                     onClick={() => handleBubbleClick(bubble.topic.id)}
                     onKeyDown={(e) => handleBubbleKeyDown(e, bubble.topic.id)}
                   >
