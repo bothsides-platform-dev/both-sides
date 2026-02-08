@@ -42,7 +42,7 @@ export function NotificationList({ notifications, onRead }: NotificationListProp
   }
 
   return (
-    <div className="max-h-[400px] overflow-y-auto">
+    <div>
       {notifications.map((notification) => (
         <NotificationItem
           key={notification.id}

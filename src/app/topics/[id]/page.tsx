@@ -161,7 +161,7 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-4xl space-y-5 md:space-y-8">
       <InAppBrowserRedirect />
       <ViewCountTracker topicId={topic.id} />
       <script
@@ -169,10 +169,10 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* Topic Header */}
-      <div className="space-y-6 border-b border-border pb-8">
-        <div className="space-y-3">
+      <div className="space-y-4 md:space-y-6 border-b border-border pb-5 md:pb-8">
+        <div className="space-y-2 md:space-y-3">
           <Badge variant="secondary">{CATEGORY_LABELS[topic.category]}</Badge>
-          <h1 className="text-2xl font-bold md:text-4xl">{topic.title}</h1>
+          <h1 className="text-xl md:text-2xl lg:text-4xl font-bold leading-tight">{topic.title}</h1>
         </div>
 
         {/* Author & Share - 제목 바로 아래 */}
@@ -198,20 +198,22 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
 
         {/* Hero Image */}
         {topic.imageUrl && (
-          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-red-50">
+          <div className="w-full overflow-hidden rounded-xl">
             <Image
               src={topic.imageUrl}
               alt={topic.title}
-              fill
-              className="object-contain"
+              width={1920}
+              height={1080}
+              className="h-auto w-full rounded-xl"
               priority
+              sizes="(max-width: 768px) 100vw, 720px"
             />
           </div>
         )}
 
         {/* Description - 줄바꿈 유지 */}
         {topic.description && (
-          <p className="whitespace-pre-line text-lg leading-relaxed text-foreground/80">{topic.description}</p>
+          <p className="whitespace-pre-line text-base md:text-lg leading-relaxed text-foreground/80">{topic.description}</p>
         )}
 
         {/* AI Summary */}

@@ -26,6 +26,7 @@ export function TopicShareButton({
       description={`${optionA} vs ${optionB}`}
       imageUrl={shareImageUrl}
       variant="button"
+      topicId={topicId}
     />
   );
 }

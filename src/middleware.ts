@@ -119,6 +119,11 @@ const RATE_LIMITED_ROUTES: Array<{
     limiter: opinionLimiter,
     methods: ["POST"],
   },
+  {
+    pattern: /^\/api\/opinions\/[^/]+\/replies$/,
+    limiter: opinionLimiter,
+    methods: ["POST"],
+  },
 ];
 
 export async function middleware(request: NextRequest) {

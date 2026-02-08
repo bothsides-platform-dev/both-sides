@@ -7,12 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserBadges } from "@/components/badges/UserBadges";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
 import { fetcher } from "@/lib/fetcher";
 import { Loader2, MessageSquare, Vote, Heart, ListChecks } from "lucide-react";
 import Link from "next/link";
 import type { Category, Side, ReactionType } from "@prisma/client";
+import type { EarnedBadge } from "@/lib/badges";
 
 interface VoteItem {
   id: string;
@@ -73,6 +75,7 @@ interface PublicProfileData {
     nickname?: string | null;
     name?: string | null;
     image?: string | null;
+    joinOrder?: number | null;
   };
   votes: VoteItem[];
   opinions: OpinionItem[];
@@ -82,6 +85,7 @@ interface PublicProfileData {
   opinionsCount: number;
   topicsCount: number;
   reactionsCount: number;
+  badges: EarnedBadge[];
 }
 
 export default function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -103,42 +107,58 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
     notFound();
   }
 
-  const profile = data.data;
+  // TypeScript: data.data is guaranteed to exist after notFound() check
+  const profile = data.data!;
   const displayName = profile.user.nickname || profile.user.name || "사용자";
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Profile Header */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-6">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={profile.user.image || undefined} />
-              <AvatarFallback className="text-2xl">
-                {displayName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 space-y-1">
-              <h1 className="text-2xl font-bold">{displayName}</h1>
-              <div className="flex items-center gap-4 pt-2 text-sm">
-                <span className="flex items-center gap-1">
-                  <Vote className="h-4 w-4" />
-                  {profile.votesCount}개 투표
-                </span>
-                <span className="flex items-center gap-1">
-                  <MessageSquare className="h-4 w-4" />
-                  {profile.opinionsCount}개 의견
-                </span>
-                <span className="flex items-center gap-1">
-                  <ListChecks className="h-4 w-4" />
-                  {profile.topicsCount}개 토픽
-                </span>
-                <span className="flex items-center gap-1">
-                  <Heart className="h-4 w-4" />
-                  {profile.reactionsCount}개 반응
-                </span>
+        <CardContent className="p-4 md:p-6">
+          <div className="space-y-4">
+            {/* Profile Info */}
+            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6">
+              <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
+                <AvatarImage src={profile.user.image || undefined} />
+                <AvatarFallback className="text-xl sm:text-2xl">
+                  {displayName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-1 text-center sm:text-left">
+                <h1 className="text-xl sm:text-2xl font-bold">{displayName}</h1>
+                {profile.user.joinOrder && (
+                  <p className="text-sm text-muted-foreground">
+                    {profile.user.joinOrder}번째 가입자
+                  </p>
+                )}
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 pt-2 text-sm">
+                  <span className="flex items-center gap-1">
+                    <Vote className="h-4 w-4" />
+                    {profile.votesCount}개 투표
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MessageSquare className="h-4 w-4" />
+                    {profile.opinionsCount}개 의견
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <ListChecks className="h-4 w-4" />
+                    {profile.topicsCount}개 토픽
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Heart className="h-4 w-4" />
+                    {profile.reactionsCount}개 반응
+                  </span>
+                </div>
               </div>
             </div>
+
+            {/* Badges */}
+            {profile.badges && profile.badges.length > 0 && (
+              <div className="flex justify-center sm:justify-start">
+                <UserBadges badges={profile.badges} maxDisplay={6} compact={false} />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

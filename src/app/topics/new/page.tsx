@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { ReferenceLinkInput, type ReferenceLink } from "@/components/ui/ReferenceLinkInput";
 import { CATEGORY_LABELS } from "@/lib/constants";
+import { trackTopicCreate } from "@/lib/analytics";
 import { Loader2 } from "lucide-react";
 import type { Category } from "@prisma/client";
 
@@ -78,6 +79,12 @@ function NewTopicForm() {
         throw new Error(result.error || "토론 생성에 실패했습니다.");
       }
 
+      // Track topic creation event
+      const category = formData.get("category") as string;
+      if (category) {
+        trackTopicCreate(category);
+      }
+
       router.push(`/topics/${result.data.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.");
@@ -130,7 +137,7 @@ function NewTopicForm() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="optionA" className="text-blue-600">
+                <Label htmlFor="optionA" className="text-sideA">
                   A 옵션 *
                 </Label>
                 <Input
@@ -139,11 +146,11 @@ function NewTopicForm() {
                   placeholder="예: 짜장면"
                   required
                   maxLength={50}
-                  className="border-blue-200 focus:border-blue-500"
+                  className="border-sideA/30 focus:border-sideA"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="optionB" className="text-red-600">
+                <Label htmlFor="optionB" className="text-sideB">
                   B 옵션 *
                 </Label>
                 <Input
@@ -152,7 +159,7 @@ function NewTopicForm() {
                   placeholder="예: 짬뽕"
                   required
                   maxLength={50}
-                  className="border-red-200 focus:border-red-500"
+                  className="border-sideB/30 focus:border-sideB"
                 />
               </div>
             </div>

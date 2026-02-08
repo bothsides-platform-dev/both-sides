@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +28,8 @@ export function ReplyForm({
   optionA,
   optionB,
 }: ReplyFormProps) {
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
   const [body, setBody] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitState, setSubmitState] = useState<{ isSubmitting: boolean; error: string | null }>({
@@ -44,7 +47,7 @@ export function ReplyForm({
       const res = await fetch(`/api/opinions/${parentId}/replies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body, isAnonymous }),
+        body: JSON.stringify({ body, isAnonymous: isLoggedIn ? isAnonymous : true }),
       });
 
       if (res.status === 429) {
@@ -108,46 +111,52 @@ export function ReplyForm({
               }
             }}
             placeholder="답글을 입력하세요"
-            className="min-h-[60px] resize-none text-sm"
+            className="min-h-[60px] md:min-h-[80px] resize-none text-sm md:text-base"
             maxLength={1000}
           />
           <div className="flex flex-col gap-1">
             <Button
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="h-10 w-10 md:h-8 md:w-8 shrink-0"
               onClick={handleSubmit}
               disabled={submitState.isSubmitting || !body.trim()}
+              aria-label="답글 전송"
             >
               {submitState.isSubmitting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-4 w-4 md:h-3.5 md:w-3.5 animate-spin" />
               ) : (
-                <Send className="h-3.5 w-3.5" />
+                <Send className="h-4 w-4 md:h-3.5 md:w-3.5" />
               )}
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8 shrink-0"
+              className="h-10 w-10 md:h-8 md:w-8 shrink-0"
               onClick={onCancel}
+              aria-label="답글 취소"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4 md:h-3.5 md:w-3.5" />
             </Button>
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id={`reply-anonymous-${parentId}`}
-              checked={isAnonymous}
-              onCheckedChange={(checked) => setIsAnonymous(checked === true)}
-            />
-            <Label
-              htmlFor={`reply-anonymous-${parentId}`}
-              className="text-xs font-normal cursor-pointer text-muted-foreground"
-            >
-              익명으로 작성
-            </Label>
-          </div>
+          {isLoggedIn ? (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id={`reply-anonymous-${parentId}`}
+                checked={isAnonymous}
+                onCheckedChange={(checked) => setIsAnonymous(checked === true)}
+              />
+              <Label
+                htmlFor={`reply-anonymous-${parentId}`}
+                className="text-xs font-normal cursor-pointer text-muted-foreground"
+              >
+                익명으로 작성
+              </Label>
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground/70">손님으로 작성됩니다</span>
+          )}
           <span className="text-xs text-muted-foreground">
             {body.length} / 1000
           </span>

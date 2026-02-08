@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api-error";
+import { trackVote } from "@/lib/analytics";
 import type { Side } from "@prisma/client";
 
 interface VoteSectionProps {
@@ -108,6 +109,9 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         throw new ApiError(data.error || "투표에 실패했습니다.", res.status);
       }
 
+      // Track vote event
+      trackVote(topicId, side);
+
       // Refresh combined vote info data
       mutate(`/api/topics/${topicId}/vote-info?includeMyVote=true`);
     } catch (error) {
@@ -162,15 +166,18 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         </p>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+      <div className="flex flex-row gap-3 sm:gap-4">
         <Button
           variant={myVote === "A" ? "sideA" : "sideAOutline"}
           className={cn(
-            "w-full h-16 flex-col gap-1 sm:flex-1 sm:h-20 sm:gap-1.5 relative",
-            myVote === "A" && "ring-2 ring-blue-500 ring-offset-2"
+            "flex-1 h-16 flex-col gap-1 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
+            "active:scale-[0.98]",
+            myVote === "A" && "ring-2 ring-sideA ring-offset-2 shadow-lg"
           )}
           onClick={() => handleVote("A")}
           disabled={isVoting || isVotingClosed}
+          aria-pressed={myVote === "A"}
+          aria-label={`${optionA}에 투표`}
         >
           {showSpinnerA && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -178,12 +185,12 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
             </div>
           )}
           <span
-            className={cn("text-sm font-medium opacity-70", showSpinnerA && "invisible")}
+            className={cn("text-xs sm:text-sm font-medium opacity-70", showSpinnerA && "invisible")}
           >
             A
           </span>
           <span
-            className={cn("text-base font-bold line-clamp-1 sm:text-lg", showSpinnerA && "invisible")}
+            className={cn("text-sm sm:text-base md:text-lg font-bold line-clamp-1", showSpinnerA && "invisible")}
           >
             {optionA}
           </span>
@@ -192,11 +199,14 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <Button
           variant={myVote === "B" ? "sideB" : "sideBOutline"}
           className={cn(
-            "w-full h-16 flex-col gap-1 sm:flex-1 sm:h-20 sm:gap-1.5 relative",
-            myVote === "B" && "ring-2 ring-red-500 ring-offset-2"
+            "flex-1 h-16 flex-col gap-1 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
+            "active:scale-[0.98]",
+            myVote === "B" && "ring-2 ring-sideB ring-offset-2 shadow-lg"
           )}
           onClick={() => handleVote("B")}
           disabled={isVoting || isVotingClosed}
+          aria-pressed={myVote === "B"}
+          aria-label={`${optionB}에 투표`}
         >
           {showSpinnerB && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -204,12 +214,12 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
             </div>
           )}
           <span
-            className={cn("text-sm font-medium opacity-70", showSpinnerB && "invisible")}
+            className={cn("text-xs sm:text-sm font-medium opacity-70", showSpinnerB && "invisible")}
           >
             B
           </span>
           <span
-            className={cn("text-base font-bold line-clamp-1 sm:text-lg", showSpinnerB && "invisible")}
+            className={cn("text-sm sm:text-base md:text-lg font-bold line-clamp-1", showSpinnerB && "invisible")}
           >
             {optionB}
           </span>
@@ -218,14 +228,14 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
 
       {/* Vote Stats Bar - 숫자 없이 압축된 비율로 표시 */}
       <div className="space-y-2">
-        <div className="h-4 w-full overflow-hidden rounded-full bg-gray-200">
+        <div className="h-4 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
           <div className="flex h-full">
             <div
-              className="bg-blue-500 transition-all duration-300"
+              className="bg-sideA transition-all duration-300"
               style={{ width: `${compressPercentage(stats.aPercentage)}%` }}
             />
             <div
-              className="bg-red-500 transition-all duration-300"
+              className="bg-sideB transition-all duration-300"
               style={{
                 width: `${100 - compressPercentage(stats.aPercentage)}%`,
               }}

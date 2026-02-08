@@ -1,6 +1,6 @@
-import { handleApiError, ForbiddenError, NotFoundError } from "@/lib/errors";
+import { handleApiError, NotFoundError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { computeBadges } from "@/lib/badges";
 import { NextRequest } from "next/server";
 
 export async function GET(
@@ -8,13 +8,6 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSession();
-
-    // 인증되지 않은 사용자는 다른 사용자의 프로필을 볼 수 없음
-    if (!session?.user) {
-      throw new ForbiddenError("로그인이 필요합니다.");
-    }
-
     const { id: userId } = await params;
 
     // Check if user exists
@@ -25,6 +18,7 @@ export async function GET(
         nickname: true,
         name: true,
         image: true,
+        joinOrder: true,
       },
     });
 
@@ -118,6 +112,20 @@ export async function GET(
     // 이미 가져온 데이터 배열의 길이를 사용하여 중복 COUNT 쿼리 제거
     // take: 50으로 제한되어 있으므로, 50개인 경우만 정확한 카운트가 필요할 수 있음
     // 하지만 대부분의 사용자는 50개 미만이므로 배열 길이로 충분
+    const votesCount = votes.length;
+    const opinionsCount = opinions.length;
+    const topicsCount = topics.length;
+    const reactionsCount = reactions.length;
+
+    // Compute badges
+    const stats = {
+      votesCount,
+      opinionsCount,
+      topicsCount,
+      reactionsCount,
+    };
+    const badges = computeBadges(stats);
+
     return Response.json({
       data: {
         user,
@@ -125,10 +133,11 @@ export async function GET(
         opinions,
         topics,
         reactions,
-        votesCount: votes.length,
-        opinionsCount: opinions.length,
-        topicsCount: topics.length,
-        reactionsCount: reactions.length,
+        votesCount,
+        opinionsCount,
+        topicsCount,
+        reactionsCount,
+        badges,
       },
     });
   } catch (error) {

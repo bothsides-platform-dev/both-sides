@@ -4,9 +4,8 @@ import { memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { formatDDay, formatNumber } from "@/lib/utils";
-import { Eye, Users, Clock } from "lucide-react";
+import { Eye, Users } from "lucide-react";
 import type { Category } from "@prisma/client";
 
 export interface FeaturedTopicCardProps {
@@ -34,25 +33,25 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
   return (
     <Link href={`/topics/${topic.id}`} className="group">
       <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-blue-100 to-red-100">
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-sideA/20 to-sideB/20">
           {topic.imageUrl ? (
             <Image
               src={topic.imageUrl}
               alt={topic.title}
               fill
-              className="object-contain transition-transform group-hover:scale-105"
+              className="object-cover transition-transform group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full items-center justify-center">
               {/* 애니메이션 그라데이션 배경 */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-50 to-red-100 transition-all duration-500 group-hover:from-blue-200 group-hover:to-red-200" />
+              <div className="absolute inset-0 bg-gradient-to-br from-sideA/20 via-purple-50 to-sideB/20 transition-all duration-500 group-hover:from-sideA/30 group-hover:to-sideB/30" />
 
               {/* VS 배지 */}
               <div className="relative z-10 text-center">
                 <div className="flex items-baseline gap-3">
-                  <span className="text-5xl font-bold text-blue-500 drop-shadow-sm">A</span>
+                  <span className="text-5xl font-bold text-sideA drop-shadow-sm">A</span>
                   <span className="text-2xl font-medium text-muted-foreground/70">vs</span>
-                  <span className="text-5xl font-bold text-red-500 drop-shadow-sm">B</span>
+                  <span className="text-5xl font-bold text-sideB drop-shadow-sm">B</span>
                 </div>
               </div>
             </div>
@@ -70,25 +69,26 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
               </div>
             </div>
           </div>
+          {dDay && (
+            <div className={`absolute top-2.5 right-2.5 rounded-md px-2 py-1 text-xs font-bold shadow-md ${
+              dDay === "마감"
+                ? "bg-gray-800/80 text-gray-300"
+                : dDay === "D-Day"
+                  ? "bg-sideB text-sideB-foreground animate-pulse"
+                  : "bg-black/70 text-white backdrop-blur-sm"
+            }`}>
+              {dDay}
+            </div>
+          )}
         </div>
         <CardContent className="p-4">
           <h3 className="mb-3 line-clamp-2 text-lg font-bold leading-tight">
             {topic.title}
           </h3>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-medium text-blue-600">{topic.optionA}</span>
-              <span>vs</span>
-              <span className="font-medium text-red-600">{topic.optionB}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {dDay && (
-                <Badge variant={dDay === "마감" ? "secondary" : "default"} className="shrink-0">
-                  <Clock className="mr-1 h-3 w-3" />
-                  {dDay}
-                </Badge>
-              )}
-            </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="font-medium text-sideA">{topic.optionA}</span>
+            <span>vs</span>
+            <span className="font-medium text-sideB">{topic.optionB}</span>
           </div>
         </CardContent>
       </Card>

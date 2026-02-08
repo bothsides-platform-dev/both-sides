@@ -30,6 +30,7 @@ export const OpinionList = memo(function OpinionList({
   currentUserId,
   onReaction,
   onReplySuccess,
+  userVoteSide,
   highlightReplyId,
   expandedAncestorIds,
 }: OpinionListProps) {
@@ -60,6 +61,7 @@ export const OpinionList = memo(function OpinionList({
           currentUserId={currentUserId}
           onReaction={onReaction}
           onReplySuccess={onReplySuccess}
+          userVoteSide={userVoteSide}
           highlightReplyId={highlightReplyId}
           expandedAncestorIds={expandedAncestorIds}
         />

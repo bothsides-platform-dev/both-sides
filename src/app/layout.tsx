@@ -1,14 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
+import { Suspense } from "react";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { KakaoProvider } from "@/components/providers/KakaoProvider";
 import { SWRProvider } from "@/components/providers/SWRProvider";
+import { UTMProvider } from "@/components/providers/UTMProvider";
 import { ToastProvider } from "@/components/ui/toast";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { FeedbackFAB } from "@/components/feedback/FeedbackFAB";
+import { AppShell } from "@/components/layout/AppShell";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -20,6 +23,12 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club"),
@@ -78,7 +87,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
@@ -110,18 +119,32 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "v6eobm9gc5");
           `}
         </Script>
-        <KakaoProvider>
-          <SessionProvider>
-            <SWRProvider>
-              <ToastProvider>
-                <Header />
-                <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-6">{children}</main>
-                <Footer />
-                <FeedbackFAB />
-              </ToastProvider>
-            </SWRProvider>
-          </SessionProvider>
-        </KakaoProvider>
+        <Suspense fallback={null}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            storageKey="bothsides-theme"
+          >
+            <UTMProvider>
+              <KakaoProvider>
+                <SessionProvider>
+                  <SWRProvider>
+                    <ToastProvider>
+                      <Header />
+                      <AppShell>
+                        <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-4 md:py-6 pb-6">
+                          {children}
+                        </main>
+                        <Footer />
+                      </AppShell>
+                    </ToastProvider>
+                  </SWRProvider>
+                </SessionProvider>
+              </KakaoProvider>
+            </UTMProvider>
+          </ThemeProvider>
+        </Suspense>
       </body>
     </html>
   );

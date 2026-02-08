@@ -17,11 +17,11 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        sideA: "bg-blue-500 text-white hover:bg-blue-600",
-        sideB: "bg-red-500 text-white hover:bg-red-600",
+        sideA: "bg-sideA text-sideA-foreground hover:bg-sideA/90",
+        sideB: "bg-sideB text-sideB-foreground hover:bg-sideB/90",
         sideAOutline:
-          "border-2 border-blue-500 text-blue-500 hover:bg-blue-50",
-        sideBOutline: "border-2 border-red-500 text-red-500 hover:bg-red-50",
+          "border-2 border-sideA text-sideA hover:bg-sideA/10",
+        sideBOutline: "border-2 border-sideB text-sideB hover:bg-sideB/10",
       },
       size: {
         default: "h-10 px-4 py-2",

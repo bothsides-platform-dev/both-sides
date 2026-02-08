@@ -27,7 +27,7 @@ interface Opinion {
     id: string;
     nickname?: string | null;
     name?: string | null;
-  };
+  } | null;
   topic: {
     id: string;
     title: string;
@@ -129,7 +129,7 @@ export function OpinionTable({ opinions }: OpinionTableProps) {
 
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span>
-                    작성자: {opinion.user.nickname || opinion.user.name || "익명"}
+                    작성자: {opinion.user ? (opinion.user.nickname || opinion.user.name || "익명") : "손님"}
                   </span>
                   <span>반응 {opinion._count.reactions}</span>
                   <span>신고 {opinion._count.reports}</span>

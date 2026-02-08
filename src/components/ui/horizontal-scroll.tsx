@@ -77,7 +77,7 @@ export function HorizontalScroll({
 
       <div
         ref={scrollContainerRef}
-        className="flex gap-4 overflow-x-auto scroll-smooth scrollbar-hide pb-2"
+        className="flex gap-4 overflow-x-auto scroll-smooth scrollbar-hide pb-2 pr-4"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -100,10 +100,10 @@ export function HorizontalScroll({
 
       {/* Fade edges for visual indication */}
       {canScrollLeft && (
-        <div className="pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-background to-transparent" />
+        <div className="pointer-events-none absolute left-0 top-0 h-full w-12 bg-gradient-to-r from-background to-transparent" />
       )}
       {canScrollRight && (
-        <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-background to-transparent" />
+        <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-background to-transparent" />
       )}
     </div>
   );

@@ -233,7 +233,7 @@ export default function AdminReportsPage() {
                   {reportType === "opinion" && report.opinion && (
                     <div className="rounded-lg bg-muted p-3 space-y-2">
                       <div className="text-xs text-muted-foreground">
-                        신고된 의견 (by {report.opinion.user.nickname || report.opinion.user.name || "익명"})
+                        신고된 의견 (by {report.opinion.user ? (report.opinion.user.nickname || report.opinion.user.name || "익명") : "손님"})
                       </div>
                       <p className="text-sm">
                         {report.opinion.isBlinded ? (

@@ -16,6 +16,7 @@ interface OpinionThreadProps {
   onReplySuccess?: () => void;
   depth?: number;
   maxDepth?: number;
+  userVoteSide?: "A" | "B";
   highlightReplyId?: string;
   expandedAncestorIds?: string[];
 }
@@ -31,6 +32,7 @@ export const OpinionThread = memo(function OpinionThread({
   onReplySuccess,
   depth = 0,
   maxDepth = MAX_DEPTH,
+  userVoteSide,
   highlightReplyId,
   expandedAncestorIds,
 }: OpinionThreadProps) {
@@ -98,6 +100,7 @@ export const OpinionThread = memo(function OpinionThread({
         depth={depth}
         onReplySuccess={handleReplySuccess}
         showRepliesCount={hasReplies}
+        userVoteSide={userVoteSide}
         onToggleReplies={handleToggleReplies}
         showRepliesExpanded={showReplies}
         loadingReplies={loadingReplies}
@@ -119,6 +122,7 @@ export const OpinionThread = memo(function OpinionThread({
               onReplySuccess={handleReplySuccess}
               depth={depth + 1}
               maxDepth={maxDepth}
+              userVoteSide={userVoteSide}
               highlightReplyId={highlightReplyId}
               expandedAncestorIds={expandedAncestorIds}
             />

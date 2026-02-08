@@ -109,6 +109,7 @@ model User {
   isBot           Boolean   @default(false)
   blacklistedAt   DateTime?
   blacklistReason String?
+  joinOrder       Int?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -210,7 +211,9 @@ model Vote {
 model Opinion {
   id          String   @id @default(cuid())
   topicId     String
-  userId      String
+  userId      String?
+  visitorId   String?
+  ipAddress   String?
   side        Side
   body        String   @db.Text
   isBlinded   Boolean  @default(false)
@@ -220,7 +223,7 @@ model Opinion {
   updatedAt   DateTime @updatedAt
 
   topic     Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   parent    Opinion?   @relation("OpinionReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies   Opinion[]  @relation("OpinionReplies")
   reactions     Reaction[]
@@ -233,6 +236,7 @@ model Opinion {
   @@index([userId])
   @@index([topicId, side])
   @@index([parentId])
+  @@index([visitorId])
   @@index([isAnonymous]) // 사용자 프로필 페이지 의견 조회 최적화
   @@index([topicId, createdAt]) // 토론 페이지 최신순 정렬 최적화
   @@index([isBlinded]) // 관리자 블라인드 필터링 최적화

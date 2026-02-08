@@ -13,17 +13,7 @@ export function HomePageClient() {
         <TrendingTicker />
       </div>
 
-      <div className="space-y-10 mt-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">
-            <span className="text-blue-500">A</span> vs{" "}
-            <span className="text-red-500">B</span>, 당신의 선택은?
-          </h1>
-          <p className="text-muted-foreground">
-            양자택일 토론에 참여하고 의견을 나눠보세요
-          </p>
-        </div>
-
+      <div className="space-y-10 mt-6 max-w-5xl mx-auto">
         {/* Section 1: Featured Topics */}
         <FeaturedSection />
 

@@ -12,6 +12,7 @@ import { Share2, Link2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useKakao } from "@/components/providers/KakaoProvider";
 import { useToast } from "@/components/ui/toast";
+import { trackShare } from "@/lib/analytics";
 
 interface ShareButtonProps {
   url: string;
@@ -20,6 +21,7 @@ interface ShareButtonProps {
   imageUrl?: string;
   className?: string;
   variant?: "icon" | "button";
+  topicId?: string;
 }
 
 export function ShareButton({
@@ -29,10 +31,48 @@ export function ShareButton({
   imageUrl,
   className,
   variant = "button",
+  topicId,
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const { shareKakao } = useKakao();
   const { showToast } = useToast();
+
+  // Extract topicId from URL if not provided
+  const extractedTopicId = topicId || (() => {
+    const match = url.match(/\/topics\/([^/?]+)/);
+    return match ? match[1] : undefined;
+  })();
+
+  /**
+   * Add UTM parameters to a URL based on the share platform
+   */
+  const addUTMParams = (baseUrl: string, platform: "kakao" | "twitter" | "facebook" | "instagram" | "link"): string => {
+    try {
+      const urlObj = new URL(baseUrl, typeof window !== "undefined" ? window.location.origin : "https://bothsides.club");
+      
+      // Set platform-specific UTM parameters
+      urlObj.searchParams.set("utm_source", platform);
+      urlObj.searchParams.set("utm_medium", platform === "link" ? "referral" : "social");
+      urlObj.searchParams.set("utm_campaign", "share");
+      
+      // Add topicId to utm_content if available
+      if (extractedTopicId) {
+        urlObj.searchParams.set("utm_content", extractedTopicId);
+      }
+      
+      return urlObj.toString();
+    } catch {
+      // Fallback: append as query string if URL parsing fails
+      const separator = baseUrl.includes("?") ? "&" : "?";
+      const utmParams = new URLSearchParams({
+        utm_source: platform,
+        utm_medium: platform === "link" ? "referral" : "social",
+        utm_campaign: "share",
+        ...(extractedTopicId && { utm_content: extractedTopicId }),
+      });
+      return `${baseUrl}${separator}${utmParams.toString()}`;
+    }
+  };
 
   const fullUrl = typeof window !== "undefined"
     ? `${window.location.origin}${url}`
@@ -50,10 +90,16 @@ export function ShareButton({
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(fullUrl);
+      const urlWithUTM = addUTMParams(fullUrl, "link");
+      await navigator.clipboard.writeText(urlWithUTM);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       showToast("링크가 복사되었습니다", "success", 2000);
+      
+      // Track share event
+      if (extractedTopicId) {
+        trackShare("link", extractedTopicId);
+      }
     } catch (err) {
       console.error("Failed to copy:", err);
       showToast("링크 복사에 실패했습니다", "error", 2000);
@@ -61,28 +107,47 @@ export function ShareButton({
   };
 
   const handleTwitterShare = () => {
+    const urlWithUTM = addUTMParams(fullUrl, "twitter");
     const text = `${title}${description ? ` - ${description}` : ""}`;
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(fullUrl)}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(urlWithUTM)}`;
     window.open(twitterUrl, "_blank", "width=550,height=420");
+    
+    // Track share event
+    if (extractedTopicId) {
+      trackShare("twitter", extractedTopicId);
+    }
   };
 
   const handleFacebookShare = () => {
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`;
+    const urlWithUTM = addUTMParams(fullUrl, "facebook");
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(urlWithUTM)}`;
     window.open(facebookUrl, "_blank", "width=550,height=420");
+    
+    // Track share event
+    if (extractedTopicId) {
+      trackShare("facebook", extractedTopicId);
+    }
   };
 
   const handleKakaoShare = () => {
+    const urlWithUTM = addUTMParams(fullUrl, "kakao");
     shareKakao({
       title,
       description,
       imageUrl: fullImageUrl,
-      url: fullUrl,
+      url: urlWithUTM,
     });
+    
+    // Track share event
+    if (extractedTopicId) {
+      trackShare("kakao", extractedTopicId);
+    }
   };
 
   const handleInstagramShare = async () => {
     try {
-      await navigator.clipboard.writeText(fullUrl);
+      const urlWithUTM = addUTMParams(fullUrl, "instagram");
+      await navigator.clipboard.writeText(urlWithUTM);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
 
@@ -93,6 +158,11 @@ export function ShareButton({
         window.location.href = "instagram://app";
       } else {
         showToast("링크가 복사되었습니다. 인스타그램에서 붙여넣기 해주세요!", "success", 3000);
+      }
+      
+      // Track share event
+      if (extractedTopicId) {
+        trackShare("instagram", extractedTopicId);
       }
     } catch (err) {
       console.error("Failed to copy:", err);

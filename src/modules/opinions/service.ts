@@ -2,9 +2,14 @@ import { prisma } from "@/lib/db";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { CreateOpinionInput, GetOpinionsInput, UpdateOpinionAnonymityInput, GetOpinionsAdminInput } from "./schema";
 import { createReplyNotification } from "@/modules/notifications/service";
+import { getVote } from "@/modules/votes/service";
+
+type OpinionAuthor =
+  | { type: "user"; userId: string }
+  | { type: "guest"; visitorId: string; ipAddress?: string; fingerprint?: string };
 
 export async function createOpinion(
-  userId: string,
+  author: OpinionAuthor,
   topicId: string,
   input: CreateOpinionInput
 ) {
@@ -26,12 +31,22 @@ export async function createOpinion(
     actualTopicId = parentOpinion.topicId;
   }
 
-  // Check if user has voted on this topic
-  const vote = await prisma.vote.findUnique({
-    where: {
-      vote_topic_user: { topicId: actualTopicId, userId },
-    },
-  });
+  // Check if user/guest has voted on this topic (guests: same logic as upsertVote/getVote — fingerprint OR visitorId+ipAddress)
+  const vote =
+    author.type === "user"
+      ? await prisma.vote.findUnique({
+          where: {
+            vote_topic_user: { topicId: actualTopicId, userId: author.userId },
+          },
+        })
+      : await getVote(
+          {
+            visitorId: author.visitorId,
+            ipAddress: author.ipAddress,
+            fingerprint: author.fingerprint,
+          },
+          actualTopicId
+        );
 
   if (!vote) {
     throw new ForbiddenError("투표를 먼저 해주세요. 투표한 측에서만 의견을 작성할 수 있습니다.");
@@ -40,10 +55,12 @@ export async function createOpinion(
   const opinion = await prisma.opinion.create({
     data: {
       topicId: actualTopicId,
-      userId,
+      userId: author.type === "user" ? author.userId : null,
+      visitorId: author.type === "guest" ? author.visitorId : null,
+      ipAddress: author.type === "guest" ? author.ipAddress : null,
       side: vote.side,
       body: input.body,
-      isAnonymous: input.isAnonymous ?? false,
+      isAnonymous: author.type === "guest" ? true : (input.isAnonymous ?? false),
       parentId: input.parentId || null,
     },
     include: {
@@ -67,13 +84,17 @@ export async function createOpinion(
 
   // Create notification for parent opinion author if this is a reply
   if (parentOpinion && parentOpinion.userId) {
-    await createReplyNotification({
-      userId: parentOpinion.userId,
-      actorId: userId,
-      opinionId: parentOpinion.id,
-      replyId: opinion.id,
-      topicId: actualTopicId,
-    });
+    const actorId = author.type === "user" ? author.userId : null;
+    // Only create notification if actor is a logged-in user (guest replies have no actorId)
+    if (actorId) {
+      await createReplyNotification({
+        userId: parentOpinion.userId,
+        actorId,
+        opinionId: parentOpinion.id,
+        replyId: opinion.id,
+        topicId: actualTopicId,
+      });
+    }
   }
 
   return opinion;
@@ -211,7 +232,7 @@ export async function getOpinionById(id: string) {
 export async function updateOpinionAnonymity(id: string, userId: string, input: UpdateOpinionAnonymityInput) {
   const opinion = await getOpinionById(id);
 
-  if (opinion.userId !== userId) {
+  if (!opinion.userId || opinion.userId !== userId) {
     throw new ForbiddenError("본인의 의견만 수정할 수 있습니다.");
   }
 
@@ -240,6 +261,39 @@ export async function updateOpinionAnonymity(id: string, userId: string, input: 
           reactions: true,
           reports: true,
           replies: true,
+        },
+      },
+    },
+  });
+}
+
+export async function getRecentOpinions(limit: number = 5) {
+  return prisma.opinion.findMany({
+    where: {
+      isBlinded: false,
+      parentId: null,
+      topic: { isHidden: false },
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    select: {
+      id: true,
+      topicId: true,
+      side: true,
+      body: true,
+      isAnonymous: true,
+      createdAt: true,
+      user: {
+        select: {
+          nickname: true,
+          name: true,
+          image: true,
+        },
+      },
+      topic: {
+        select: {
+          id: true,
+          title: true,
         },
       },
     },

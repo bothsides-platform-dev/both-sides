@@ -99,7 +99,7 @@ export function TopicAuthorSection({
               </Link>
             )}
             {isBlacklisted && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-destructive border-destructive/50">
+              <Badge variant="outline" className="text-2xs px-1.5 py-0 text-destructive border-destructive/50">
                 <Ban className="h-2.5 w-2.5 mr-0.5" />
                 차단된 사용자
               </Badge>

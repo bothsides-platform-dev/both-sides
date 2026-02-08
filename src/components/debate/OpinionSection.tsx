@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
@@ -25,6 +25,7 @@ import { useToast } from "@/components/ui/toast";
 import { MobileSideTabs } from "./MobileSideTabs";
 import { OpinionColumn } from "./OpinionColumn";
 import { OpinionList } from "./OpinionList";
+import { trackOpinionCreate } from "@/lib/analytics";
 import type { Opinion } from "./types";
 import type { Side, ReactionType } from "@prisma/client";
 
@@ -51,14 +52,20 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
     isSubmitting: false,
     error: null,
   });
+  const [isOpinionFocused, setIsOpinionFocused] = useState(false);
   const { showRateLimitError } = useToast();
 
   // Mobile swipe tabs
   const { activeTab, setActiveTab, handleDragEnd } = useSwipeableTabs();
 
-  // Use combined vote-info endpoint
+  // Dynamic height for mobile swipe container
+  const sideARef = useRef<HTMLDivElement>(null);
+  const sideBRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState<number | undefined>(undefined);
+
+  // Use combined vote-info endpoint (fetch for both logged-in and guest users)
   const { data: voteInfoData } = useSWR<{ data: { myVote: Side | null } }>(
-    session?.user ? `/api/topics/${topicId}/vote-info?includeMyVote=true` : null,
+    `/api/topics/${topicId}/vote-info?includeMyVote=true`,
     fetcher
   );
 
@@ -92,6 +99,22 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
 
     fetchAncestorData();
   }, [highlightReplyId, setActiveTab]);
+
+  // Track active tab's content height for mobile swipe container
+  useEffect(() => {
+    const activeRef = activeTab === "A" ? sideARef : sideBRef;
+    if (!activeRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerHeight(entry.contentRect.height);
+      }
+    });
+
+    setContainerHeight(activeRef.current.scrollHeight);
+    observer.observe(activeRef.current);
+    return () => observer.disconnect();
+  }, [activeTab]);
 
   // Fetch only top-level opinions (parentId=null)
   const queryParams = useMemo(() => {
@@ -127,8 +150,10 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
     [opinions]
   );
 
+  const isLoggedIn = !!session?.user;
+
   const handleSubmit = async () => {
-    if (!newOpinion.trim() || !session?.user) return;
+    if (!newOpinion.trim() || !myVote) return;
 
     setSubmitState({ isSubmitting: true, error: null });
 
@@ -136,7 +161,10 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
       const res = await fetch(`/api/topics/${topicId}/opinions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: newOpinion, isAnonymous }),
+        body: JSON.stringify({
+          body: newOpinion,
+          isAnonymous: isLoggedIn ? isAnonymous : true,
+        }),
       });
 
       if (res.status === 429) {
@@ -150,6 +178,11 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
 
       if (!res.ok) {
         throw new Error(result.error);
+      }
+
+      // Track opinion creation event
+      if (myVote) {
+        trackOpinionCreate(topicId, myVote);
       }
 
       setNewOpinion("");
@@ -253,7 +286,10 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
             countB={opinionsB.length}
           />
 
-          <div className="overflow-hidden">
+          <div
+            className="overflow-hidden transition-[height] duration-300"
+            style={containerHeight ? { height: containerHeight } : undefined}
+          >
             <MotionDiv
               className="flex"
               drag="x"
@@ -264,7 +300,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               {/* Side A opinions */}
-              <div className="w-full flex-shrink-0 px-1">
+              <div ref={sideARef} className="w-full flex-shrink-0 px-1">
                 <OpinionList
                   opinions={opinionsA}
                   optionA={optionA}
@@ -282,7 +318,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
               </div>
 
               {/* Side B opinions */}
-              <div className="w-full flex-shrink-0 px-1">
+              <div ref={sideBRef} className="w-full flex-shrink-0 px-1">
                 <OpinionList
                   opinions={opinionsB}
                   optionA={optionA}
@@ -302,81 +338,89 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
           </div>
         </div>
 
-        {/* New Opinion Form - moved below comments */}
-        {session?.user ? (
-          myVote ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant={myVote === "A" ? "sideA" : "sideB"} className="text-xs">
-                  {myVote === "A" ? optionA : optionB}
-                </Badge>
-                측으로 의견을 작성합니다
-              </div>
-              {submitState.error && (
-                <div className="rounded-lg bg-destructive/10 p-2 text-sm text-destructive">
-                  {submitState.error}
-                </div>
+        {/* New Opinion Form - shown for logged-in users and guests who have voted */}
+        {myVote ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Badge variant={myVote === "A" ? "sideA" : "sideB"} className="text-xs">
+                {myVote === "A" ? optionA : optionB}
+              </Badge>
+              <span className="hidden sm:inline">측으로 의견을 작성합니다</span>
+              <span className="sm:hidden">측</span>
+              {!isLoggedIn && (
+                <span className="text-xs text-muted-foreground/70">(손님)</span>
               )}
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Textarea
-                    value={newOpinion}
-                    onChange={(e) => setNewOpinion(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                        e.preventDefault();
-                        if (!submitState.isSubmitting && newOpinion.trim()) {
-                          handleSubmit();
-                        }
+            </div>
+            {submitState.error && (
+              <div className="rounded-lg bg-destructive/10 p-2 text-sm text-destructive">
+                {submitState.error}
+              </div>
+            )}
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Textarea
+                  value={newOpinion}
+                  onChange={(e) => setNewOpinion(e.target.value)}
+                  onFocus={() => setIsOpinionFocused(true)}
+                  onBlur={() => setIsOpinionFocused(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault();
+                      if (!submitState.isSubmitting && newOpinion.trim()) {
+                        handleSubmit();
                       }
-                    }}
-                    placeholder="의견을 입력하세요"
-                    className="min-h-[80px] resize-none"
-                    maxLength={1000}
-                  />
-                  <Button
-                    size="icon"
-                    onClick={handleSubmit}
-                    disabled={submitState.isSubmitting || !newOpinion.trim()}
-                    className={cn(
-                      "shrink-0",
-                      myVote === "A" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
-                    )}
-                  >
-                    {submitState.isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="opinionAnonymous"
-                    checked={isAnonymous}
-                    onCheckedChange={(checked) => setIsAnonymous(checked === true)}
-                  />
-                  <Label
-                    htmlFor="opinionAnonymous"
-                    className="text-xs font-normal cursor-pointer text-muted-foreground"
-                  >
-                    익명으로 작성
-                  </Label>
-                </div>
+                    }
+                  }}
+                  placeholder="의견을 입력하세요"
+                  className="min-h-[60px] md:min-h-[80px] resize-none text-sm md:text-base"
+                  maxLength={1000}
+                  aria-label="의견 입력"
+                />
+                <Button
+                  size="icon"
+                  onClick={handleSubmit}
+                  disabled={submitState.isSubmitting || !newOpinion.trim()}
+                  className={cn(
+                    "shrink-0 h-10 w-10 md:h-10 md:w-10",
+                    myVote === "A" ? "bg-sideA hover:bg-sideA/90" : "bg-sideB hover:bg-sideB/90"
+                  )}
+                >
+                  {submitState.isSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                {isLoggedIn ? (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="opinionAnonymous"
+                      checked={isAnonymous}
+                      onCheckedChange={(checked) => setIsAnonymous(checked === true)}
+                    />
+                    <Label
+                      htmlFor="opinionAnonymous"
+                      className="text-xs font-normal cursor-pointer text-muted-foreground"
+                    >
+                      익명으로 작성
+                    </Label>
+                  </div>
+                ) : (
+                  <div />
+                )}
+                {(isOpinionFocused || newOpinion.length > 0) && (
+                  <div className="text-xs text-muted-foreground text-right">
+                    {newOpinion.length} / 1000
+                  </div>
+                )}
               </div>
             </div>
-          ) : (
-            <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
-              먼저 투표를 해주세요. 투표한 측에서만 의견을 작성할 수 있습니다.
-            </div>
-          )
+          </div>
         ) : (
-          <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
-            의견을 작성하려면{" "}
-            <a href="/auth/signin" className="text-primary underline">
-              로그인
-            </a>
-            해주세요.
+          <div className="rounded-lg bg-muted p-3 md:p-4 text-center text-sm text-muted-foreground">
+            먼저 투표를 해주세요. 투표한 측에서만 의견을 작성할 수 있습니다.
           </div>
         )}
       </CardContent>
