@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback, memo } from "react";
 import Link from "next/link";
 import useSWR from "swr";
-import * as d3 from "d3";
+import { hierarchy, pack } from "d3-hierarchy";
 import { useTheme } from "next-themes";
 import { fetcher } from "@/lib/fetcher";
 import { CATEGORY_META, CATEGORY_COLORS } from "@/lib/constants";
@@ -195,16 +195,14 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
 
     const rootData: BubbleNode = { r: 0, topic: nodes[0].topic, children: nodes };
 
-    const root = d3
-      .hierarchy<BubbleNode>(rootData)
+    const root = hierarchy<BubbleNode>(rootData)
       .sum((d) => (d.children ? 0 : d.r * d.r));
 
-    const pack = d3
-      .pack<BubbleNode>()
+    const packer = pack<BubbleNode>()
       .size([containerWidth, height])
       .padding(3);
 
-    const packed = pack(root);
+    const packed = packer(root);
 
     return packed.leaves().map((leaf) => ({
       x: leaf.x,
