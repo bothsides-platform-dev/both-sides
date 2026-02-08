@@ -125,9 +125,27 @@ function getPopoverPosition(
 export const TopicBubbleMap = memo(function TopicBubbleMap() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+
+  const containerCallbackRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    containerRef.current = node;
+    if (node) {
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      });
+      observer.observe(node);
+      observerRef.current = observer;
+    }
+  }, []);
   const [highlightCategory, setHighlightCategory] = useState<Category | null>(null);
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
 
@@ -168,16 +186,6 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
     };
   }, [selectedBubbleId]);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
 
   const bubbles = useMemo(() => {
     if (!topics.length || !containerWidth) return [];
@@ -259,7 +267,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
   return (
     <div className="rounded-xl border bg-card p-4 sm:p-6">
       <h2 className="mb-4 text-base font-semibold">토픽 버블맵</h2>
-      <div ref={containerRef} className="relative w-full overflow-visible min-h-[200px]">
+      <div ref={containerCallbackRef} className="relative w-full overflow-visible min-h-[200px]">
         {containerWidth > 0 && (
           <>
             <svg
