@@ -83,7 +83,7 @@ export function TopicAuthorSection({
       setIsAnonymous(!isAnonymous);
     } catch (error) {
       console.error("Failed to toggle anonymity:", error);
-      alert(error instanceof Error ? error.message : "익명 상태 변경에 실패했습니다.");
+      showToast(error instanceof Error ? error.message : "익명 상태 변경에 실패했습니다.", "error");
     } finally {
       setIsUpdating(false);
     }
@@ -142,12 +142,15 @@ export function TopicAuthorSection({
     const fullUrl = getFullUrl();
     if (!fullUrl) return;
     const urlWithUTM = addUTMParams(fullUrl, "kakao");
-    shareKakao({
+    const result = shareKakao({
       title: shareTitle || "",
       description: shareDescription,
       imageUrl: getFullImageUrl(),
       url: urlWithUTM,
     });
+    if (!result.success && result.fallbackMessage) {
+      showToast(result.fallbackMessage, "warning");
+    }
     trackShare("kakao", topicId);
   };
 

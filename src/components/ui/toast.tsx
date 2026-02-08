@@ -90,7 +90,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <ToastContext.Provider value={{ showToast, showRateLimitError }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm" role="status" aria-live="polite">
         <AnimatePresence mode="popLayout">
           {toasts.map((toast) => {
             const Icon = icons[toast.type];
@@ -112,6 +112,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
                 <button
                   onClick={() => removeToast(toast.id)}
                   className="shrink-0 p-0.5 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                  aria-label="알림 닫기"
                 >
                   <X className="h-4 w-4" />
                 </button>

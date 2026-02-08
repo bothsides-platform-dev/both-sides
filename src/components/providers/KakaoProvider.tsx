@@ -11,9 +11,14 @@ interface ShareKakaoOptions {
   buttonTitle?: string;
 }
 
+interface ShareKakaoResult {
+  success: boolean;
+  fallbackMessage?: string;
+}
+
 interface KakaoContextValue {
   isReady: boolean;
-  shareKakao: (options: ShareKakaoOptions) => void;
+  shareKakao: (options: ShareKakaoOptions) => ShareKakaoResult;
 }
 
 const KakaoContext = createContext<KakaoContextValue | null>(null);
@@ -41,15 +46,11 @@ export function KakaoProvider({ children }: KakaoProviderProps) {
     }
   }, []);
 
-  const shareKakao = useCallback((options: ShareKakaoOptions) => {
+  const shareKakao = useCallback((options: ShareKakaoOptions): ShareKakaoResult => {
     if (!window.Kakao || !isReady) {
       // SDK 미로드 시 클립보드 복사로 대체
-      navigator.clipboard.writeText(options.url).then(() => {
-        alert("카카오톡 공유가 준비되지 않았습니다. 링크가 복사되었습니다.");
-      }).catch(() => {
-        alert("카카오톡 공유를 사용할 수 없습니다. 링크를 직접 복사해주세요.");
-      });
-      return;
+      navigator.clipboard.writeText(options.url).catch(() => {});
+      return { success: false, fallbackMessage: "카카오톡 공유가 준비되지 않았습니다. 링크가 복사되었습니다." };
     }
 
     const templateId = process.env.NEXT_PUBLIC_KAKAO_TEMPLATE_ID;
@@ -89,6 +90,8 @@ export function KakaoProvider({ children }: KakaoProviderProps) {
         ],
       });
     }
+
+    return { success: true };
   }, [isReady]);
 
   return (

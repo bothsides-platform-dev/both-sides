@@ -167,6 +167,8 @@ export function TrendingTopicsCollapsible({ className }: { className?: string })
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-4 py-3 flex items-center justify-between"
+        aria-expanded={isOpen}
+        aria-label="실시간 인기 검색어"
       >
         <div className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-green-500" />

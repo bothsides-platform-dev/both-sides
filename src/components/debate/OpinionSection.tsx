@@ -379,6 +379,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                     "shrink-0 h-10 w-10 md:h-10 md:w-10",
                     myVote === "A" ? "bg-sideA hover:bg-sideA/90" : "bg-sideB hover:bg-sideB/90"
                   )}
+                  aria-label="의견 등록"
                 >
                   {submitState.isSubmitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
