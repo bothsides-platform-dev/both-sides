@@ -17,6 +17,7 @@ interface BubbleTopic {
   optionB: string;
   category: Category;
   viewCount: number;
+  imageUrl?: string | null;
   _count: {
     votes: number;
     opinions: number;
@@ -276,6 +277,44 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
               viewBox={`0 0 ${containerWidth} ${svgHeight}`}
               className="select-none"
             >
+              <defs>
+                {bubbles.map((bubble) => {
+                  if (!bubble.topic.imageUrl) return null;
+                  const r = selectedBubbleId === bubble.topic.id ? bubble.r + 2 : bubble.r;
+                  return (
+                    <pattern
+                      key={`img-${bubble.topic.id}`}
+                      id={`img-${bubble.topic.id}`}
+                      patternUnits="objectBoundingBox"
+                      width="1"
+                      height="1"
+                    >
+                      <image
+                        href={bubble.topic.imageUrl}
+                        width={r * 2}
+                        height={r * 2}
+                        preserveAspectRatio="xMidYMid slice"
+                      />
+                    </pattern>
+                  );
+                })}
+                {bubbles.map((bubble) => {
+                  if (!bubble.topic.imageUrl) return null;
+                  return (
+                    <linearGradient
+                      key={`grad-${bubble.topic.id}`}
+                      id={`grad-${bubble.topic.id}`}
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="black" stopOpacity="0" />
+                      <stop offset={bubble.r > 25 ? "55%" : "100%"} stopColor="black" stopOpacity={bubble.r > 25 ? "0.55" : "0.3"} />
+                    </linearGradient>
+                  );
+                })}
+              </defs>
               {bubbles.map((bubble) => {
                 const color = CATEGORY_COLORS[bubble.topic.category];
                 const fill = isDark ? color.dark : color.light;
@@ -285,6 +324,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
                 const r = isSelected ? bubble.r + 2 : bubble.r;
                 const meta = CATEGORY_META[bubble.topic.category];
                 const Icon = meta.icon;
+                const hasImage = !!bubble.topic.imageUrl;
 
                 return (
                   <g
@@ -300,48 +340,98 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
                     onClick={() => handleBubbleClick(bubble.topic.id)}
                     onKeyDown={(e) => handleBubbleKeyDown(e, bubble.topic.id)}
                   >
-                    <circle
-                      cx={bubble.x}
-                      cy={bubble.y}
-                      r={r}
-                      fill={fill}
-                      fillOpacity={isDark ? 0.35 : 0.3}
-                      stroke={fill}
-                      strokeWidth={isSelected ? 2.5 : 2}
-                    />
-                    {bubble.r > 40 ? (
-                      <text
-                        x={bubble.x}
-                        y={bubble.y}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        className="fill-foreground text-xs font-medium pointer-events-none"
-                      >
-                        {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
-                      </text>
-                    ) : bubble.r > 25 ? (
-                      <text
-                        x={bubble.x}
-                        y={bubble.y}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        className="fill-foreground text-2xs pointer-events-none"
-                      >
-                        {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
-                      </text>
-                    ) : (
-                      <foreignObject
-                        x={bubble.x - 7}
-                        y={bubble.y - 7}
-                        width={14}
-                        height={14}
-                        className="pointer-events-none"
-                      >
-                        <Icon
-                          className="h-3.5 w-3.5"
-                          style={{ color: fill }}
+                    {hasImage ? (
+                      <>
+                        {/* Thumbnail image circle */}
+                        <circle
+                          cx={bubble.x}
+                          cy={bubble.y}
+                          r={r}
+                          fill={`url(#img-${bubble.topic.id})`}
+                          stroke={fill}
+                          strokeWidth={isSelected ? 2.5 : 2}
                         />
-                      </foreignObject>
+                        {/* Gradient overlay for text readability */}
+                        <circle
+                          cx={bubble.x}
+                          cy={bubble.y}
+                          r={r}
+                          fill={`url(#grad-${bubble.topic.id})`}
+                          className="pointer-events-none"
+                        />
+                        {/* Text on image bubbles */}
+                        {bubble.r > 40 ? (
+                          <text
+                            x={bubble.x}
+                            y={bubble.y + r * 0.3}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            className="text-xs font-semibold pointer-events-none"
+                            fill="white"
+                            style={{ textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
+                          >
+                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
+                          </text>
+                        ) : bubble.r > 25 ? (
+                          <text
+                            x={bubble.x}
+                            y={bubble.y + r * 0.35}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            className="text-2xs font-semibold pointer-events-none"
+                            fill="white"
+                            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
+                          >
+                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
+                          </text>
+                        ) : null}
+                      </>
+                    ) : (
+                      <>
+                        <circle
+                          cx={bubble.x}
+                          cy={bubble.y}
+                          r={r}
+                          fill={fill}
+                          fillOpacity={isDark ? 0.35 : 0.3}
+                          stroke={fill}
+                          strokeWidth={isSelected ? 2.5 : 2}
+                        />
+                        {bubble.r > 40 ? (
+                          <text
+                            x={bubble.x}
+                            y={bubble.y}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            className="fill-foreground text-xs font-medium pointer-events-none"
+                          >
+                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
+                          </text>
+                        ) : bubble.r > 25 ? (
+                          <text
+                            x={bubble.x}
+                            y={bubble.y}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            className="fill-foreground text-2xs pointer-events-none"
+                          >
+                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
+                          </text>
+                        ) : (
+                          <foreignObject
+                            x={bubble.x - 7}
+                            y={bubble.y - 7}
+                            width={14}
+                            height={14}
+                            className="pointer-events-none"
+                          >
+                            <Icon
+                              className="h-3.5 w-3.5"
+                              style={{ color: fill }}
+                            />
+                          </foreignObject>
+                        )}
+                      </>
                     )}
                   </g>
                 );
