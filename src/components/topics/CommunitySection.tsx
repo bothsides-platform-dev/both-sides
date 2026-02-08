@@ -4,6 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import { TopicListItem, type TopicListItemProps } from "./TopicListItem";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { Loader2, MessageSquare, ArrowRight } from "lucide-react";
@@ -37,7 +38,26 @@ export function CommunitySection() {
       </div>
 
       <div className="flex flex-wrap items-center gap-4">
-        <div className="flex flex-wrap gap-2">
+        {/* 모바일: Select 드롭다운 */}
+        <div className="sm:hidden w-full">
+          <Select
+            value={selectedCategory ?? "ALL"}
+            onValueChange={(v) => setSelectedCategory(v === "ALL" ? undefined : v as Category)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="카테고리 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">전체</SelectItem>
+              {categories.map(([value, label]) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* 데스크톱: 기존 칩 버튼 */}
+        <div className="hidden sm:flex sm:flex-wrap gap-2">
           <Button
             variant={selectedCategory === undefined ? "default" : "outline"}
             size="sm"
