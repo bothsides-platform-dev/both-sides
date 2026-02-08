@@ -37,14 +37,14 @@ export function CommunitySection() {
         <h2 className="text-xl font-bold">커뮤니티 토론</h2>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex items-center gap-4">
         {/* 모바일: Select 드롭다운 */}
-        <div className="sm:hidden w-full">
+        <div className="sm:hidden">
           <Select
             value={selectedCategory ?? "ALL"}
             onValueChange={(v) => setSelectedCategory(v === "ALL" ? undefined : v as Category)}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="카테고리 선택" />
             </SelectTrigger>
             <SelectContent>
