@@ -60,7 +60,7 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
                 src={topic.imageUrl}
                 alt={topic.title}
                 fill
-                className="object-contain z-[1]"
+                className="object-cover z-[1]"
               />
             </>
           ) : (

@@ -45,7 +45,7 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
               src={topic.imageUrl}
               alt={topic.title}
               fill
-              className="object-contain z-[1]"
+              className="object-cover z-[1]"
             />
           </>
         ) : (

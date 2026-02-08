@@ -48,7 +48,7 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
                 src={topic.imageUrl}
                 alt={topic.title}
                 fill
-                className="object-contain z-[1] transition-transform group-hover:scale-105"
+                className="object-cover z-[1] transition-transform group-hover:scale-105"
               />
             </>
           ) : (
