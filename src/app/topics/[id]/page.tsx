@@ -11,6 +11,7 @@ import { ViewCountTracker } from "@/components/topics/ViewCountTracker";
 import { InAppBrowserRedirect } from "@/components/InAppBrowserRedirect";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { ReferenceLinksCollapsible } from "@/components/topics/ReferenceLinksCollapsible";
+import { RelatedTopics } from "@/components/topics/RelatedTopics";
 
 interface ReferenceLink {
   url: string;
@@ -237,6 +238,9 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         optionB={topic.optionB}
         highlightReplyId={highlightReply}
       />
+
+      {/* Related Topics */}
+      <RelatedTopics topicId={topic.id} category={topic.category} />
     </div>
   );
 }
