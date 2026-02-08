@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect, useCallback, memo } from "react";
+import { useMemo, useRef, useEffect, useCallback, memo, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { hierarchy, pack } from "d3-hierarchy";
@@ -49,7 +49,9 @@ interface BubbleData {
   topic: BubbleTopic;
 }
 
-const categories = Object.keys(CATEGORY_META) as Category[];
+interface TopicBubbleMapProps {
+  highlightCategory?: Category | null;
+}
 
 function truncateText(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text;
@@ -123,7 +125,9 @@ function getPopoverPosition(
   return { left, top };
 }
 
-export const TopicBubbleMap = memo(function TopicBubbleMap() {
+export const TopicBubbleMap = memo(function TopicBubbleMap({
+  highlightCategory = null,
+}: TopicBubbleMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -147,7 +151,6 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
       observerRef.current = observer;
     }
   }, []);
-  const [highlightCategory, setHighlightCategory] = useState<Category | null>(null);
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
 
   const { data, isLoading } = useSWR<TopicsResponse>(
@@ -463,40 +466,6 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
         )}
       </div>
 
-      {/* Category Legend */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        {categories.map((cat) => {
-          const meta = CATEGORY_META[cat];
-          const color = CATEGORY_COLORS[cat];
-          const isActive = highlightCategory === cat;
-          const hexColor = isDark ? color.dark : color.light;
-
-          return (
-            <button
-              key={cat}
-              onClick={() =>
-                setHighlightCategory(isActive ? null : cat)
-              }
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all ${
-                isActive
-                  ? "ring-2 ring-offset-1 ring-offset-background"
-                  : "opacity-70 hover:opacity-100"
-              }`}
-              style={{
-                backgroundColor: `${hexColor}20`,
-                color: hexColor,
-                ...(isActive ? { ringColor: hexColor } : {}),
-              }}
-            >
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: hexColor }}
-              />
-              {meta.label}
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 });

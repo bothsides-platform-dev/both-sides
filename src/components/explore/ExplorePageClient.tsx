@@ -2,9 +2,10 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useCallback, Suspense } from "react";
+import { useTheme } from "next-themes";
 import useSWR from "swr";
 import { cn } from "@/lib/utils";
-import { CATEGORY_META, CATEGORY_SLUG_MAP, CATEGORY_TO_SLUG } from "@/lib/constants";
+import { CATEGORY_META, CATEGORY_SLUG_MAP, CATEGORY_TO_SLUG, CATEGORY_COLORS } from "@/lib/constants";
 import { TopicListItem, type TopicListItemProps } from "@/components/topics/TopicListItem";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,8 @@ const categories = Object.keys(CATEGORY_META) as Category[];
 function ExplorePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const categorySlug = searchParams.get("category");
   const categoryEnum = categorySlug ? CATEGORY_SLUG_MAP[categorySlug] : undefined;
 
@@ -74,7 +77,7 @@ function ExplorePageContent() {
   return (
     <div className="space-y-4">
       {/* Bubble Map */}
-      <TopicBubbleMap />
+      <TopicBubbleMap highlightCategory={categoryEnum ?? null} />
 
       {/* Category Chips */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -94,6 +97,7 @@ function ExplorePageContent() {
           const meta = CATEGORY_META[cat];
           const isActive = categorySlug === slug;
           const Icon = meta.icon;
+          const hexColor = isDark ? CATEGORY_COLORS[cat].dark : CATEGORY_COLORS[cat].light;
 
           return (
             <button
@@ -101,10 +105,9 @@ function ExplorePageContent() {
               onClick={() => handleCategoryChange(slug)}
               className={cn(
                 "shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-foreground text-background"
-                  : "bg-muted text-muted-foreground hover:bg-accent"
+                !isActive && "bg-muted text-muted-foreground hover:bg-accent"
               )}
+              style={isActive ? { backgroundColor: hexColor, color: "#fff" } : undefined}
             >
               <Icon className="h-3.5 w-3.5" />
               {meta.label}
