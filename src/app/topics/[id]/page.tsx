@@ -193,6 +193,10 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
               imageUrl={topic.imageUrl}
             />
           }
+          shareUrl={`/topics/${topic.id}`}
+          shareTitle={topic.title}
+          shareDescription={`${topic.optionA} vs ${topic.optionB}`}
+          shareImageUrl={topic.imageUrl || `/topics/${topic.id}/opengraph-image`}
         />
 
         {/* Hero Image */}
