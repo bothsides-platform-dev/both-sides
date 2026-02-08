@@ -50,7 +50,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
   const { showRateLimitError } = useToast();
 
   // Mobile swipe tabs
-  const { activeTab, setActiveTab, handleDragEnd } = useSwipeableTabs();
+  const { activeTab, setActiveTab } = useSwipeableTabs();
 
   // Dynamic height for mobile swipe container
   const sideARef = useRef<HTMLDivElement>(null);
@@ -299,10 +299,6 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
           >
             <motion.div
               className="flex"
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
-              onDragEnd={handleDragEnd}
               initial={false}
               animate={{ x: activeTab === "A" ? 0 : "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
