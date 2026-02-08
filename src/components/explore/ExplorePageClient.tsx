@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { CATEGORY_META, CATEGORY_SLUG_MAP, CATEGORY_TO_SLUG, CATEGORY_COLORS } from "@/lib/constants";
 import { TopicListItem, type TopicListItemProps } from "@/components/topics/TopicListItem";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
@@ -79,46 +80,69 @@ function ExplorePageContent() {
       {/* Bubble Map */}
       <TopicBubbleMap highlightCategory={categoryEnum ?? null} />
 
-      {/* Category Chips */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" role="toolbar" aria-label="카테고리 필터">
-        <button
-          onClick={() => handleCategoryChange(null)}
-          className={cn(
-            "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            !categorySlug
-              ? "bg-foreground text-background"
-              : "bg-muted text-muted-foreground hover:bg-accent"
-          )}
-        >
-          전체
-        </button>
-        {categories.map((cat) => {
-          const slug = CATEGORY_TO_SLUG[cat];
-          const meta = CATEGORY_META[cat];
-          const isActive = categorySlug === slug;
-          const Icon = meta.icon;
-          const hexColor = isDark ? CATEGORY_COLORS[cat].dark : CATEGORY_COLORS[cat].light;
+      {/* Category + Sort */}
+      <div className="flex items-center gap-4">
+        {/* 모바일: Select 드롭다운 */}
+        <div className="sm:hidden">
+          <Select
+            value={categorySlug ?? "ALL"}
+            onValueChange={(v) => handleCategoryChange(v === "ALL" ? null : v)}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="카테고리 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">전체</SelectItem>
+              {categories.map((cat) => {
+                const slug = CATEGORY_TO_SLUG[cat];
+                const meta = CATEGORY_META[cat];
+                return (
+                  <SelectItem key={cat} value={slug}>{meta.label}</SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
 
-          return (
-            <button
-              key={cat}
-              onClick={() => handleCategoryChange(slug)}
-              className={cn(
-                "shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                !isActive && "bg-muted text-muted-foreground hover:bg-accent"
-              )}
-              style={isActive ? { backgroundColor: hexColor, color: "#fff" } : undefined}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {meta.label}
-            </button>
-          );
-        })}
-      </div>
+        {/* 데스크톱: 기존 칩 */}
+        <div className="hidden sm:flex gap-2 overflow-x-auto pb-2 scrollbar-hide" role="toolbar" aria-label="카테고리 필터">
+          <button
+            onClick={() => handleCategoryChange(null)}
+            className={cn(
+              "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              !categorySlug
+                ? "bg-foreground text-background"
+                : "bg-muted text-muted-foreground hover:bg-accent"
+            )}
+          >
+            전체
+          </button>
+          {categories.map((cat) => {
+            const slug = CATEGORY_TO_SLUG[cat];
+            const meta = CATEGORY_META[cat];
+            const isActive = categorySlug === slug;
+            const Icon = meta.icon;
+            const hexColor = isDark ? CATEGORY_COLORS[cat].dark : CATEGORY_COLORS[cat].light;
 
-      {/* Sort Tabs */}
-      <div className="flex justify-end">
-        <Tabs value={sort} onValueChange={handleSortChange}>
+            return (
+              <button
+                key={cat}
+                onClick={() => handleCategoryChange(slug)}
+                className={cn(
+                  "shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  !isActive && "bg-muted text-muted-foreground hover:bg-accent"
+                )}
+                style={isActive ? { backgroundColor: hexColor, color: "#fff" } : undefined}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {meta.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 정렬 탭 - 오른쪽 정렬 */}
+        <Tabs value={sort} onValueChange={handleSortChange} className="ml-auto">
           <TabsList>
             <TabsTrigger value="latest">최신순</TabsTrigger>
             <TabsTrigger value="popular">인기순</TabsTrigger>
