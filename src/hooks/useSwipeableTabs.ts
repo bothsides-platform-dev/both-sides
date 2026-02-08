@@ -4,8 +4,9 @@ import { useState, useCallback } from "react";
 import type { PanInfo } from "framer-motion";
 import type { Side } from "@prisma/client";
 
-const SWIPE_THRESHOLD = 50; // pixels
-const VELOCITY_THRESHOLD = 500; // pixels per second
+const SWIPE_THRESHOLD = 80; // pixels
+const VELOCITY_THRESHOLD = 800; // pixels per second
+const DIRECTION_RATIO = 1.5; // horizontal must exceed vertical by this factor
 
 interface UseSwipeableTabsOptions {
   initialTab?: Side;
@@ -27,7 +28,13 @@ export function useSwipeableTabs(
     (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       const { offset, velocity } = info;
 
-      // Check if swipe meets threshold or velocity requirements
+      // Only process horizontal gestures (ignore vertical scroll drift)
+      const isHorizontalGesture =
+        Math.abs(offset.y) < 10 ||
+        Math.abs(offset.x) > Math.abs(offset.y) * DIRECTION_RATIO;
+
+      if (!isHorizontalGesture) return;
+
       const swipedLeft = offset.x < -SWIPE_THRESHOLD || velocity.x < -VELOCITY_THRESHOLD;
       const swipedRight = offset.x > SWIPE_THRESHOLD || velocity.x > VELOCITY_THRESHOLD;
 
