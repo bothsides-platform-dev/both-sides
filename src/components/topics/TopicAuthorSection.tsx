@@ -72,7 +72,7 @@ export function TopicAuthorSection({
   };
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex items-center justify-between">
       {/* 좌측: 작성자 정보 */}
       <div className="flex items-center gap-3">
         {isAnonymous ? (
