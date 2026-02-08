@@ -31,6 +31,7 @@ export const getTopicsSchema = z.object({
   category: categoryEnum.optional(),
   sort: z.enum(["latest", "popular"]).default("latest"),
   featured: z.coerce.boolean().optional(),
+  exclude: z.string().optional(),
 });
 
 export const updateFeaturedSchema = z.object({

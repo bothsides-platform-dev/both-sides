@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
       category: searchParams.get("category") || undefined,
       sort: searchParams.get("sort") || undefined,
       featured: searchParams.get("featured") || undefined,
+      exclude: searchParams.get("exclude") || undefined,
     });
 
     const result = await getTopics(input);
