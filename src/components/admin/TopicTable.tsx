@@ -9,6 +9,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatRelativeTime } from "@/lib/utils";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Loader2,
   Eye,
   EyeOff,
@@ -49,6 +57,8 @@ interface TopicTableProps {
 export function TopicTable({ topics }: TopicTableProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [processingAction, setProcessingAction] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const handleToggleHidden = async (id: string, isHidden: boolean) => {
     setProcessingId(id);
@@ -104,14 +114,18 @@ export function TopicTable({ topics }: TopicTableProps) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("정말로 이 토론을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
-      return;
-    }
-    setProcessingId(id);
+  const handleOpenDeleteDialog = (id: string) => {
+    setDeleteTargetId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
+    setDeleteDialogOpen(false);
+    setProcessingId(deleteTargetId);
     setProcessingAction("delete");
     try {
-      await fetch(`/api/admin/topics/${id}`, {
+      await fetch(`/api/admin/topics/${deleteTargetId}`, {
         method: "DELETE",
       });
       mutate((key: string) => key.startsWith("/api/admin/topics"));
@@ -120,6 +134,7 @@ export function TopicTable({ topics }: TopicTableProps) {
     } finally {
       setProcessingId(null);
       setProcessingAction(null);
+      setDeleteTargetId(null);
     }
   };
 
@@ -184,6 +199,7 @@ export function TopicTable({ topics }: TopicTableProps) {
                   onClick={() => handleToggleHidden(topic.id, topic.isHidden)}
                   disabled={processingId === topic.id}
                   title={topic.isHidden ? "공개하기" : "숨기기"}
+                  aria-label={topic.isHidden ? "공개하기" : "숨기기"}
                 >
                   {processingId === topic.id && processingAction === "hide" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -200,6 +216,7 @@ export function TopicTable({ topics }: TopicTableProps) {
                   onClick={() => handleToggleFeatured(topic.id, topic.isFeatured)}
                   disabled={processingId === topic.id}
                   title={topic.isFeatured ? "추천 해제" : "추천 설정"}
+                  aria-label={topic.isFeatured ? "추천 해제" : "추천 설정"}
                 >
                   {processingId === topic.id && processingAction === "feature" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -216,6 +233,7 @@ export function TopicTable({ topics }: TopicTableProps) {
                   onClick={() => handleToggleAnonymity(topic.id, topic.isAnonymous ?? false)}
                   disabled={processingId === topic.id}
                   title={topic.isAnonymous ? "익명 해제" : "익명 설정"}
+                  aria-label={topic.isAnonymous ? "익명 해제" : "익명 설정"}
                 >
                   {processingId === topic.id && processingAction === "anonymity" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -230,6 +248,7 @@ export function TopicTable({ topics }: TopicTableProps) {
                   size="sm"
                   variant="ghost"
                   asChild
+                  aria-label="수정"
                 >
                   <Link href={`/admin/topics/${topic.id}/edit`}>
                     <Edit className="h-4 w-4" />
@@ -239,10 +258,11 @@ export function TopicTable({ topics }: TopicTableProps) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleDelete(topic.id)}
+                  onClick={() => handleOpenDeleteDialog(topic.id)}
                   disabled={processingId === topic.id}
                   className="text-destructive hover:text-destructive"
                   title="삭제"
+                  aria-label="삭제"
                 >
                   {processingId === topic.id && processingAction === "delete" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -255,6 +275,24 @@ export function TopicTable({ topics }: TopicTableProps) {
           </CardContent>
         </Card>
       ))}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>토론 삭제</DialogTitle>
+            <DialogDescription>
+              정말로 이 토론을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              취소
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              삭제
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
