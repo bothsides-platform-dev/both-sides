@@ -46,7 +46,7 @@ function ExplorePageContent() {
     (slug: string | null) => {
       const params = new URLSearchParams();
       if (slug) params.set("category", slug);
-      router.push(`/explore${params.toString() ? `?${params}` : ""}`);
+      router.push(`/explore${params.toString() ? `?${params}` : ""}`, { scroll: false });
       setPage(1);
       setSort("latest");
     },
