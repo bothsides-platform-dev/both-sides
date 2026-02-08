@@ -406,7 +406,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   <div />
                 )}
                 {(isOpinionFocused || newOpinion.length > 0) && (
-                  <div className="text-xs text-muted-foreground text-right">
+                  <div className="text-xs text-muted-foreground text-right" aria-live="polite">
                     {newOpinion.length} / 1000
                   </div>
                 )}

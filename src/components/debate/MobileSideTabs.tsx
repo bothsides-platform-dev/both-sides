@@ -23,7 +23,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
   countB,
 }: MobileSideTabsProps) {
   return (
-    <div className="relative flex border-b border-border/50 mb-2">
+    <div className="relative flex border-b border-border/50 mb-2" role="tablist" aria-label="의견 탭">
       {/* Tab buttons */}
       <button
         onClick={() => onTabChange("A")}

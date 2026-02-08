@@ -84,7 +84,7 @@ function ExplorePageContent() {
         <button
           onClick={() => handleCategoryChange(null)}
           className={cn(
-            "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+            "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             !categorySlug
               ? "bg-foreground text-background"
               : "bg-muted text-muted-foreground hover:bg-accent"
@@ -104,7 +104,7 @@ function ExplorePageContent() {
               key={cat}
               onClick={() => handleCategoryChange(slug)}
               className={cn(
-                "shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                "shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 !isActive && "bg-muted text-muted-foreground hover:bg-accent"
               )}
               style={isActive ? { backgroundColor: hexColor, color: "#fff" } : undefined}

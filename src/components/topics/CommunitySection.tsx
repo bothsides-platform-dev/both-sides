@@ -6,8 +6,9 @@ import { TopicListItem, type TopicListItemProps } from "./TopicListItem";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CATEGORY_LABELS } from "@/lib/constants";
-import { Loader2, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare, ArrowRight } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
+import Link from "next/link";
 import type { Category } from "@prisma/client";
 
 const categories = Object.entries(CATEGORY_LABELS) as [Category, string][];
@@ -19,7 +20,7 @@ export function CommunitySection() {
   const params = new URLSearchParams();
   if (selectedCategory) params.set("category", selectedCategory);
   params.set("sort", sort);
-  params.set("limit", "20");
+  params.set("limit", "10");
 
   const { data, error, isLoading } = useSWR<{ data: { topics: TopicListItemProps["topic"][] } }>(
     `/api/topics?${params.toString()}`,
@@ -82,6 +83,16 @@ export function CommunitySection() {
             <TopicListItem key={topic.id} topic={topic} />
           ))
         )}
+      </div>
+
+      <div className="flex justify-center">
+        <Link
+          href="/explore"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          더 보기
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
     </section>
   );
