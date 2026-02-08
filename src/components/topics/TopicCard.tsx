@@ -48,9 +48,24 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
     <div className="relative h-full">
       <Link href={`/topics/${topic.id}`}>
         <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
-          <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-sideA/10 to-sideB/10 dark:from-sideA/20 dark:to-sideB/20">
+          <div className={`relative aspect-video w-full overflow-hidden ${topic.imageUrl ? "bg-muted/50" : "bg-gradient-to-br from-sideA/10 to-sideB/10 dark:from-sideA/20 dark:to-sideB/20"}`}>
             {topic.imageUrl ? (
-              <Image src={topic.imageUrl} alt="" fill className="object-cover" />
+              <>
+                <Image
+                  src={topic.imageUrl}
+                  alt=""
+                  fill
+                  sizes="50vw"
+                  className="object-cover blur-2xl scale-110 opacity-70"
+                  aria-hidden="true"
+                />
+                <Image
+                  src={topic.imageUrl}
+                  alt={topic.title}
+                  fill
+                  className="object-contain z-[1]"
+                />
+              </>
             ) : (
               <div className="flex h-full items-center justify-center">
                 {/* 대각선 분할 배경 */}

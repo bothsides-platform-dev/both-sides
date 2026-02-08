@@ -33,14 +33,24 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
   return (
     <Link href={`/topics/${topic.id}`} className="group">
       <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-sideA/20 to-sideB/20">
+        <div className={`relative aspect-[16/10] w-full overflow-hidden ${topic.imageUrl ? "bg-muted/50" : "bg-gradient-to-br from-sideA/20 to-sideB/20"}`}>
           {topic.imageUrl ? (
-            <Image
-              src={topic.imageUrl}
-              alt={topic.title}
-              fill
-              className="object-cover transition-transform group-hover:scale-105"
-            />
+            <>
+              <Image
+                src={topic.imageUrl}
+                alt=""
+                fill
+                sizes="50vw"
+                className="object-cover blur-2xl scale-110 opacity-70"
+                aria-hidden="true"
+              />
+              <Image
+                src={topic.imageUrl}
+                alt={topic.title}
+                fill
+                className="object-contain z-[1] transition-transform group-hover:scale-105"
+              />
+            </>
           ) : (
             <div className="flex h-full items-center justify-center">
               {/* 애니메이션 그라데이션 배경 */}
