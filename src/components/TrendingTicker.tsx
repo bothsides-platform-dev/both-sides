@@ -107,7 +107,7 @@ export function TrendingTicker() {
   if (isLoading) {
     return (
       <div className="w-full bg-muted/50 border-b">
-        <div className="w-full px-4 md:px-8 lg:px-12 py-2">
+        <div className="w-full px-4 md:px-8 lg:px-6 py-2">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 shrink-0">
               <TrendingUp className="h-4 w-4 text-green-500" />
@@ -130,7 +130,7 @@ export function TrendingTicker() {
 
   return (
     <div className="w-full bg-muted/50 border-b">
-      <div className="w-full px-4 md:px-8 lg:px-12 py-2">
+      <div className="w-full px-4 md:px-8 lg:px-6 py-2">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <div className="flex items-center gap-3">
             {/* Label + Toggle Button */}

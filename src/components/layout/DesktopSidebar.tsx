@@ -39,7 +39,7 @@ export function DesktopSidebar() {
   }, []);
 
   return (
-    <aside className="hidden lg:flex lg:w-[220px] lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:border-r lg:bg-background lg:pt-20 lg:pb-4">
+    <aside className="hidden lg:flex lg:w-[220px] lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:border-r lg:bg-background lg:pt-16 lg:pb-4">
       {/* Main Navigation */}
       <nav className="flex-1 px-3 space-y-1">
         {NAV_ITEMS.map((item) => {
