@@ -206,7 +206,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                     isActive
-                      ? cn(meta.bgColor, "font-medium")
+                      ? "bg-accent font-medium"
                       : "hover:bg-accent hover:text-accent-foreground"
                   )}
                 >

@@ -161,7 +161,7 @@ export function DesktopSidebar() {
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                       collapsed && "justify-center px-0",
                       isActive
-                        ? cn(meta.bgColor, "font-medium")
+                        ? "bg-accent font-medium"
                         : "hover:bg-accent hover:text-accent-foreground"
                     )}
                   >
