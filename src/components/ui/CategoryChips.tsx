@@ -5,12 +5,13 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { CATEGORY_META, CATEGORY_COLORS } from "@/lib/constants";
 import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import { LayoutGrid } from "lucide-react";
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown, LayoutGrid } from "lucide-react";
 import type { Category } from "@prisma/client";
 
 const categories = Object.keys(CATEGORY_META) as Category[];
@@ -78,42 +79,51 @@ export function CategoryChips({
 
   return (
     <div className={cn("relative", className)}>
-      {/* 모바일: Select 드롭다운 */}
+      {/* 모바일: DropdownMenu */}
       <div className="md:hidden">
-        <Select value={value ?? ALL_VALUE} onValueChange={handleSelectChange}>
-          <SelectTrigger className="h-9 text-sm font-medium">
-            <span className="flex items-center gap-1.5">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
               {SelectedIcon ? (
-                <SelectedIcon className="h-3.5 w-3.5" style={{ color: selectedColor }} />
+                <SelectedIcon
+                  className="h-3.5 w-3.5"
+                  style={{ color: selectedColor }}
+                />
               ) : (
                 <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
               )}
               {selectedMeta ? selectedMeta.label : "전체"}
-            </span>
-          </SelectTrigger>
-          <SelectContent>
-            {showAll && (
-              <SelectItem value={ALL_VALUE}>
-                <span className="flex items-center gap-1.5">
-                  <LayoutGrid className="h-3.5 w-3.5" />
-                  전체
-                </span>
-              </SelectItem>
-            )}
-            {categories.map((cat) => {
-              const meta = CATEGORY_META[cat];
-              const Icon = meta.icon;
-              return (
-                <SelectItem key={cat} value={cat}>
+              <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuRadioGroup
+              value={value ?? ALL_VALUE}
+              onValueChange={handleSelectChange}
+            >
+              {showAll && (
+                <DropdownMenuRadioItem value={ALL_VALUE}>
                   <span className="flex items-center gap-1.5">
-                    <Icon className="h-3.5 w-3.5" />
-                    {meta.label}
+                    <LayoutGrid className="h-3.5 w-3.5" />
+                    전체
                   </span>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+                </DropdownMenuRadioItem>
+              )}
+              {categories.map((cat) => {
+                const meta = CATEGORY_META[cat];
+                const Icon = meta.icon;
+                return (
+                  <DropdownMenuRadioItem key={cat} value={cat}>
+                    <span className="flex items-center gap-1.5">
+                      <Icon className="h-3.5 w-3.5" />
+                      {meta.label}
+                    </span>
+                  </DropdownMenuRadioItem>
+                );
+              })}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* 데스크톱: 기존 수평 칩 */}
@@ -147,7 +157,9 @@ export function CategoryChips({
               const meta = CATEGORY_META[cat];
               const isActive = value === cat;
               const Icon = meta.icon;
-              const hexColor = isDark ? CATEGORY_COLORS[cat].dark : CATEGORY_COLORS[cat].light;
+              const hexColor = isDark
+                ? CATEGORY_COLORS[cat].dark
+                : CATEGORY_COLORS[cat].light;
 
               return (
                 <button
@@ -155,11 +167,18 @@ export function CategoryChips({
                   onClick={() => onChange(cat)}
                   className={cn(
                     chipBase,
-                    !isActive && "bg-muted text-muted-foreground hover:bg-accent"
+                    !isActive &&
+                      "bg-muted text-muted-foreground hover:bg-accent"
                   )}
-                  style={isActive ? { backgroundColor: hexColor, color: "#fff" } : undefined}
+                  style={
+                    isActive
+                      ? { backgroundColor: hexColor, color: "#fff" }
+                      : undefined
+                  }
                 >
-                  <Icon className={size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5"} />
+                  <Icon
+                    className={size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5"}
+                  />
                   {meta.label}
                 </button>
               );
