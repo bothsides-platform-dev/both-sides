@@ -36,7 +36,7 @@ export function AppShell({ children }: AppShellProps) {
       {/* Main Content - offset for sidebars */}
       <div
         className={cn(
-          "xl:pr-[280px] transition-[padding-left] duration-300 ease-in-out",
+          "xl:pr-[280px] transition-[padding-left] duration-300 ease-in-out overflow-x-hidden",
           collapsed ? "lg:pl-[64px]" : "lg:pl-[220px]"
         )}
       >
