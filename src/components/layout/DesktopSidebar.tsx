@@ -135,9 +135,17 @@ export function DesktopSidebar() {
           {/* Category Filter */}
           <div className="pt-3 mt-3 border-t">
             {!collapsed && (
-              <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                카테고리
-              </p>
+              <Link
+                href="/explore"
+                className="flex items-center justify-between px-3 mb-2 group"
+              >
+                <span className="text-xs font-semibold tracking-wide text-muted-foreground">
+                  카테고리
+                </span>
+                <span className="text-xs text-muted-foreground/0 group-hover:text-muted-foreground transition-colors">
+                  전체
+                </span>
+              </Link>
             )}
             {categories.map(([value, meta]) => {
               const slug = CATEGORY_TO_SLUG[value];
@@ -150,15 +158,15 @@ export function DesktopSidebar() {
                   <Link
                     href={href}
                     className={cn(
-                      "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                       collapsed && "justify-center px-0",
                       isActive
-                        ? "bg-accent text-accent-foreground"
+                        ? cn(meta.bgColor, "font-medium")
                         : "hover:bg-accent hover:text-accent-foreground"
                     )}
                   >
-                    <Icon className={cn("h-4 w-4 shrink-0", !isActive && meta.color)} />
-                    {!collapsed && <span className={cn("truncate", !isActive && "text-muted-foreground")}>{meta.label}</span>}
+                    <Icon className={cn("h-5 w-5 shrink-0", meta.color)} />
+                    {!collapsed && <span className={cn("truncate", isActive ? "text-foreground" : "text-muted-foreground")}>{meta.label}</span>}
                   </Link>
                 </SidebarTooltip>
               );
