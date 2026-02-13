@@ -12,6 +12,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AppShell } from "@/components/layout/AppShell";
+import { SidebarProvider } from "@/components/layout/SidebarContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -138,12 +139,14 @@ export default function RootLayout({
                   <SWRProvider>
                     <ToastProvider>
                       <Header />
+                      <SidebarProvider>
                       <AppShell>
                         <main id="main-content" className="flex-1 w-full px-4 sm:px-6 py-4 md:py-6 pb-6">
                           {children}
                         </main>
                         <Footer />
                       </AppShell>
+                      </SidebarProvider>
                     </ToastProvider>
                   </SWRProvider>
                 </SessionProvider>

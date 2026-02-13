@@ -28,11 +28,13 @@ import { FeedbackCategory } from "@prisma/client";
 interface FeedbackFABProps {
   /** If true, renders as inline button without FAB styling */
   inline?: boolean;
+  /** If true, renders icon only (no label text) in inline mode */
+  iconOnly?: boolean;
   /** Callback when dialog opens (for closing parent menus) */
   onDialogOpen?: () => void;
 }
 
-export function FeedbackFAB({ inline = false, onDialogOpen }: FeedbackFABProps = {}) {
+export function FeedbackFAB({ inline = false, iconOnly = false, onDialogOpen }: FeedbackFABProps = {}) {
   const { data: session } = useSession();
   const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -105,10 +107,11 @@ export function FeedbackFAB({ inline = false, onDialogOpen }: FeedbackFABProps =
           onClick={() => setIsOpen(true)}
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-3 text-muted-foreground"
+          className={`w-full gap-3 text-muted-foreground ${iconOnly ? "justify-center px-0" : "justify-start"}`}
+          aria-label="의견 보내기"
         >
-          <MessageSquareText className="h-5 w-5" />
-          의견 보내기
+          <MessageSquareText className="h-5 w-5 shrink-0" />
+          {!iconOnly && "의견 보내기"}
         </Button>
       ) : (
         <Button
