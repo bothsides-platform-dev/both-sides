@@ -293,31 +293,31 @@ export function getBadgeTierColors(tier: BadgeTier): {
   switch (tier) {
     case BadgeTier.PLATINUM:
       return {
-        bg: "bg-gradient-to-r from-cyan-500 to-blue-500",
+        bg: "bg-cyan-500",
         text: "text-white",
         border: "border-cyan-400",
       };
     case BadgeTier.GOLD:
       return {
-        bg: "bg-gradient-to-r from-amber-400 to-yellow-500",
+        bg: "bg-amber-400",
         text: "text-amber-900 dark:text-amber-950",
         border: "border-amber-400",
       };
     case BadgeTier.SILVER:
       return {
-        bg: "bg-gradient-to-r from-slate-300 to-slate-400",
+        bg: "bg-slate-300",
         text: "text-slate-900 dark:text-slate-100",
         border: "border-slate-400",
       };
     case BadgeTier.BRONZE:
       return {
-        bg: "bg-gradient-to-r from-orange-500 to-orange-600",
+        bg: "bg-orange-500",
         text: "text-white",
         border: "border-orange-500",
       };
     default:
       return {
-        bg: "bg-gradient-to-r from-zinc-400 to-zinc-500",
+        bg: "bg-zinc-400",
         text: "text-white",
         border: "border-zinc-400",
       };
