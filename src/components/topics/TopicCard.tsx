@@ -44,7 +44,7 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
 
   return (
     <div className="relative group h-full">
-      <Card className="h-full overflow-hidden transition-shadow group-hover:shadow-md">
+      <Card className="h-full overflow-hidden transition-shadow group-hover:shadow-md group-focus-within:shadow-md group-focus-within:ring-2 group-focus-within:ring-ring">
         <div className={`relative aspect-video w-full overflow-hidden ${topic.imageUrl ? "bg-muted/50" : "bg-gradient-to-br from-sideA/10 to-sideB/10 dark:from-sideA/20 dark:to-sideB/20"}`}>
           {topic.imageUrl ? (
             <>

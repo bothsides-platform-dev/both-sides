@@ -28,7 +28,7 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
   return (
     <Link
       href={`/topics/${topic.id}`}
-      className="flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors hover:bg-muted/50"
+      className="flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
     >
       <div className={`relative h-[60px] w-[80px] shrink-0 overflow-hidden rounded-md ${topic.imageUrl ? "bg-muted/50" : "bg-gradient-to-r from-blue-50 to-red-50"}`}>
         {topic.imageUrl ? (
@@ -70,8 +70,9 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
           <h4 className="min-w-0 flex-1 truncate font-medium">
             {topic.title}
           </h4>
-          <span className="shrink-0 text-xs text-muted-foreground md:hidden">
-            {topic._count.votes}표 · {topic._count.opinions}의견 · {topic.viewCount}회
+          <span className="shrink-0 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
+            <span className="flex items-center gap-0.5"><Users className="h-3 w-3" />{topic._count.votes}</span>
+            <span className="flex items-center gap-0.5"><MessageSquare className="h-3 w-3" />{topic._count.opinions}</span>
           </span>
         </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">

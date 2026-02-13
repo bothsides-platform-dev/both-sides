@@ -48,7 +48,11 @@ export function DesktopRightSidebar() {
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : opinions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">의견이 없습니다.</p>
+          <div className="flex flex-col items-center gap-2 py-4 text-muted-foreground">
+            <MessageCircle className="h-6 w-6" />
+            <p className="text-sm">아직 의견이 없습니다.</p>
+            <p className="text-xs">토론에 참여하고 의견을 남겨보세요.</p>
+          </div>
         ) : (
           <div className="space-y-1">
             {opinions.map((opinion) => {

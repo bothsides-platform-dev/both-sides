@@ -10,8 +10,9 @@ import { TopicListItem, type TopicListItemProps } from "@/components/topics/Topi
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TopicBubbleMap } from "@/components/explore/TopicBubbleMap";
 import type { Category } from "@prisma/client";
 
@@ -88,7 +89,7 @@ function ExplorePageContent() {
             value={categorySlug ?? "ALL"}
             onValueChange={(v) => handleCategoryChange(v === "ALL" ? null : v)}
           >
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-auto min-w-[120px]">
               <SelectValue placeholder="카테고리 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -153,16 +154,26 @@ function ExplorePageContent() {
       {/* Topic List */}
       <div className="divide-y rounded-lg border bg-card">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-3">
+                <Skeleton className="h-[60px] w-[80px] shrink-0 rounded-md" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="py-12 text-center text-muted-foreground">
             토론 목록을 불러오는데 실패했습니다.
           </div>
         ) : topics.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">
-            {categoryEnum ? "아직 이 카테고리에 토론이 없습니다." : "아직 토론이 없습니다."}
+          <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
+            <Search className="h-8 w-8" />
+            <p>{categoryEnum ? "아직 이 카테고리에 토론이 없습니다." : "아직 토론이 없습니다."}</p>
+            <p className="text-sm">{categoryEnum ? "다른 카테고리를 확인해보세요." : "첫 번째 토론을 시작해보세요!"}</p>
           </div>
         ) : (
           topics.map((topic) => (

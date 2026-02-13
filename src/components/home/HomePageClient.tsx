@@ -13,7 +13,7 @@ export function HomePageClient() {
         <TrendingTicker />
       </div>
 
-      <div className="space-y-10 mt-6 max-w-5xl mx-auto">
+      <div className="space-y-6 md:space-y-10 mt-6 max-w-5xl mx-auto">
         {/* Section 1: Featured Topics */}
         <FeaturedSection />
 

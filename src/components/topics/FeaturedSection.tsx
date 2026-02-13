@@ -2,9 +2,10 @@
 
 import useSWR from "swr";
 import { FeaturedTopicCard, type FeaturedTopicCardProps } from "./FeaturedTopicCard";
-import { Loader2, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { HorizontalScroll } from "@/components/ui/horizontal-scroll";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function FeaturedSection() {
   const { data, error, isLoading } = useSWR<{ data: { topics: FeaturedTopicCardProps["topic"][] } }>(
@@ -19,8 +20,14 @@ export function FeaturedSection() {
           <Sparkles className="h-5 w-5 text-orange-500" />
           <h2 className="text-xl font-bold">오늘의 토론</h2>
         </div>
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="flex gap-4 overflow-hidden">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="w-[300px] flex-shrink-0">
+              <Skeleton className="aspect-video w-full rounded-lg" />
+              <Skeleton className="mt-3 h-5 w-3/4" />
+              <Skeleton className="mt-2 h-4 w-1/2" />
+            </div>
+          ))}
         </div>
       </section>
     );
@@ -44,7 +51,7 @@ export function FeaturedSection() {
       </div>
       <HorizontalScroll>
         {topics.map((topic: FeaturedTopicCardProps["topic"]) => (
-          <div key={topic.id} className="flex-1 flex-shrink-0 min-w-[300px]">
+          <div key={topic.id} className="flex-shrink-0 w-[300px]">
             <FeaturedTopicCard topic={topic} />
           </div>
         ))}

@@ -23,7 +23,7 @@ export function Header() {
     <header
       className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
-      <div className="w-full px-5 flex h-14 md:h-16 items-center justify-between border-b">
+      <div className="w-full px-4 md:px-8 lg:px-6 flex h-14 md:h-16 items-center justify-between border-b">
         {/* Mobile: Hamburger + Logo */}
         <div className="flex items-center gap-3">
           <Button

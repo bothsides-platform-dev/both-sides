@@ -32,8 +32,8 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
 
   return (
     <Link href={`/topics/${topic.id}`} className="group">
-      <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
-        <div className={`relative aspect-[16/10] w-full overflow-hidden ${topic.imageUrl ? "bg-muted/50" : "bg-gradient-to-br from-sideA/20 to-sideB/20"}`}>
+      <Card className="h-full overflow-hidden transition-all hover:shadow-lg focus-within:shadow-lg focus-within:ring-2 focus-within:ring-ring">
+        <div className={`relative aspect-video w-full overflow-hidden ${topic.imageUrl ? "bg-muted/50" : "bg-gradient-to-br from-sideA/20 to-sideB/20"}`}>
           {topic.imageUrl ? (
             <>
               <Image
@@ -82,10 +82,10 @@ export const FeaturedTopicCard = memo(function FeaturedTopicCard({ topic }: Feat
           {dDay && (
             <div className={`absolute top-2.5 right-2.5 rounded-md px-2 py-1 text-xs font-bold shadow-md ${
               dDay === "마감"
-                ? "bg-gray-800/80 text-gray-300"
+                ? "bg-muted text-muted-foreground"
                 : dDay === "D-Day"
                   ? "bg-sideB text-sideB-foreground animate-pulse"
-                  : "bg-black/70 text-white backdrop-blur-sm"
+                  : "bg-foreground/80 text-background backdrop-blur-sm"
             }`}>
               {dDay}
             </div>

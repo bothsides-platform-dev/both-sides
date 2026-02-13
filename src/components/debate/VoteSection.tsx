@@ -229,7 +229,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
       {/* Vote Stats Bar - 숫자 없이 압축된 비율로 표시 */}
       <div className="space-y-2">
         <div
-          className="h-4 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
+          className="h-5 w-full overflow-hidden rounded-full bg-muted"
           role="img"
           aria-label={`투표 비율: ${optionA} ${stats.aPercentage.toFixed(0)}%, ${optionB} ${stats.bPercentage.toFixed(0)}%`}
         >
@@ -246,7 +246,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
             />
           </div>
         </div>
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-sm font-medium text-muted-foreground">
           {getVoteStatusText(stats.aPercentage, optionA, optionB)}
         </p>
       </div>
