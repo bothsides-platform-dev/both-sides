@@ -37,11 +37,11 @@ function TrendingKeyword({ rank, query, onOpenChange }: TrendingKeywordProps) {
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
-          className="inline-flex items-center gap-1.5 whitespace-nowrap hover:text-primary transition-colors"
+          className="inline-flex items-center gap-1.5 min-w-0 max-w-full hover:text-primary transition-colors"
           aria-label={`${query} 옵션 보기`}
         >
           <span className="text-xs font-bold text-muted-foreground">{rank}</span>
-          <span className="text-sm font-medium">{query}</span>
+          <span className="text-sm font-medium truncate">{query}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-2" align="start">
