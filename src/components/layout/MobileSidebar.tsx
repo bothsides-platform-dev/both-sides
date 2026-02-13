@@ -108,10 +108,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
     };
   }, [session?.user, fetchUnreadCount]);
 
-  // Auto-close sidebar on route change
-  useEffect(() => {
-    onOpenChange(false);
-  }, [pathname, onOpenChange]);
+  const closeSidebar = useCallback(() => onOpenChange(false), [onOpenChange]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -143,6 +140,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
               <Link
                 key={item.href}
                 href={href}
+                onClick={closeSidebar}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors relative",
                   isActive
@@ -167,6 +165,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
           {session?.user?.role === "ADMIN" && (
             <Link
               href="/admin"
+              onClick={closeSidebar}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 pathname.startsWith("/admin")
@@ -183,6 +182,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
           <div className="pt-3 mt-3 border-t">
             <Link
               href="/explore"
+              onClick={closeSidebar}
               className="flex items-center justify-between px-3 mb-2 group"
             >
               <span className="text-xs font-semibold tracking-wide text-muted-foreground">
@@ -203,6 +203,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                 <Link
                   key={value}
                   href={href}
+                  onClick={closeSidebar}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                     isActive
