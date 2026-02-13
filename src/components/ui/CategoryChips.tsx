@@ -4,9 +4,18 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { CATEGORY_META, CATEGORY_COLORS } from "@/lib/constants";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { LayoutGrid } from "lucide-react";
 import type { Category } from "@prisma/client";
 
 const categories = Object.keys(CATEGORY_META) as Category[];
+
+const ALL_VALUE = "__all__";
 
 interface CategoryChipsProps {
   value: Category | undefined;
@@ -55,59 +64,121 @@ export function CategoryChips({
     size === "sm" ? "px-3 py-1 text-xs" : "px-4 py-1.5 text-sm"
   );
 
+  const handleSelectChange = (val: string) => {
+    onChange(val === ALL_VALUE ? undefined : (val as Category));
+  };
+
+  const selectedMeta = value ? CATEGORY_META[value] : null;
+  const SelectedIcon = selectedMeta?.icon;
+  const selectedColor = value
+    ? isDark
+      ? CATEGORY_COLORS[value].dark
+      : CATEGORY_COLORS[value].light
+    : undefined;
+
   return (
     <div className={cn("relative", className)}>
-      {/* Left fade */}
-      {showFadeLeft && (
-        <div className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-r from-background to-transparent" />
-      )}
-
-      <div
-        ref={scrollRef}
-        className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
-        role="toolbar"
-        aria-label="카테고리 필터"
-      >
-        {showAll && (
-          <button
-            onClick={() => onChange(undefined)}
-            className={cn(
-              chipBase,
-              !value
-                ? "bg-foreground text-background"
-                : "bg-muted text-muted-foreground hover:bg-accent"
-            )}
+      {/* 모바일: Select 드롭다운 */}
+      <div className="md:hidden">
+        <Select value={value ?? ALL_VALUE} onValueChange={handleSelectChange}>
+          <SelectTrigger
+            className="h-9 rounded-full border-none text-sm font-medium"
+            style={
+              selectedColor
+                ? { backgroundColor: selectedColor, color: "#fff" }
+                : undefined
+            }
           >
-            전체
-          </button>
-        )}
-        {categories.map((cat) => {
-          const meta = CATEGORY_META[cat];
-          const isActive = value === cat;
-          const Icon = meta.icon;
-          const hexColor = isDark ? CATEGORY_COLORS[cat].dark : CATEGORY_COLORS[cat].light;
-
-          return (
-            <button
-              key={cat}
-              onClick={() => onChange(cat)}
-              className={cn(
-                chipBase,
-                !isActive && "bg-muted text-muted-foreground hover:bg-accent"
+            <span className="flex items-center gap-1.5">
+              {SelectedIcon ? (
+                <SelectedIcon className="h-3.5 w-3.5" />
+              ) : (
+                <LayoutGrid className="h-3.5 w-3.5" />
               )}
-              style={isActive ? { backgroundColor: hexColor, color: "#fff" } : undefined}
-            >
-              <Icon className={size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5"} />
-              {meta.label}
-            </button>
-          );
-        })}
+              {selectedMeta ? selectedMeta.label : "전체"}
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            {showAll && (
+              <SelectItem value={ALL_VALUE}>
+                <span className="flex items-center gap-1.5">
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  전체
+                </span>
+              </SelectItem>
+            )}
+            {categories.map((cat) => {
+              const meta = CATEGORY_META[cat];
+              const Icon = meta.icon;
+              return (
+                <SelectItem key={cat} value={cat}>
+                  <span className="flex items-center gap-1.5">
+                    <Icon className="h-3.5 w-3.5" />
+                    {meta.label}
+                  </span>
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Right fade */}
-      {showFadeRight && (
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-background to-transparent" />
-      )}
+      {/* 데스크톱: 기존 수평 칩 */}
+      <div className="hidden md:block">
+        <div className="relative">
+          {/* Left fade */}
+          {showFadeLeft && (
+            <div className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-r from-background to-transparent" />
+          )}
+
+          <div
+            ref={scrollRef}
+            className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
+            role="toolbar"
+            aria-label="카테고리 필터"
+          >
+            {showAll && (
+              <button
+                onClick={() => onChange(undefined)}
+                className={cn(
+                  chipBase,
+                  !value
+                    ? "bg-foreground text-background"
+                    : "bg-muted text-muted-foreground hover:bg-accent"
+                )}
+              >
+                전체
+              </button>
+            )}
+            {categories.map((cat) => {
+              const meta = CATEGORY_META[cat];
+              const isActive = value === cat;
+              const Icon = meta.icon;
+              const hexColor = isDark ? CATEGORY_COLORS[cat].dark : CATEGORY_COLORS[cat].light;
+
+              return (
+                <button
+                  key={cat}
+                  onClick={() => onChange(cat)}
+                  className={cn(
+                    chipBase,
+                    !isActive && "bg-muted text-muted-foreground hover:bg-accent"
+                  )}
+                  style={isActive ? { backgroundColor: hexColor, color: "#fff" } : undefined}
+                >
+                  <Icon className={size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5"} />
+                  {meta.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right fade */}
+          {showFadeRight && (
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-background to-transparent" />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
