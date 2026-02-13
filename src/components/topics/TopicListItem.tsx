@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatRelativeTime } from "@/lib/utils";
 import { Eye, MessageSquare, Users } from "lucide-react";
+import { CATEGORY_META } from "@/lib/constants";
 import type { Category } from "@prisma/client";
 
 export interface TopicListItemProps {
@@ -67,9 +68,21 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <h4 className="min-w-0 flex-1 truncate font-medium">
-            {topic.title}
-          </h4>
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {(() => {
+              const meta = CATEGORY_META[topic.category];
+              const Icon = meta.icon;
+              return (
+                <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-2xs font-medium ${meta.bgColor} ${meta.color}`}>
+                  <Icon className="h-3 w-3" aria-hidden="true" />
+                  {meta.label}
+                </span>
+              );
+            })()}
+            <h4 className="min-w-0 flex-1 truncate font-medium">
+              {topic.title}
+            </h4>
+          </div>
           <span className="shrink-0 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
             <span className="flex items-center gap-0.5"><Users className="h-3 w-3" aria-hidden="true" /><span className="sr-only">투표</span>{topic._count.votes}</span>
             <span className="flex items-center gap-0.5"><MessageSquare className="h-3 w-3" aria-hidden="true" /><span className="sr-only">의견</span>{topic._count.opinions}</span>

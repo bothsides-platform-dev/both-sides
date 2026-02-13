@@ -3,17 +3,13 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { TopicListItem, type TopicListItemProps } from "./TopicListItem";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { CategoryChips } from "@/components/ui/CategoryChips";
 import { MessageSquare, ArrowRight } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import type { Category } from "@prisma/client";
-
-const categories = Object.entries(CATEGORY_LABELS) as [Category, string][];
 
 export function CommunitySection() {
   const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(undefined);
@@ -34,46 +30,14 @@ export function CommunitySection() {
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-4">
-        {/* 모바일: Select 드롭다운 */}
-        <div className="sm:hidden">
-          <Select
-            value={selectedCategory ?? "ALL"}
-            onValueChange={(v) => setSelectedCategory(v === "ALL" ? undefined : v as Category)}
-          >
-            <SelectTrigger className="w-auto min-w-[120px]">
-              <SelectValue placeholder="카테고리 선택" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">전체</SelectItem>
-              {categories.map(([value, label]) => (
-                <SelectItem key={value} value={value}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <CategoryChips
+          value={selectedCategory}
+          onChange={setSelectedCategory}
+          size="sm"
+          className="min-w-0 flex-1"
+        />
 
-        {/* 데스크톱: 기존 칩 버튼 */}
-        <div className="hidden sm:flex sm:flex-wrap gap-2">
-          <Button
-            variant={selectedCategory === undefined ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(undefined)}
-          >
-            전체
-          </Button>
-          {categories.map(([value, label]) => (
-            <Button
-              key={value}
-              variant={selectedCategory === value ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(value)}
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
-
-        <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "popular")} className="ml-auto">
+        <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "popular")} className="ml-auto shrink-0">
           <TabsList>
             <TabsTrigger value="latest">최신순</TabsTrigger>
             <TabsTrigger value="popular">인기순</TabsTrigger>

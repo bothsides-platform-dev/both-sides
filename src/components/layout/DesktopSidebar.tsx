@@ -77,10 +77,15 @@ export function DesktopSidebar() {
         {/* Main Navigation */}
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
           {NAV_ITEMS.map((item) => {
-            const href =
-              !session?.user && (item.href === "/profile" || item.href === "/topics/new")
-                ? `/auth/signin?callbackUrl=${encodeURIComponent(item.href)}`
-                : item.href;
+            const currentCategorySlug = pathname === "/explore" ? searchParams.get("category") : null;
+            let href: string;
+            if (!session?.user && (item.href === "/profile" || item.href === "/topics/new")) {
+              href = `/auth/signin?callbackUrl=${encodeURIComponent(item.href)}`;
+            } else if (item.href === "/topics/new" && currentCategorySlug) {
+              href = `/topics/new?category=${currentCategorySlug}`;
+            } else {
+              href = item.href;
+            }
 
             const isActive =
               item.href === "/"
@@ -149,11 +154,11 @@ export function DesktopSidebar() {
                       collapsed && "justify-center px-0",
                       isActive
                         ? "bg-accent text-accent-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        : "hover:bg-accent hover:text-accent-foreground"
                     )}
                   >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {!collapsed && <span className="truncate">{meta.label}</span>}
+                    <Icon className={cn("h-4 w-4 shrink-0", !isActive && meta.color)} />
+                    {!collapsed && <span className={cn("truncate", !isActive && "text-muted-foreground")}>{meta.label}</span>}
                   </Link>
                 </SidebarTooltip>
               );

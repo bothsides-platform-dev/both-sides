@@ -2,10 +2,9 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useCallback, Suspense } from "react";
-import { useTheme } from "next-themes";
 import useSWR from "swr";
-import { cn } from "@/lib/utils";
-import { CATEGORY_META, CATEGORY_SLUG_MAP, CATEGORY_TO_SLUG, CATEGORY_COLORS } from "@/lib/constants";
+import { CATEGORY_SLUG_MAP, CATEGORY_TO_SLUG } from "@/lib/constants";
+import { CategoryChips } from "@/components/ui/CategoryChips";
 import { TopicListItem, type TopicListItemProps } from "@/components/topics/TopicListItem";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -30,13 +29,9 @@ interface TopicsResponse {
   };
 }
 
-const categories = Object.keys(CATEGORY_META) as Category[];
-
 function ExplorePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
   const categorySlug = searchParams.get("category");
   const categoryEnum = categorySlug ? CATEGORY_SLUG_MAP[categorySlug] : undefined;
 
@@ -45,9 +40,9 @@ function ExplorePageContent() {
   const limit = 20;
 
   const handleCategoryChange = useCallback(
-    (slug: string | null) => {
+    (cat: Category | undefined) => {
       const params = new URLSearchParams();
-      if (slug) params.set("category", slug);
+      if (cat) params.set("category", CATEGORY_TO_SLUG[cat]);
       router.push(`/explore${params.toString() ? `?${params}` : ""}`, { scroll: false });
       setPage(1);
       setSort("latest");
@@ -83,45 +78,14 @@ function ExplorePageContent() {
 
       {/* Category + Sort */}
       <div className="flex items-center gap-4">
-        {/* 카테고리 칩 바 (모바일+데스크톱 공통) */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" role="toolbar" aria-label="카테고리 필터">
-          <button
-            onClick={() => handleCategoryChange(null)}
-            className={cn(
-              "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              !categorySlug
-                ? "bg-foreground text-background"
-                : "bg-muted text-muted-foreground hover:bg-accent"
-            )}
-          >
-            전체
-          </button>
-          {categories.map((cat) => {
-            const slug = CATEGORY_TO_SLUG[cat];
-            const meta = CATEGORY_META[cat];
-            const isActive = categorySlug === slug;
-            const Icon = meta.icon;
-            const hexColor = isDark ? CATEGORY_COLORS[cat].dark : CATEGORY_COLORS[cat].light;
-
-            return (
-              <button
-                key={cat}
-                onClick={() => handleCategoryChange(slug)}
-                className={cn(
-                  "shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  !isActive && "bg-muted text-muted-foreground hover:bg-accent"
-                )}
-                style={isActive ? { backgroundColor: hexColor, color: "#fff" } : undefined}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {meta.label}
-              </button>
-            );
-          })}
-        </div>
+        <CategoryChips
+          value={categoryEnum}
+          onChange={handleCategoryChange}
+          className="min-w-0 flex-1"
+        />
 
         {/* 정렬 탭 - 오른쪽 정렬 */}
-        <Tabs value={sort} onValueChange={handleSortChange} className="ml-auto">
+        <Tabs value={sort} onValueChange={handleSortChange} className="ml-auto shrink-0">
           <TabsList>
             <TabsTrigger value="latest">최신순</TabsTrigger>
             <TabsTrigger value="popular">인기순</TabsTrigger>

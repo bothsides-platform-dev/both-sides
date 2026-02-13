@@ -119,12 +119,17 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
         {/* Main Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
           {NAV_ITEMS.map((item) => {
-            const href =
-              item.requiresAuth && !session?.user
-                ? `/auth/signin?callbackUrl=${encodeURIComponent(item.href)}`
-                : !session?.user && item.href === "/profile"
-                  ? "/auth/signin"
-                  : item.href;
+            const currentCategorySlug = pathname === "/explore" ? searchParams.get("category") : null;
+            let href: string;
+            if (item.requiresAuth && !session?.user) {
+              href = `/auth/signin?callbackUrl=${encodeURIComponent(item.href)}`;
+            } else if (!session?.user && item.href === "/profile") {
+              href = "/auth/signin";
+            } else if (item.href === "/topics/new" && currentCategorySlug) {
+              href = `/topics/new?category=${currentCategorySlug}`;
+            } else {
+              href = item.href;
+            }
 
             const isActive =
               item.href === "/"
@@ -194,11 +199,11 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                     "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors",
                     isActive
                       ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      : "hover:bg-accent hover:text-accent-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  {meta.label}
+                  <Icon className={cn("h-4 w-4 shrink-0", !isActive && meta.color)} />
+                  <span className={cn(!isActive && "text-muted-foreground")}>{meta.label}</span>
                 </Link>
               );
             })}
