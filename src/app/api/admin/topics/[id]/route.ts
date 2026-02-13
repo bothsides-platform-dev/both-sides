@@ -4,10 +4,7 @@ import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { updateTopicSchema } from "@/modules/topics/schema";
 import { getTopic, updateTopic, deleteTopic } from "@/modules/topics/service";
-
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
+import type { RouteParams } from "@/types/api";
 
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {

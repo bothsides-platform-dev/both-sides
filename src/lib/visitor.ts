@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import crypto from "crypto";
+import { getSession } from "@/lib/auth";
+import { getVote } from "@/modules/votes/service";
 
 export const VISITOR_ID_COOKIE = "visitor_id";
 
@@ -97,4 +99,59 @@ export function generateDeviceFingerprint(request: NextRequest): string {
 
   const raw = `${ip}:${userAgent}:${acceptLanguage}`;
   return crypto.createHash("sha256").update(raw).digest("hex").substring(0, 32);
+}
+
+// --- Identity resolution helpers ---
+
+export type Identity =
+  | { type: "user"; userId: string }
+  | { type: "guest"; visitorId: string; isNew: boolean; ipAddress?: string; fingerprint?: string };
+
+/**
+ * Resolve the current request's identity (logged-in user or guest).
+ * Combines session check, visitor cookie, IP, and fingerprint into one call.
+ */
+export async function resolveIdentity(request: NextRequest): Promise<Identity> {
+  const session = await getSession();
+
+  if (session?.user?.id) {
+    return { type: "user", userId: session.user.id };
+  }
+
+  const { visitorId, isNew } = await getOrCreateVisitorId();
+  const ipAddress = getIpAddress(request) || undefined;
+  const fingerprint = generateDeviceFingerprint(request);
+
+  return { type: "guest", visitorId, isNew, ipAddress, fingerprint };
+}
+
+/**
+ * If identity is a new guest, set the visitor cookie on the response.
+ */
+export function applyGuestCookie(response: NextResponse, identity: Identity): void {
+  if (identity.type === "guest" && identity.isNew) {
+    setVisitorIdCookie(response, identity.visitorId);
+  }
+}
+
+/**
+ * Resolve the current user's vote on a topic.
+ * Works for both logged-in users and guests (via cookie).
+ */
+export async function resolveCurrentUserVote(request: NextRequest, topicId: string) {
+  const session = await getSession();
+
+  if (session?.user?.id) {
+    return getVote({ userId: session.user.id }, topicId);
+  }
+
+  const cookieStore = await cookies();
+  const visitorId = cookieStore.get(VISITOR_ID_COOKIE)?.value;
+
+  if (visitorId) {
+    const ipAddress = getIpAddress(request) || undefined;
+    return getVote({ visitorId, ipAddress }, topicId);
+  }
+
+  return null;
 }

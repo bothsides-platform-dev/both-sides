@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { AUTHOR_SELECT_PUBLIC } from "@/lib/prisma-selects";
 import type { GetNotificationsInput } from "./schema";
 
 export async function createReplyNotification({
@@ -42,14 +43,7 @@ export async function getNotifications(userId: string, input: GetNotificationsIn
       skip,
       take: limit,
       include: {
-        actor: {
-          select: {
-            id: true,
-            nickname: true,
-            name: true,
-            image: true,
-          },
-        },
+        actor: { select: AUTHOR_SELECT_PUBLIC },
         opinion: {
           select: {
             id: true,

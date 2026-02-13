@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { NotFoundError, ForbiddenError } from "@/lib/errors";
+import { AUTHOR_SELECT, AUTHOR_SELECT_PUBLIC, TOPIC_COUNT_SELECT } from "@/lib/prisma-selects";
 import type {
   CreateTopicInput,
   GetTopicsInput,
@@ -20,21 +21,8 @@ export async function createTopic(authorId: string, input: CreateTopicInput) {
       authorId,
     },
     include: {
-      author: {
-        select: {
-          id: true,
-          nickname: true,
-          name: true,
-          image: true,
-          isBlacklisted: true,
-        },
-      },
-      _count: {
-        select: {
-          votes: true,
-          opinions: true,
-        },
-      },
+      author: { select: AUTHOR_SELECT },
+      _count: { select: TOPIC_COUNT_SELECT },
     },
   });
 }
@@ -79,21 +67,8 @@ export async function getTopics(input: GetTopicsInput) {
         viewCount: true,
         createdAt: true,
         updatedAt: true,
-        author: {
-          select: {
-            id: true,
-            nickname: true,
-            name: true,
-            image: true,
-            isBlacklisted: true,
-          },
-        },
-        _count: {
-          select: {
-            votes: true,
-            opinions: true,
-          },
-        },
+        author: { select: AUTHOR_SELECT },
+        _count: { select: TOPIC_COUNT_SELECT },
       },
     }),
     prisma.topic.count({ where }),
@@ -133,20 +108,8 @@ export async function getFeaturedTopics(limit: number = 2) {
       viewCount: true,
       createdAt: true,
       updatedAt: true,
-      author: {
-        select: {
-          id: true,
-          nickname: true,
-          name: true,
-          image: true,
-        },
-      },
-      _count: {
-        select: {
-          votes: true,
-          opinions: true,
-        },
-      },
+      author: { select: AUTHOR_SELECT_PUBLIC },
+      _count: { select: TOPIC_COUNT_SELECT },
     },
   });
 }
@@ -181,20 +144,8 @@ export async function getRecommendedTopics(limit: number = 6) {
       viewCount: true,
       createdAt: true,
       updatedAt: true,
-      author: {
-        select: {
-          id: true,
-          nickname: true,
-          name: true,
-          image: true,
-        },
-      },
-      _count: {
-        select: {
-          votes: true,
-          opinions: true,
-        },
-      },
+      author: { select: AUTHOR_SELECT_PUBLIC },
+      _count: { select: TOPIC_COUNT_SELECT },
     },
   });
 }
@@ -219,21 +170,8 @@ export async function getTopic(id: string) {
   const topic = await prisma.topic.findUnique({
     where: { id },
     include: {
-      author: {
-        select: {
-          id: true,
-          nickname: true,
-          name: true,
-          image: true,
-          isBlacklisted: true,
-        },
-      },
-      _count: {
-        select: {
-          votes: true,
-          opinions: true,
-        },
-      },
+      author: { select: AUTHOR_SELECT },
+      _count: { select: TOPIC_COUNT_SELECT },
     },
   });
 
@@ -285,21 +223,8 @@ export async function getTopicsForAdmin(input: GetTopicsAdminInput) {
       skip,
       take: limit,
       include: {
-        author: {
-          select: {
-            id: true,
-            nickname: true,
-            name: true,
-            image: true,
-            isBlacklisted: true,
-          },
-        },
-        _count: {
-          select: {
-            votes: true,
-            opinions: true,
-          },
-        },
+        author: { select: AUTHOR_SELECT },
+        _count: { select: TOPIC_COUNT_SELECT },
       },
     }),
     prisma.topic.count({ where }),
@@ -341,21 +266,8 @@ export async function updateTopic(id: string, input: UpdateTopicInput) {
       ogImageUrl: ogImageUrl === "" ? null : ogImageUrl,
     },
     include: {
-      author: {
-        select: {
-          id: true,
-          nickname: true,
-          name: true,
-          image: true,
-          isBlacklisted: true,
-        },
-      },
-      _count: {
-        select: {
-          votes: true,
-          opinions: true,
-        },
-      },
+      author: { select: AUTHOR_SELECT },
+      _count: { select: TOPIC_COUNT_SELECT },
     },
   });
 }
@@ -401,21 +313,8 @@ export async function updateTopicAnonymity(id: string, userId: string, input: Up
     where: { id },
     data: { isAnonymous: input.isAnonymous },
     include: {
-      author: {
-        select: {
-          id: true,
-          nickname: true,
-          name: true,
-          image: true,
-          isBlacklisted: true,
-        },
-      },
-      _count: {
-        select: {
-          votes: true,
-          opinions: true,
-        },
-      },
+      author: { select: AUTHOR_SELECT },
+      _count: { select: TOPIC_COUNT_SELECT },
     },
   });
 }

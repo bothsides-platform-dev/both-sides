@@ -2,10 +2,7 @@ import { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { handleApiError, NotFoundError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
-
-type RouteParams = {
-  params: Promise<{ id: string }>;
-};
+import type { RouteParams } from "@/types/api";
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {

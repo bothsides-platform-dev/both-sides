@@ -2,10 +2,8 @@ import { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
-
-type RouteParams = {
-  params: Promise<{ id: string }>;
-};
+import { AUTHOR_SELECT_PUBLIC, TOPIC_COUNT_SELECT } from "@/lib/prisma-selects";
+import type { RouteParams } from "@/types/api";
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
@@ -25,20 +23,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       where: { id },
       data: { isAnonymous },
       include: {
-        author: {
-          select: {
-            id: true,
-            nickname: true,
-            name: true,
-            image: true,
-          },
-        },
-        _count: {
-          select: {
-            votes: true,
-            opinions: true,
-          },
-        },
+        author: { select: AUTHOR_SELECT_PUBLIC },
+        _count: { select: TOPIC_COUNT_SELECT },
       },
     });
 

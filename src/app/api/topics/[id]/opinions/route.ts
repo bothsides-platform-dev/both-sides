@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { createOpinionSchema, getOpinionsSchema } from "@/modules/opinions/schema";
 import { createOpinion, getOpinions } from "@/modules/opinions/service";
-import { getOrCreateVisitorId, getIpAddress, setVisitorIdCookie, generateDeviceFingerprint } from "@/lib/visitor";
+import { resolveIdentity, applyGuestCookie } from "@/lib/visitor";
 
 export async function GET(
   request: NextRequest,
@@ -13,7 +12,7 @@ export async function GET(
   try {
     const { id: topicId } = await params;
     const searchParams = request.nextUrl.searchParams;
-    
+
     // Handle parentId parameter - can be "null" string or actual ID
     const parentIdParam = searchParams.get("parentId");
     let parentId: string | null | undefined = undefined;
@@ -22,7 +21,7 @@ export async function GET(
     } else if (parentIdParam) {
       parentId = parentIdParam;
     }
-    
+
     const input = await validateRequest(getOpinionsSchema, {
       side: searchParams.get("side") || undefined,
       sort: searchParams.get("sort") || undefined,
@@ -43,36 +42,20 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSession();
+    const identity = await resolveIdentity(request);
     const { id: topicId } = await params;
     const body = await request.json();
     const input = await validateRequest(createOpinionSchema, body);
 
-    if (session?.user?.id) {
-      // Logged-in user
-      const opinion = await createOpinion(
-        { type: "user", userId: session.user.id },
-        topicId,
-        input
-      );
-      return Response.json({ data: opinion }, { status: 201 });
-    } else {
-      // Guest user (fingerprint used so vote is found even if IP changed)
-      const { visitorId, isNew } = await getOrCreateVisitorId();
-      const ipAddress = getIpAddress(request);
-      const fingerprint = generateDeviceFingerprint(request);
-      const opinion = await createOpinion(
-        { type: "guest", visitorId, ipAddress: ipAddress || undefined, fingerprint },
-        topicId,
-        input
-      );
+    const author = identity.type === "user"
+      ? { type: "user" as const, userId: identity.userId }
+      : { type: "guest" as const, visitorId: identity.visitorId, ipAddress: identity.ipAddress, fingerprint: identity.fingerprint };
 
-      const response = NextResponse.json({ data: opinion }, { status: 201 });
-      if (isNew) {
-        setVisitorIdCookie(response, visitorId);
-      }
-      return response;
-    }
+    const opinion = await createOpinion(author, topicId, input);
+
+    const response = NextResponse.json({ data: opinion }, { status: 201 });
+    applyGuestCookie(response, identity);
+    return response;
   } catch (error) {
     return handleApiError(error);
   }
