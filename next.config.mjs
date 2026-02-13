@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  trailingSlash: false,
   transpilePackages: ['badwords-ko'],
   images: {
     remotePatterns: [

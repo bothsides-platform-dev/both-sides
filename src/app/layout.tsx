@@ -44,20 +44,20 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     title: "BothSides - 양자택일 토론 플랫폼",
     description: "A vs B, 당신의 선택은? 양자택일 토론 플랫폼에서 의견을 나눠보세요.",
-    images: [
-      {
-        url: "/og-default.png",
-        width: 1200,
-        height: 630,
-        alt: "BothSides - 양자택일 토론 플랫폼",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "BothSides - 양자택일 토론 플랫폼",
     description: "A vs B, 당신의 선택은? 양자택일 토론 플랫폼에서 의견을 나눠보세요.",
-    images: ["/og-default.png"],
+  },
+  alternates: {
+    types: {
+      "application/rss+xml": "/feed.xml",
+    },
+  },
+  verification: {
+    // Add Google Search Console verification code here after registration
+    // google: "VERIFICATION_CODE",
   },
 };
 
@@ -89,6 +89,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <head>
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.clarity.ms" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
