@@ -18,7 +18,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = user.id;
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { nickname: true, role: true, isBlacklisted: true },
+          select: { nickname: true, role: true, isBlacklisted: true, createdAt: true },
         });
 
         // 차단된 사용자는 세션 거부
@@ -30,6 +30,10 @@ export const authOptions: NextAuthOptions = {
 
         session.user.nickname = dbUser?.nickname ?? null;
         session.user.role = dbUser?.role ?? "USER";
+
+        // createdAt이 2분 이내면 신규 가입자
+        const isNew = dbUser?.createdAt && (Date.now() - dbUser.createdAt.getTime() < 120_000);
+        session.user.isNewUser = isNew ?? false;
       }
       return session;
     },

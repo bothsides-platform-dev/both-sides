@@ -10,6 +10,7 @@ declare module "next-auth" {
       image?: string | null;
       nickname?: string | null;
       role: Role;
+      isNewUser?: boolean;
     };
   }
 

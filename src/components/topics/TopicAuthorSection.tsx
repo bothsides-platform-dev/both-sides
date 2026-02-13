@@ -21,7 +21,7 @@ import { cn, formatDate } from "@/lib/utils";
 import { ReportDialog } from "@/components/debate/ReportDialog";
 import { useKakao } from "@/components/providers/KakaoProvider";
 import { useToast } from "@/components/ui/toast";
-import { trackShare } from "@/lib/analytics";
+import { trackShare, addUTMParams } from "@/lib/analytics";
 
 interface TopicAuthorSectionProps {
   topicId: string;
@@ -89,27 +89,6 @@ export function TopicAuthorSection({
     }
   };
 
-  // Share helpers
-  const addUTMParams = (baseUrl: string, platform: "kakao" | "twitter" | "facebook" | "instagram" | "link"): string => {
-    try {
-      const urlObj = new URL(baseUrl, typeof window !== "undefined" ? window.location.origin : "https://bothsides.club");
-      urlObj.searchParams.set("utm_source", platform);
-      urlObj.searchParams.set("utm_medium", platform === "link" ? "referral" : "social");
-      urlObj.searchParams.set("utm_campaign", "share");
-      urlObj.searchParams.set("utm_content", topicId);
-      return urlObj.toString();
-    } catch {
-      const separator = baseUrl.includes("?") ? "&" : "?";
-      const utmParams = new URLSearchParams({
-        utm_source: platform,
-        utm_medium: platform === "link" ? "referral" : "social",
-        utm_campaign: "share",
-        utm_content: topicId,
-      });
-      return `${baseUrl}${separator}${utmParams.toString()}`;
-    }
-  };
-
   const getFullUrl = () => {
     if (!shareUrl) return "";
     return typeof window !== "undefined" ? `${window.location.origin}${shareUrl}` : shareUrl;
@@ -126,7 +105,7 @@ export function TopicAuthorSection({
     const fullUrl = getFullUrl();
     if (!fullUrl) return;
     try {
-      const urlWithUTM = addUTMParams(fullUrl, "link");
+      const urlWithUTM = addUTMParams(fullUrl, "link", topicId);
       await navigator.clipboard.writeText(urlWithUTM);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -141,7 +120,7 @@ export function TopicAuthorSection({
   const handleKakaoShare = () => {
     const fullUrl = getFullUrl();
     if (!fullUrl) return;
-    const urlWithUTM = addUTMParams(fullUrl, "kakao");
+    const urlWithUTM = addUTMParams(fullUrl, "kakao", topicId);
     const result = shareKakao({
       title: shareTitle || "",
       description: shareDescription,
@@ -158,7 +137,7 @@ export function TopicAuthorSection({
     const fullUrl = getFullUrl();
     if (!fullUrl) return;
     try {
-      const urlWithUTM = addUTMParams(fullUrl, "instagram");
+      const urlWithUTM = addUTMParams(fullUrl, "instagram", topicId);
       await navigator.clipboard.writeText(urlWithUTM);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -179,7 +158,7 @@ export function TopicAuthorSection({
   const handleTwitterShare = () => {
     const fullUrl = getFullUrl();
     if (!fullUrl) return;
-    const urlWithUTM = addUTMParams(fullUrl, "twitter");
+    const urlWithUTM = addUTMParams(fullUrl, "twitter", topicId);
     const text = `${shareTitle || ""}${shareDescription ? ` - ${shareDescription}` : ""}`;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(urlWithUTM)}`;
     window.open(twitterUrl, "_blank", "width=550,height=420");
@@ -189,7 +168,7 @@ export function TopicAuthorSection({
   const handleFacebookShare = () => {
     const fullUrl = getFullUrl();
     if (!fullUrl) return;
-    const urlWithUTM = addUTMParams(fullUrl, "facebook");
+    const urlWithUTM = addUTMParams(fullUrl, "facebook", topicId);
     const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(urlWithUTM)}`;
     window.open(facebookUrl, "_blank", "width=550,height=420");
     trackShare("facebook", topicId);

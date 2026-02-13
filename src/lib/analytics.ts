@@ -34,6 +34,7 @@ function getUTMParams(): Record<string, string | undefined> {
     const utmContent = sessionStorage.getItem("utm_content");
     const utmTerm = sessionStorage.getItem("utm_term");
     const referrer = sessionStorage.getItem("referrer");
+    const referrerDomain = sessionStorage.getItem("referrer_domain");
 
     return {
       utm_source: utmSource || undefined,
@@ -42,9 +43,37 @@ function getUTMParams(): Record<string, string | undefined> {
       utm_content: utmContent || undefined,
       utm_term: utmTerm || undefined,
       referrer: referrer || undefined,
+      referrer_domain: referrerDomain || undefined,
     };
   } catch {
     return {};
+  }
+}
+
+/**
+ * Add UTM parameters to a URL based on the share platform
+ */
+export function addUTMParams(
+  baseUrl: string,
+  platform: "kakao" | "twitter" | "facebook" | "instagram" | "link",
+  contentId?: string
+): string {
+  try {
+    const urlObj = new URL(baseUrl);
+    urlObj.searchParams.set("utm_source", platform);
+    urlObj.searchParams.set("utm_medium", platform === "link" ? "referral" : "social");
+    urlObj.searchParams.set("utm_campaign", "share");
+    if (contentId) urlObj.searchParams.set("utm_content", contentId);
+    return urlObj.toString();
+  } catch {
+    const separator = baseUrl.includes("?") ? "&" : "?";
+    const params = new URLSearchParams({
+      utm_source: platform,
+      utm_medium: platform === "link" ? "referral" : "social",
+      utm_campaign: "share",
+      ...(contentId && { utm_content: contentId }),
+    });
+    return `${baseUrl}${separator}${params.toString()}`;
   }
 }
 
