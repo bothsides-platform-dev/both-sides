@@ -144,6 +144,15 @@ export const BLIND_THRESHOLD = 3;
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;
 
+// 업로드 설정
+export const UPLOAD_MAX_SIZE = 5 * 1024 * 1024; // 5MB
+export const UPLOAD_MIME_TYPES: Record<string, string[]> = {
+  "image/jpeg": ["jpg", "jpeg"],
+  "image/png": ["png"],
+  "image/webp": ["webp"],
+  "image/gif": ["gif"],
+};
+
 // 의견 카테고리 라벨
 export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
   BUG: "버그 신고",

@@ -87,5 +87,5 @@ export const CACHE_KEYS = {
 // 기본 TTL 상수 (밀리초)
 export const CACHE_TTL = {
   TRENDS: 3 * 60 * 60 * 1000, // 3시간 (하루 8회, 월 ~240회)
-  VOTE_STATS: 30 * 1000, // 30초
+  VOTE_STATS: 60 * 1000, // 60초 (투표 시 invalidateVoteStatsCache()로 즉시 갱신)
 } as const;

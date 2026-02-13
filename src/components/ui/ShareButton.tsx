@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -37,6 +37,13 @@ export function ShareButton({
   const { shareKakao } = useKakao();
   const { showToast } = useToast();
 
+  useEffect(() => {
+    if (copied) {
+      const timer = setTimeout(() => setCopied(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copied]);
+
   // Extract topicId from URL if not provided
   const extractedTopicId = topicId || (() => {
     const match = url.match(/\/topics\/([^/?]+)/);
@@ -62,7 +69,6 @@ export function ShareButton({
       const urlWithUTM = addUTMParams(fullUrl, "link", extractedTopicId);
       await navigator.clipboard.writeText(urlWithUTM);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
       showToast("링크가 복사되었습니다", "success", 2000);
 
       // Track share event
@@ -118,7 +124,6 @@ export function ShareButton({
       const urlWithUTM = addUTMParams(fullUrl, "instagram", extractedTopicId);
       await navigator.clipboard.writeText(urlWithUTM);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
 
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       if (isMobile) {

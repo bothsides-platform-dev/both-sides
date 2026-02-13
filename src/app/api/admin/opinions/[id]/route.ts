@@ -1,24 +1,19 @@
 import { NextRequest } from "next/server";
-import { requireAdmin } from "@/lib/auth";
-import { handleApiError, NotFoundError } from "@/lib/errors";
+import { withAdmin } from "@/lib/api-helpers";
+import { NotFoundError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
 import type { RouteParams } from "@/types/api";
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  try {
-    await requireAdmin();
-    const { id } = await params;
+export const DELETE = withAdmin(async (request: NextRequest, { params }: RouteParams) => {
+  const { id } = await params;
 
-    const opinion = await prisma.opinion.findUnique({ where: { id } });
+  const opinion = await prisma.opinion.findUnique({ where: { id } });
 
-    if (!opinion) {
-      throw new NotFoundError("의견을 찾을 수 없습니다.");
-    }
-
-    await prisma.opinion.delete({ where: { id } });
-
-    return Response.json({ data: { success: true } });
-  } catch (error) {
-    return handleApiError(error);
+  if (!opinion) {
+    throw new NotFoundError("의견을 찾을 수 없습니다.");
   }
-}
+
+  await prisma.opinion.delete({ where: { id } });
+
+  return Response.json({ data: { success: true } });
+});

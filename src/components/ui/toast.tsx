@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useRef, useEffect, ReactNode } from "react";
 import { LazyMotion, domAnimation, AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -57,8 +57,14 @@ interface ToastProviderProps {
 export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const shouldReduceMotion = useReducedMotion();
+  const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   const removeToast = useCallback((id: string) => {
+    const timer = timeoutRefs.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      timeoutRefs.current.delete(id);
+    }
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
@@ -70,11 +76,19 @@ export function ToastProvider({ children }: ToastProviderProps) {
       setToasts((prev) => [...prev, newToast]);
 
       if (duration > 0) {
-        setTimeout(() => removeToast(id), duration);
+        const timer = setTimeout(() => removeToast(id), duration);
+        timeoutRefs.current.set(id, timer);
       }
     },
     [removeToast]
   );
+
+  useEffect(() => {
+    const refs = timeoutRefs.current;
+    return () => {
+      refs.forEach(clearTimeout);
+    };
+  }, []);
 
   const showRateLimitError = useCallback(
     (retryAfter?: number) => {
