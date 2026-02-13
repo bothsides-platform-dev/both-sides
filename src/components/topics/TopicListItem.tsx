@@ -31,7 +31,7 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
       href={`/topics/${topic.id}`}
       className="flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
     >
-      <div className={`relative h-[60px] w-[80px] shrink-0 overflow-hidden rounded-md ${topic.imageUrl ? "bg-muted/50" : "bg-gradient-to-r from-blue-50 to-red-50"}`}>
+      <div className={`relative h-[60px] w-[80px] shrink-0 overflow-hidden rounded-md hidden md:block ${topic.imageUrl ? "bg-muted/50" : "bg-gradient-to-r from-blue-50 to-red-50"}`}>
         {topic.imageUrl ? (
           <>
             <Image
@@ -73,7 +73,7 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
               const meta = CATEGORY_META[topic.category];
               const Icon = meta.icon;
               return (
-                <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-2xs font-medium ${meta.bgColor} ${meta.color}`}>
+                <span className={`hidden md:inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-2xs font-medium ${meta.bgColor} ${meta.color}`}>
                   <Icon className="h-3 w-3" aria-hidden="true" />
                   {meta.label}
                 </span>
