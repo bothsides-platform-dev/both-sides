@@ -2,7 +2,6 @@
 
 import { TrendingTicker } from "@/components/TrendingTicker";
 import { FeaturedSection } from "@/components/topics/FeaturedSection";
-import { RecommendedSection } from "@/components/topics/RecommendedSection";
 import { CommunitySection } from "@/components/topics/CommunitySection";
 
 export function HomePageClient() {
@@ -17,10 +16,7 @@ export function HomePageClient() {
         {/* Section 1: Featured Topics */}
         <FeaturedSection />
 
-        {/* Section 2: Recommended Topics */}
-        <RecommendedSection />
-
-        {/* Section 3: Community Topics */}
+        {/* Section 2: Community Topics */}
         <CommunitySection />
       </div>
     </>

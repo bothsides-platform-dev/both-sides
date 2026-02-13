@@ -33,11 +33,6 @@ export function CommunitySection() {
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center gap-2">
-        <MessageSquare className="h-5 w-5 text-purple-500" />
-        <h2 className="text-xl font-bold">커뮤니티 토론</h2>
-      </div>
-
       <div className="flex items-center gap-4">
         {/* 모바일: Select 드롭다운 */}
         <div className="sm:hidden">
