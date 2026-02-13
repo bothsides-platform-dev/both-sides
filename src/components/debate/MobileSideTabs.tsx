@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { Side } from "@prisma/client";
 
@@ -74,21 +74,23 @@ export const MobileSideTabs = memo(function MobileSideTabs({
       </button>
 
       {/* Animated indicator */}
-      <motion.div
-        className={cn(
-          "absolute bottom-0 h-[2px] w-1/2",
-          activeTab === "A" ? "bg-sideA" : "bg-sideB"
-        )}
-        initial={false}
-        animate={{
-          x: activeTab === "A" ? "0%" : "100%",
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 500,
-          damping: 30,
-        }}
-      />
+      <LazyMotion features={domAnimation}>
+        <m.div
+          className={cn(
+            "absolute bottom-0 h-[2px] w-1/2",
+            activeTab === "A" ? "bg-sideA" : "bg-sideB"
+          )}
+          initial={false}
+          animate={{
+            x: activeTab === "A" ? "0%" : "100%",
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 500,
+            damping: 30,
+          }}
+        />
+      </LazyMotion>
     </div>
   );
 });

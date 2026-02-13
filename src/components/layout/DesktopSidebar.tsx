@@ -176,34 +176,32 @@ export function DesktopSidebar() {
 
         {/* Theme Toggle & Feedback */}
         <div className="px-3 pt-4 border-t mt-2 space-y-1">
-          {mounted && (
-            <SidebarTooltip
-              label={resolvedTheme === "dark" ? "라이트 모드" : "다크 모드"}
-              collapsed={collapsed}
+          <SidebarTooltip
+            label={mounted ? (resolvedTheme === "dark" ? "라이트 모드" : "다크 모드") : "테마 전환"}
+            collapsed={collapsed}
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => mounted && setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className={cn(
+                "w-full gap-3 text-muted-foreground",
+                collapsed ? "justify-center px-0" : "justify-start"
+              )}
             >
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                className={cn(
-                  "w-full gap-3 text-muted-foreground",
-                  collapsed ? "justify-center px-0" : "justify-start"
-                )}
-              >
-                {resolvedTheme === "dark" ? (
-                  <>
-                    <Sun className="h-5 w-5 shrink-0" />
-                    {!collapsed && "라이트 모드"}
-                  </>
-                ) : (
-                  <>
-                    <Moon className="h-5 w-5 shrink-0" />
-                    {!collapsed && "다크 모드"}
-                  </>
-                )}
-              </Button>
-            </SidebarTooltip>
-          )}
+              {mounted && resolvedTheme === "dark" ? (
+                <>
+                  <Sun className="h-5 w-5 shrink-0" />
+                  {!collapsed && "라이트 모드"}
+                </>
+              ) : (
+                <>
+                  <Moon className="h-5 w-5 shrink-0" />
+                  {!collapsed && "다크 모드"}
+                </>
+              )}
+            </Button>
+          </SidebarTooltip>
           {collapsed ? (
             <SidebarTooltip label="의견 보내기" collapsed={collapsed}>
               <div>

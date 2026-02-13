@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 import { useSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
 import { Button } from "@/components/ui/button";
@@ -297,7 +297,8 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
             className="overflow-hidden transition-[height] duration-300"
             style={containerHeight ? { height: containerHeight } : undefined}
           >
-            <motion.div
+            <LazyMotion features={domAnimation}>
+            <m.div
               className="flex"
               initial={false}
               animate={{ x: activeTab === "A" ? 0 : "-100%" }}
@@ -338,7 +339,8 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   expandedAncestorIds={ancestorData?.ancestorIds}
                 />
               </div>
-            </motion.div>
+            </m.div>
+            </LazyMotion>
           </div>
         </div>
 

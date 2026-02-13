@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -37,8 +38,6 @@ const NAV_ITEMS: NavItem[] = [
 
 const categories = Object.entries(CATEGORY_META) as [Category, (typeof CATEGORY_META)[Category]][];
 
-const POLL_INTERVAL = 30000;
-
 interface MobileSidebarProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -50,63 +49,11 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   const { data: session } = useSession();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const unreadCount = useUnreadNotificationCount(!!session?.user);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Fetch unread notifications count
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const res = await fetch("/api/notifications/unread-count");
-      if (res.ok) {
-        const data = await res.json();
-        setUnreadCount(data.data.unreadCount);
-      }
-    } catch {
-      // Silently fail
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!session?.user) return;
-
-    let interval: NodeJS.Timeout | null = null;
-
-    const startPolling = () => {
-      if (interval) clearInterval(interval);
-      interval = setInterval(fetchUnreadCount, POLL_INTERVAL);
-    };
-
-    const stopPolling = () => {
-      if (interval) {
-        clearInterval(interval);
-        interval = null;
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        fetchUnreadCount();
-        startPolling();
-      } else {
-        stopPolling();
-      }
-    };
-
-    fetchUnreadCount();
-    if (document.visibilityState === "visible") {
-      startPolling();
-    }
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      stopPolling();
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [session?.user, fetchUnreadCount]);
 
   const closeSidebar = useCallback(() => onOpenChange(false), [onOpenChange]);
 
@@ -226,27 +173,25 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
           <FeedbackFAB inline onDialogOpen={() => onOpenChange(false)} />
 
           {/* Theme Toggle */}
-          {mounted && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              className="w-full justify-start gap-3 text-muted-foreground"
-              aria-label={resolvedTheme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
-            >
-              {resolvedTheme === "dark" ? (
-                <>
-                  <Sun className="h-5 w-5" />
-                  라이트 모드
-                </>
-              ) : (
-                <>
-                  <Moon className="h-5 w-5" />
-                  다크 모드
-                </>
-              )}
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => mounted && setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            className="w-full justify-start gap-3 text-muted-foreground"
+            aria-label={mounted ? (resolvedTheme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환") : "테마 전환"}
+          >
+            {mounted && resolvedTheme === "dark" ? (
+              <>
+                <Sun className="h-5 w-5" />
+                라이트 모드
+              </>
+            ) : (
+              <>
+                <Moon className="h-5 w-5" />
+                다크 모드
+              </>
+            )}
+          </Button>
         </div>
       </SheetContent>
     </Sheet>

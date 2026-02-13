@@ -2,6 +2,17 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { NotFoundError, ForbiddenError } from "@/lib/errors";
 import { AUTHOR_SELECT, AUTHOR_SELECT_PUBLIC, TOPIC_COUNT_SELECT } from "@/lib/prisma-selects";
+
+/** Rethrow Prisma P2025 (record not found) as NotFoundError */
+function handlePrismaNotFound(e: unknown): never {
+  if (
+    e instanceof Prisma.PrismaClientKnownRequestError &&
+    e.code === "P2025"
+  ) {
+    throw new NotFoundError("토론을 찾을 수 없습니다.");
+  }
+  throw e;
+}
 import type {
   CreateTopicInput,
   GetTopicsInput,
@@ -151,19 +162,17 @@ export async function getRecommendedTopics(limit: number = 6) {
 }
 
 export async function updateFeatured(id: string, input: UpdateFeaturedInput) {
-  const topic = await prisma.topic.findUnique({ where: { id } });
-
-  if (!topic) {
-    throw new NotFoundError("토론을 찾을 수 없습니다.");
+  try {
+    return await prisma.topic.update({
+      where: { id },
+      data: {
+        isFeatured: input.isFeatured,
+        featuredAt: input.isFeatured ? new Date() : null,
+      },
+    });
+  } catch (e) {
+    handlePrismaNotFound(e);
   }
-
-  return prisma.topic.update({
-    where: { id },
-    data: {
-      isFeatured: input.isFeatured,
-      featuredAt: input.isFeatured ? new Date() : null,
-    },
-  });
 }
 
 export async function getTopic(id: string) {
@@ -242,60 +251,54 @@ export async function getTopicsForAdmin(input: GetTopicsAdminInput) {
 }
 
 export async function updateTopic(id: string, input: UpdateTopicInput) {
-  const topic = await prisma.topic.findUnique({ where: { id } });
-
-  if (!topic) {
-    throw new NotFoundError("토론을 찾을 수 없습니다.");
-  }
-
   const { deadline, referenceLinks, metaTitle, metaDescription, ogImageUrl, ...rest } = input;
 
-  return prisma.topic.update({
-    where: { id },
-    data: {
-      ...rest,
-      deadline: deadline === null ? null : deadline ? new Date(deadline) : undefined,
-      referenceLinks: referenceLinks === null
-        ? Prisma.JsonNull
-        : referenceLinks !== undefined
-          ? (referenceLinks as Prisma.InputJsonValue)
-          : undefined,
-      // SEO 필드: 빈 문자열이면 null로 변환
-      metaTitle: metaTitle === "" ? null : metaTitle,
-      metaDescription: metaDescription === "" ? null : metaDescription,
-      ogImageUrl: ogImageUrl === "" ? null : ogImageUrl,
-    },
-    include: {
-      author: { select: AUTHOR_SELECT },
-      _count: { select: TOPIC_COUNT_SELECT },
-    },
-  });
+  try {
+    return await prisma.topic.update({
+      where: { id },
+      data: {
+        ...rest,
+        deadline: deadline === null ? null : deadline ? new Date(deadline) : undefined,
+        referenceLinks: referenceLinks === null
+          ? Prisma.JsonNull
+          : referenceLinks !== undefined
+            ? (referenceLinks as Prisma.InputJsonValue)
+            : undefined,
+        // SEO 필드: 빈 문자열이면 null로 변환
+        metaTitle: metaTitle === "" ? null : metaTitle,
+        metaDescription: metaDescription === "" ? null : metaDescription,
+        ogImageUrl: ogImageUrl === "" ? null : ogImageUrl,
+      },
+      include: {
+        author: { select: AUTHOR_SELECT },
+        _count: { select: TOPIC_COUNT_SELECT },
+      },
+    });
+  } catch (e) {
+    handlePrismaNotFound(e);
+  }
 }
 
 export async function updateHidden(id: string, input: UpdateHiddenInput) {
-  const topic = await prisma.topic.findUnique({ where: { id } });
-
-  if (!topic) {
-    throw new NotFoundError("토론을 찾을 수 없습니다.");
+  try {
+    return await prisma.topic.update({
+      where: { id },
+      data: {
+        isHidden: input.isHidden,
+        hiddenAt: input.isHidden ? new Date() : null,
+      },
+    });
+  } catch (e) {
+    handlePrismaNotFound(e);
   }
-
-  return prisma.topic.update({
-    where: { id },
-    data: {
-      isHidden: input.isHidden,
-      hiddenAt: input.isHidden ? new Date() : null,
-    },
-  });
 }
 
 export async function deleteTopic(id: string) {
-  const topic = await prisma.topic.findUnique({ where: { id } });
-
-  if (!topic) {
-    throw new NotFoundError("토론을 찾을 수 없습니다.");
+  try {
+    return await prisma.topic.delete({ where: { id } });
+  } catch (e) {
+    handlePrismaNotFound(e);
   }
-
-  return prisma.topic.delete({ where: { id } });
 }
 
 export async function updateTopicAnonymity(id: string, userId: string, input: UpdateTopicAnonymityInput) {

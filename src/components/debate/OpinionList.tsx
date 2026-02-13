@@ -62,18 +62,22 @@ export const OpinionList = memo(function OpinionList({
   return (
     <div className="divide-y divide-border/50">
       {opinions.map((opinion) => (
-        <OpinionThread
+        <div
           key={opinion.id}
-          opinion={opinion}
-          optionA={optionA}
-          optionB={optionB}
-          currentUserId={currentUserId}
-          onReaction={onReaction}
-          onReplySuccess={onReplySuccess}
-          userVoteSide={userVoteSide}
-          highlightReplyId={highlightReplyId}
-          expandedAncestorIds={expandedAncestorIds}
-        />
+          style={{ contentVisibility: "auto", containIntrinsicSize: "auto 120px" }}
+        >
+          <OpinionThread
+            opinion={opinion}
+            optionA={optionA}
+            optionB={optionB}
+            currentUserId={currentUserId}
+            onReaction={onReaction}
+            onReplySuccess={onReplySuccess}
+            userVoteSide={userVoteSide}
+            highlightReplyId={highlightReplyId}
+            expandedAncestorIds={expandedAncestorIds}
+          />
+        </div>
       ))}
     </div>
   );
