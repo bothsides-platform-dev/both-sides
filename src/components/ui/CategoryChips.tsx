@@ -95,7 +95,10 @@ export function CategoryChips({
               onValueChange={handleSelectChange}
             >
               {showAll && (
-                <DropdownMenuRadioItem value={ALL_VALUE}>
+                <DropdownMenuRadioItem
+                  value={ALL_VALUE}
+                  className="pl-2 [&>span:first-child]:hidden data-[state=checked]:bg-accent"
+                >
                   <span className="flex items-center gap-1.5">
                     <LayoutGrid className="h-3.5 w-3.5" />
                     전체
@@ -106,7 +109,11 @@ export function CategoryChips({
                 const meta = CATEGORY_META[cat];
                 const Icon = meta.icon;
                 return (
-                  <DropdownMenuRadioItem key={cat} value={cat}>
+                  <DropdownMenuRadioItem
+                    key={cat}
+                    value={cat}
+                    className="pl-2 [&>span:first-child]:hidden data-[state=checked]:bg-accent"
+                  >
                     <span className="flex items-center gap-1.5">
                       <Icon className="h-3.5 w-3.5" />
                       {meta.label}
