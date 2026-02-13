@@ -115,7 +115,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[280px] sm:w-[320px] sm:max-w-sm p-0 flex flex-col [&>button]:hidden">
+      <SheetContent className="w-[280px] sm:w-[320px] sm:max-w-sm p-0 flex flex-col [&>button]:sr-only [&>button:focus]:not-sr-only">
         {/* Main Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
           {NAV_ITEMS.map((item) => {
