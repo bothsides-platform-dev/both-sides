@@ -41,7 +41,7 @@ export function DesktopSidebar() {
   return (
     <aside className="hidden lg:flex lg:w-[220px] lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:border-r lg:bg-background lg:pt-16 lg:pb-4">
       {/* Main Navigation */}
-      <nav className="flex-1 px-3 space-y-1">
+      <nav className="flex-1 px-3 space-y-1 overflow-y-auto scrollbar-thin">
         {NAV_ITEMS.map((item) => {
           const href =
             !session?.user && (item.href === "/profile" || item.href === "/topics/new")
@@ -104,7 +104,7 @@ export function DesktopSidebar() {
                 key={value}
                 href={href}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                  "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors",
                   isActive
                     ? "bg-accent text-accent-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"

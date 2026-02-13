@@ -385,7 +385,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   onClick={handleSubmit}
                   disabled={submitState.isSubmitting || !newOpinion.trim()}
                   className={cn(
-                    "shrink-0 h-10 w-10 md:h-10 md:w-10",
+                    "shrink-0 h-11 w-11",
                     myVote === "A" ? "bg-sideA hover:bg-sideA/90" : "bg-sideB hover:bg-sideB/90"
                   )}
                   aria-label="의견 등록"

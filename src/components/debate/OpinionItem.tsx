@@ -166,8 +166,8 @@ export const OpinionItem = memo(function OpinionItem({
     0: "",
     1: "ml-3 md:ml-8",
     2: "ml-6 md:ml-16",
-    3: "ml-8 md:ml-24",
-    4: "ml-10 md:ml-32",
+    3: "ml-6 md:ml-24",
+    4: "ml-6 md:ml-32",
   };
   const indentClass = indentClasses[Math.min(depth, 4)] || "";
 

@@ -9,9 +9,10 @@ import { TopicShareButton } from "@/components/topics/TopicShareButton";
 import { TopicAuthorSection } from "@/components/topics/TopicAuthorSection";
 import { ViewCountTracker } from "@/components/topics/ViewCountTracker";
 import { InAppBrowserRedirect } from "@/components/InAppBrowserRedirect";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { CATEGORY_LABELS, CATEGORY_TO_SLUG } from "@/lib/constants";
 import { ReferenceLinksCollapsible } from "@/components/topics/ReferenceLinksCollapsible";
 import { RelatedTopics } from "@/components/topics/RelatedTopics";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 interface ReferenceLink {
   url: string;
@@ -166,6 +167,14 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: "홈", href: "/" },
+          { label: CATEGORY_LABELS[topic.category], href: `/explore?category=${CATEGORY_TO_SLUG[topic.category]}` },
+          { label: topic.title },
+        ]}
       />
       {/* Topic Header */}
       <div className="space-y-4 md:space-y-6 border-b border-border pb-5 md:pb-8">

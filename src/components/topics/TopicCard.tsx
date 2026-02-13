@@ -135,15 +135,18 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
           )}
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
+              <Users className="h-4 w-4" aria-hidden="true" />
+              <span className="sr-only">투표</span>
               {topic._count.votes}
             </span>
             <span className="flex items-center gap-1">
-              <MessageSquare className="h-4 w-4" />
+              <MessageSquare className="h-4 w-4" aria-hidden="true" />
+              <span className="sr-only">의견</span>
               {topic._count.opinions}
             </span>
             <span className="flex items-center gap-1">
-              <Eye className="h-4 w-4" />
+              <Eye className="h-4 w-4" aria-hidden="true" />
+              <span className="sr-only">조회</span>
               {topic.viewCount}
             </span>
           </div>

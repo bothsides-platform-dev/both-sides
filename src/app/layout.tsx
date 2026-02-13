@@ -91,6 +91,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:ring-2 focus:ring-ring"
+        >
+          본문으로 건너뛰기
+        </a>
         {/* WebSite Schema */}
         <script
           type="application/ld+json"
@@ -133,7 +139,7 @@ export default function RootLayout({
                     <ToastProvider>
                       <Header />
                       <AppShell>
-                        <main className="flex-1 w-full px-4 md:px-8 lg:px-6 py-4 md:py-6 pb-6">
+                        <main id="main-content" className="flex-1 w-full px-4 sm:px-6 py-4 md:py-6 pb-6">
                           {children}
                         </main>
                         <Footer />

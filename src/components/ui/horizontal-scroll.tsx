@@ -67,7 +67,7 @@ export function HorizontalScroll({
         <Button
           variant="outline"
           size="icon"
-          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 -translate-x-1/2 rounded-full bg-background shadow-md md:opacity-0 transition-opacity md:group-hover:opacity-100"
+          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 -translate-x-1/2 rounded-full bg-background shadow-md md:opacity-0 transition-opacity duration-300 md:group-hover:opacity-100"
           onClick={() => scroll("left")}
           aria-label="이전으로 스크롤"
         >
@@ -90,7 +90,7 @@ export function HorizontalScroll({
         <Button
           variant="outline"
           size="icon"
-          className="absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-1/2 rounded-full bg-background shadow-md md:opacity-0 transition-opacity md:group-hover:opacity-100"
+          className="absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-1/2 rounded-full bg-background shadow-md md:opacity-0 transition-opacity duration-300 md:group-hover:opacity-100"
           onClick={() => scroll("right")}
           aria-label="다음으로 스크롤"
         >

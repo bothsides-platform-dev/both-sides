@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { CATEGORY_META, CATEGORY_SLUG_MAP, CATEGORY_TO_SLUG, CATEGORY_COLORS } from "@/lib/constants";
 import { TopicListItem, type TopicListItemProps } from "@/components/topics/TopicListItem";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { Button } from "@/components/ui/button";
 import { Loader2, Search } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
@@ -83,30 +83,8 @@ function ExplorePageContent() {
 
       {/* Category + Sort */}
       <div className="flex items-center gap-4">
-        {/* 모바일: Select 드롭다운 */}
-        <div className="sm:hidden">
-          <Select
-            value={categorySlug ?? "ALL"}
-            onValueChange={(v) => handleCategoryChange(v === "ALL" ? null : v)}
-          >
-            <SelectTrigger className="w-auto min-w-[120px]">
-              <SelectValue placeholder="카테고리 선택" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">전체</SelectItem>
-              {categories.map((cat) => {
-                const slug = CATEGORY_TO_SLUG[cat];
-                const meta = CATEGORY_META[cat];
-                return (
-                  <SelectItem key={cat} value={slug}>{meta.label}</SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* 데스크톱: 기존 칩 */}
-        <div className="hidden sm:flex gap-2 overflow-x-auto pb-2 scrollbar-hide" role="toolbar" aria-label="카테고리 필터">
+        {/* 카테고리 칩 바 (모바일+데스크톱 공통) */}
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" role="toolbar" aria-label="카테고리 필터">
           <button
             onClick={() => handleCategoryChange(null)}
             className={cn(

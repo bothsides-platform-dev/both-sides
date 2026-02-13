@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import useSWR from "swr";
-import { MessageCircle, Loader2 } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelativeTime } from "@/lib/utils";
 
 interface RecentOpinion {
@@ -44,8 +45,19 @@ export function DesktopRightSidebar() {
         </div>
 
         {opinionsLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="rounded-lg px-3 py-2.5 space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <Skeleton className="h-4 w-6 rounded-full" />
+                  <Skeleton className="h-3 w-12" />
+                  <Skeleton className="h-3 w-8" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-3 w-3/4" />
+              </div>
+            ))}
           </div>
         ) : opinions.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-4 text-muted-foreground">

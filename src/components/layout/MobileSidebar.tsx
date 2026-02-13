@@ -191,7 +191,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                   key={value}
                   href={href}
                   className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                    "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors",
                     isActive
                       ? "bg-accent text-accent-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
