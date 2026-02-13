@@ -6,7 +6,7 @@ import useSWR from "swr";
 import { hierarchy, pack } from "d3-hierarchy";
 import { useTheme } from "next-themes";
 import { fetcher } from "@/lib/fetcher";
-import { CATEGORY_META, CATEGORY_COLORS } from "@/lib/constants";
+import { CATEGORY_META, CATEGORY_CSS_VAR } from "@/lib/constants";
 import { Eye, Info, MessageSquare, Users } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import type { Category } from "@prisma/client";
@@ -341,8 +341,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                 })}
               </defs>
               {bubbles.map((bubble) => {
-                const color = CATEGORY_COLORS[bubble.topic.category];
-                const fill = isDark ? color.dark : color.light;
+                const fill = CATEGORY_CSS_VAR[bubble.topic.category];
                 const isHighlighted =
                   !highlightCategory || highlightCategory === bubble.topic.category;
                 const isSelected = selectedBubbleId === bubble.topic.id;
@@ -374,7 +373,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                           cy={bubble.y}
                           r={r}
                           fill={`url(#img-${bubble.topic.id})`}
-                          stroke={fill}
+                          style={{ stroke: fill }}
                           strokeWidth={isSelected ? 2.5 : 2}
                         />
                         {/* Gradient overlay for text readability */}
@@ -393,8 +392,8 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                             textAnchor="middle"
                             dominantBaseline="central"
                             className="text-xs font-semibold pointer-events-none"
-                            fill="white"
-                            style={{ textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
+                            fill="var(--category-foreground)"
+                            style={{ textShadow: "0 1px 3px hsl(0 0% 0% / 0.8)" }}
                           >
                             {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
                           </text>
@@ -405,8 +404,8 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                             textAnchor="middle"
                             dominantBaseline="central"
                             className="text-2xs font-semibold pointer-events-none"
-                            fill="white"
-                            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
+                            fill="var(--category-foreground)"
+                            style={{ textShadow: "0 1px 2px hsl(0 0% 0% / 0.8)" }}
                           >
                             {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
                           </text>
@@ -418,9 +417,8 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                           cx={bubble.x}
                           cy={bubble.y}
                           r={r}
-                          fill={fill}
+                          style={{ fill, stroke: fill }}
                           fillOpacity={isDark ? 0.35 : 0.3}
-                          stroke={fill}
                           strokeWidth={isSelected ? 2.5 : 2}
                         />
                         {bubble.r > 40 ? (
@@ -453,7 +451,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                           >
                             <Icon
                               className="h-3.5 w-3.5"
-                              style={{ color: fill }}
+                              style={{ color: fill } as React.CSSProperties}
                             />
                           </foreignObject>
                         )}

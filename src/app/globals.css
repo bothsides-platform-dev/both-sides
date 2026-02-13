@@ -30,6 +30,28 @@
     --side-a-foreground: 0 0% 100%;
     --side-b: 0 84% 60%;
     --side-b-foreground: 0 0% 100%;
+
+    /* Category colors */
+    --category-daily: #f59e0b;
+    --category-politics: #3b82f6;
+    --category-social: #22c55e;
+    --category-relationship: #ec4899;
+    --category-history: #78716c;
+    --category-game: #a855f7;
+    --category-tech: #06b6d4;
+    --category-foreground: #ffffff;
+
+    /* Disabled state tokens (3:1+ contrast guaranteed) */
+    --disabled: 240 3.8% 60%;
+    --disabled-subtle: 240 4.8% 93%;
+
+    /* Motion tokens */
+    --duration-fast: 150ms;
+    --duration-moderate: 200ms;
+    --duration-slow: 300ms;
+    --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --easing-entrance: cubic-bezier(0, 0, 0.2, 1);
+    --easing-exit: cubic-bezier(0.4, 0, 1, 1);
   }
 
   .dark {
@@ -52,6 +74,20 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+
+    /* Category colors (dark) */
+    --category-daily: #fbbf24;
+    --category-politics: #60a5fa;
+    --category-social: #4ade80;
+    --category-relationship: #f472b6;
+    --category-history: #a8a29e;
+    --category-game: #c084fc;
+    --category-tech: #22d3ee;
+    --category-foreground: #ffffff;
+
+    /* Disabled state tokens (dark) */
+    --disabled: 240 5% 45%;
+    --disabled-subtle: 240 3.7% 18%;
   }
 }
 
@@ -119,6 +155,14 @@
 @media (prefers-reduced-motion: reduce) {
   .ticker-content {
     animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

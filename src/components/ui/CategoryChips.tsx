@@ -1,9 +1,8 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { CATEGORY_META, CATEGORY_COLORS } from "@/lib/constants";
+import { CATEGORY_META, CATEGORY_CSS_VAR } from "@/lib/constants";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -33,8 +32,6 @@ export function CategoryChips({
   size = "md",
   className,
 }: CategoryChipsProps) {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showFadeRight, setShowFadeRight] = useState(false);
   const [showFadeLeft, setShowFadeLeft] = useState(false);
@@ -71,11 +68,7 @@ export function CategoryChips({
 
   const selectedMeta = value ? CATEGORY_META[value] : null;
   const SelectedIcon = selectedMeta?.icon;
-  const selectedColor = value
-    ? isDark
-      ? CATEGORY_COLORS[value].dark
-      : CATEGORY_COLORS[value].light
-    : undefined;
+  const selectedColor = value ? CATEGORY_CSS_VAR[value] : undefined;
 
   return (
     <div className={cn("relative", className)}>
@@ -157,9 +150,7 @@ export function CategoryChips({
               const meta = CATEGORY_META[cat];
               const isActive = value === cat;
               const Icon = meta.icon;
-              const hexColor = isDark
-                ? CATEGORY_COLORS[cat].dark
-                : CATEGORY_COLORS[cat].light;
+              const cssVar = CATEGORY_CSS_VAR[cat];
 
               return (
                 <button
@@ -172,7 +163,7 @@ export function CategoryChips({
                   )}
                   style={
                     isActive
-                      ? { backgroundColor: hexColor, color: "#fff" }
+                      ? { backgroundColor: cssVar, color: "var(--category-foreground)" }
                       : undefined
                   }
                 >

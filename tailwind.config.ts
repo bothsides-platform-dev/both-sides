@@ -52,14 +52,34 @@ const config: Config = {
           DEFAULT: "hsl(var(--side-b))",
           foreground: "hsl(var(--side-b-foreground))",
         },
+        disabled: {
+          DEFAULT: "hsl(var(--disabled))",
+          subtle: "hsl(var(--disabled-subtle))",
+        },
       },
       fontSize: {
-        '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
+        '2xs': ['0.75rem', { lineHeight: '1rem' }],
+        'caption': ['0.75rem', { lineHeight: '1rem' }],
+        'body-compact': ['0.875rem', { lineHeight: '1.25rem' }],
+        'heading-01': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '600' }],
+        'heading-02': ['1rem', { lineHeight: '1.5rem', fontWeight: '600' }],
+        'heading-03': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],
+        'heading-04': ['1.75rem', { lineHeight: '2.25rem', fontWeight: '600' }],
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
+        md: "var(--radius)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      transitionDuration: {
+        fast: "var(--duration-fast)",
+        moderate: "var(--duration-moderate)",
+        slow: "var(--duration-slow)",
+      },
+      transitionTimingFunction: {
+        standard: "var(--easing-standard)",
+        entrance: "var(--easing-entrance)",
+        exit: "var(--easing-exit)",
       },
       keyframes: {
         "accordion-down": {
