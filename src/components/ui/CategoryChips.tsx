@@ -81,19 +81,12 @@ export function CategoryChips({
       {/* 모바일: Select 드롭다운 */}
       <div className="md:hidden">
         <Select value={value ?? ALL_VALUE} onValueChange={handleSelectChange}>
-          <SelectTrigger
-            className="h-9 rounded-full border-none text-sm font-medium"
-            style={
-              selectedColor
-                ? { backgroundColor: selectedColor, color: "#fff" }
-                : undefined
-            }
-          >
+          <SelectTrigger className="h-9 text-sm font-medium">
             <span className="flex items-center gap-1.5">
               {SelectedIcon ? (
-                <SelectedIcon className="h-3.5 w-3.5" />
+                <SelectedIcon className="h-3.5 w-3.5" style={{ color: selectedColor }} />
               ) : (
-                <LayoutGrid className="h-3.5 w-3.5" />
+                <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
               )}
               {selectedMeta ? selectedMeta.label : "전체"}
             </span>
