@@ -165,7 +165,7 @@ export function DesktopSidebar() {
                         : "hover:bg-accent hover:text-accent-foreground"
                     )}
                   >
-                    <Icon className={cn("h-5 w-5 shrink-0", meta.color)} />
+                    <Icon className={cn("h-5 w-5 shrink-0", isActive ? meta.color : "text-muted-foreground")} />
                     {!collapsed && <span className={cn("truncate", isActive ? "text-foreground" : "text-muted-foreground")}>{meta.label}</span>}
                   </Link>
                 </SidebarTooltip>
