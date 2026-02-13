@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthStrict } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { createReport } from "@/modules/reports/service";
@@ -10,7 +10,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireAuth();
+    const user = await requireAuthStrict();
     const { id: opinionId } = await params;
     const body = await request.json();
     const { reason } = await validateRequest(reportSchema, body);

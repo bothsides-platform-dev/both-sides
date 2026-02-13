@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, requireAuthStrict } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { createTopicSchema, getTopicsSchema } from "@/modules/topics/schema";
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireAuth();
+    const user = await requireAuthStrict();
     const body = await request.json();
     const input = await validateRequest(createTopicSchema, body);
     const topic = await createTopic(user.id, input);

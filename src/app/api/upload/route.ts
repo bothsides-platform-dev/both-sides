@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthStrict } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 
 const MIME_TO_EXT: Record<string, string[]> = {
@@ -13,7 +13,7 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAuth();
+    await requireAuthStrict();
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;

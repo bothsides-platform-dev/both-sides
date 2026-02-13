@@ -94,6 +94,14 @@ const opinionLimiter = redis
     })
   : null;
 
+const uploadLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(5, "60 s"),
+      prefix: "ratelimit:upload",
+    })
+  : null;
+
 const RATE_LIMITED_ROUTES: Array<{
   pattern: RegExp;
   limiter: Ratelimit | null;
@@ -122,6 +130,11 @@ const RATE_LIMITED_ROUTES: Array<{
   {
     pattern: /^\/api\/opinions\/[^/]+\/replies$/,
     limiter: opinionLimiter,
+    methods: ["POST"],
+  },
+  {
+    pattern: /^\/api\/upload$/,
+    limiter: uploadLimiter,
     methods: ["POST"],
   },
 ];
