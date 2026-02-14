@@ -155,7 +155,7 @@ export function TrendingTicker() {
             {/* Desktop Ticker - Hidden when collapsed */}
             {isOpen && (
               <div className="hidden md:block flex-1 ticker-container overflow-hidden">
-                <div className={`ticker-content flex items-center gap-6 ${popoverOpen ? "ticker-paused" : ""}`}>
+                <div className={`ticker-content flex items-center gap-6 w-max ${popoverOpen ? "ticker-paused" : ""}`}>
                   {duplicatedTrends.map((trend, index) => (
                     <TrendingKeyword
                       key={`${trend.rank}-${index}`}
