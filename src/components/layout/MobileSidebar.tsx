@@ -14,7 +14,7 @@ import {
   Settings,
   Moon,
   Sun,
-  ChevronRight,
+  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -128,20 +128,25 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
 
           {/* Category Filter */}
           <div className="pt-3 mt-3 border-t">
-            <Link
-              href="/explore"
-              onClick={closeSidebar}
-              className="flex items-center justify-between px-3 py-1 mb-2 rounded-md hover:bg-accent/50 active:bg-accent/70 transition-colors group"
-            >
+            <div className="px-3 py-1 mb-2">
               <span className="text-xs font-semibold tracking-wide text-muted-foreground">
                 카테고리
               </span>
-              <span className="flex items-center gap-0.5 text-xs text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
-                전체
-                <ChevronRight className="h-3 w-3" />
-              </span>
-            </Link>
+            </div>
             <div className="space-y-0.5">
+            <Link
+              href="/explore"
+              onClick={closeSidebar}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                pathname === "/explore" && !searchParams.get("category")
+                  ? "bg-accent font-medium"
+                  : "hover:bg-accent hover:text-accent-foreground"
+              )}
+            >
+              <LayoutGrid className={cn("h-5 w-5 shrink-0", pathname === "/explore" && !searchParams.get("category") ? "text-primary" : "text-muted-foreground")} />
+              <span className={cn("truncate", pathname === "/explore" && !searchParams.get("category") ? "text-foreground" : "text-muted-foreground")}>전체</span>
+            </Link>
             {categories.map(([value, meta]) => {
               const slug = CATEGORY_TO_SLUG[value];
               const href = `/explore?category=${slug}`;
