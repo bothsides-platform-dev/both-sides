@@ -3,7 +3,7 @@
 import { TrendingTicker } from "@/components/TrendingTicker";
 import { FeaturedSection } from "@/components/topics/FeaturedSection";
 import { CommunitySection } from "@/components/topics/CommunitySection";
-import { TopicBubbleMap } from "@/components/topics/TopicBubbleMap";
+import { TopicBubbleMap } from "@/components/explore/TopicBubbleMap";
 
 export function HomePageClient() {
   return (
