@@ -9,6 +9,7 @@ export interface Opinion {
   isAnonymous?: boolean;
   parentId?: string | null;
   createdAt: string;
+  visitorId?: string | null;
   user: {
     id: string;
     nickname?: string | null;
