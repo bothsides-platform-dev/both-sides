@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
-import { incrementPageViews, shouldShowNPSPrompt, recordSubmission } from "@/lib/nps";
+import { incrementPageViews, shouldShowNPSPrompt, recordSubmission, recordDismissal } from "@/lib/nps";
 import { cn } from "@/lib/utils";
 
 export function NPSPrompt() {
@@ -91,6 +91,7 @@ export function NPSPrompt() {
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (!open) {
+      recordDismissal();
       resetForm();
     }
   };
