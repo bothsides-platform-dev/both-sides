@@ -271,7 +271,6 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
   }
 
   if (!topics.length) return null;
-  if (!bubbles.length) return null;
 
   const popoverWidth = 288; // w-72
   const popoverHeight = 220; // approximate
