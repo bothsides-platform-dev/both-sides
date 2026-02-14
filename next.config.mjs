@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  trailingSlash: false,
   transpilePackages: ['badwords-ko'],
   images: {
     remotePatterns: [
@@ -14,7 +15,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ['lucide-react'],
+    optimizePackageImports: ['lucide-react', 'd3-hierarchy'],
   },
   async headers() {
     return [

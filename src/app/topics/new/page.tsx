@@ -12,16 +12,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { ReferenceLinkInput, type ReferenceLink } from "@/components/ui/ReferenceLinkInput";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { CATEGORY_META, CATEGORY_SLUG_MAP } from "@/lib/constants";
 import { trackTopicCreate } from "@/lib/analytics";
 import { Loader2 } from "lucide-react";
 import type { Category } from "@prisma/client";
 
-const categories = Object.entries(CATEGORY_LABELS) as [Category, string][];
+const categories = Object.entries(CATEGORY_META) as [Category, (typeof CATEGORY_META)[Category]][];
 
 function NewTopicForm() {
   const searchParams = useSearchParams();
   const keyword = searchParams.get("keyword");
+  const categoryParam = searchParams.get("category");
+  const initialCategory = categoryParam ? CATEGORY_SLUG_MAP[categoryParam] ?? undefined : undefined;
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,6 +32,7 @@ function NewTopicForm() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [referenceLinks, setReferenceLinks] = useState<ReferenceLink[]>([]);
   const [isImageUploading, setIsImageUploading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(initialCategory);
 
   if (status === "loading") {
     return (
@@ -166,18 +169,34 @@ function NewTopicForm() {
 
             <div className="space-y-2">
               <Label htmlFor="category">카테고리 *</Label>
-              <Select name="category" required>
+              <Select
+                name="category"
+                required
+                value={selectedCategory}
+                onValueChange={(v) => setSelectedCategory(v as Category)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="카테고리를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
+                  {categories.map(([value, meta]) => {
+                    const Icon = meta.icon;
+                    return (
+                      <SelectItem key={value} value={value}>
+                        <span className="inline-flex items-center gap-2">
+                          <Icon className={`h-4 w-4 ${meta.color}`} />
+                          {meta.label}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
+              {selectedCategory && (
+                <p className="text-xs text-muted-foreground">
+                  {CATEGORY_META[selectedCategory].description}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">

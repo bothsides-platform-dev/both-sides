@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthStrict } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
-
-const MIME_TO_EXT: Record<string, string[]> = {
-  "image/jpeg": ["jpg", "jpeg"],
-  "image/png": ["png"],
-  "image/webp": ["webp"],
-  "image/gif": ["gif"],
-};
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+import { UPLOAD_MAX_SIZE, UPLOAD_MIME_TYPES } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAuth();
+    await requireAuthStrict();
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -26,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. MIME 타입 검증
-    const allowedExts = MIME_TO_EXT[file.type];
+    const allowedExts = UPLOAD_MIME_TYPES[file.type];
     if (!allowedExts) {
       return NextResponse.json(
         { error: "지원하지 않는 파일 형식입니다. (jpg, png, webp, gif만 가능)" },
@@ -35,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. 파일 크기 검증
-    if (file.size > MAX_SIZE) {
+    if (file.size > UPLOAD_MAX_SIZE) {
       return NextResponse.json(
         { error: "파일 크기는 5MB 이하여야 합니다." },
         { status: 400 }

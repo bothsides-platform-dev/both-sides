@@ -153,7 +153,7 @@ export function BadgeShowcase({ stats, trigger }: BadgeShowcaseProps) {
                               "text-xs",
                               badge.earned
                                 ? "text-muted-foreground"
-                                : "text-muted-foreground/60"
+                                : "text-muted-foreground/70"
                             )}
                           >
                             {badge.description}

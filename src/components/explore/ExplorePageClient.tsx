@@ -3,13 +3,15 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useCallback, Suspense } from "react";
 import useSWR from "swr";
-import { cn } from "@/lib/utils";
-import { CATEGORY_META, CATEGORY_SLUG_MAP, CATEGORY_TO_SLUG } from "@/lib/constants";
+import { CATEGORY_SLUG_MAP, CATEGORY_TO_SLUG } from "@/lib/constants";
+import { CategoryChips } from "@/components/ui/CategoryChips";
 import { TopicListItem, type TopicListItemProps } from "@/components/topics/TopicListItem";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TopicBubbleMap } from "@/components/explore/TopicBubbleMap";
 import type { Category } from "@prisma/client";
 
@@ -27,8 +29,6 @@ interface TopicsResponse {
   };
 }
 
-const categories = Object.keys(CATEGORY_META) as Category[];
-
 function ExplorePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,10 +40,10 @@ function ExplorePageContent() {
   const limit = 20;
 
   const handleCategoryChange = useCallback(
-    (slug: string | null) => {
+    (cat: Category | undefined) => {
       const params = new URLSearchParams();
-      if (slug) params.set("category", slug);
-      router.push(`/explore${params.toString() ? `?${params}` : ""}`);
+      if (cat) params.set("category", CATEGORY_TO_SLUG[cat]);
+      router.push(`/explore${params.toString() ? `?${params}` : ""}`, { scroll: false });
       setPage(1);
       setSort("latest");
     },
@@ -74,48 +74,18 @@ function ExplorePageContent() {
   return (
     <div className="space-y-4">
       {/* Bubble Map */}
-      <TopicBubbleMap />
+      <TopicBubbleMap highlightCategory={categoryEnum ?? null} />
 
-      {/* Category Chips */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        <button
-          onClick={() => handleCategoryChange(null)}
-          className={cn(
-            "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-            !categorySlug
-              ? "bg-foreground text-background"
-              : "bg-muted text-muted-foreground hover:bg-accent"
-          )}
-        >
-          전체
-        </button>
-        {categories.map((cat) => {
-          const slug = CATEGORY_TO_SLUG[cat];
-          const meta = CATEGORY_META[cat];
-          const isActive = categorySlug === slug;
-          const Icon = meta.icon;
+      {/* Category + Sort */}
+      <div className="flex items-center gap-4">
+        <CategoryChips
+          value={categoryEnum}
+          onChange={handleCategoryChange}
+          className="min-w-0 flex-1"
+        />
 
-          return (
-            <button
-              key={cat}
-              onClick={() => handleCategoryChange(slug)}
-              className={cn(
-                "shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-foreground text-background"
-                  : "bg-muted text-muted-foreground hover:bg-accent"
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {meta.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Sort Tabs */}
-      <div className="flex justify-end">
-        <Tabs value={sort} onValueChange={handleSortChange}>
+        {/* 정렬 탭 - 오른쪽 정렬 */}
+        <Tabs value={sort} onValueChange={handleSortChange} className="ml-auto shrink-0">
           <TabsList>
             <TabsTrigger value="latest">최신순</TabsTrigger>
             <TabsTrigger value="popular">인기순</TabsTrigger>
@@ -126,16 +96,26 @@ function ExplorePageContent() {
       {/* Topic List */}
       <div className="divide-y rounded-lg border bg-card">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-3">
+                <Skeleton className="hidden md:block h-[60px] w-[80px] shrink-0 rounded-md" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="py-12 text-center text-muted-foreground">
             토론 목록을 불러오는데 실패했습니다.
           </div>
         ) : topics.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">
-            {categoryEnum ? "아직 이 카테고리에 토론이 없습니다." : "아직 토론이 없습니다."}
+          <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
+            <Search className="h-8 w-8" />
+            <p>{categoryEnum ? "아직 이 카테고리에 토론이 없습니다." : "아직 토론이 없습니다."}</p>
+            <p className="text-sm">{categoryEnum ? "다른 카테고리를 확인해보세요." : "첫 번째 토론을 시작해보세요!"}</p>
           </div>
         ) : (
           topics.map((topic) => (

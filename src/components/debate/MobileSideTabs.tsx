@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { Side } from "@prisma/client";
 
@@ -23,13 +23,13 @@ export const MobileSideTabs = memo(function MobileSideTabs({
   countB,
 }: MobileSideTabsProps) {
   return (
-    <div className="relative flex border-b border-border/50 mb-2">
+    <div className="relative flex border-b border-border/50 mb-2" role="tablist" aria-label="의견 탭">
       {/* Tab buttons */}
       <button
         onClick={() => onTabChange("A")}
         className={cn(
           "flex-1 min-h-[44px] py-3 md:py-2 text-sm font-medium transition-colors relative",
-          activeTab === "A" ? "text-foreground" : "text-muted-foreground/70"
+          activeTab === "A" ? "text-foreground" : "text-muted-foreground/80"
         )}
         role="tab"
         aria-selected={activeTab === "A"}
@@ -41,7 +41,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
               "text-xs tabular-nums",
               activeTab === "A"
                 ? "text-sideA"
-                : "text-muted-foreground/50"
+                : "text-muted-foreground/70"
             )}
           >
             {countA}
@@ -53,7 +53,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
         onClick={() => onTabChange("B")}
         className={cn(
           "flex-1 min-h-[44px] py-3 md:py-2 text-sm font-medium transition-colors relative",
-          activeTab === "B" ? "text-foreground" : "text-muted-foreground/70"
+          activeTab === "B" ? "text-foreground" : "text-muted-foreground/80"
         )}
         role="tab"
         aria-selected={activeTab === "B"}
@@ -65,7 +65,7 @@ export const MobileSideTabs = memo(function MobileSideTabs({
               "text-xs tabular-nums",
               activeTab === "B"
                 ? "text-sideB"
-                : "text-muted-foreground/50"
+                : "text-muted-foreground/70"
             )}
           >
             {countB}
@@ -74,21 +74,23 @@ export const MobileSideTabs = memo(function MobileSideTabs({
       </button>
 
       {/* Animated indicator */}
-      <motion.div
-        className={cn(
-          "absolute bottom-0 h-[2px] w-1/2",
-          activeTab === "A" ? "bg-sideA" : "bg-sideB"
-        )}
-        initial={false}
-        animate={{
-          x: activeTab === "A" ? "0%" : "100%",
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 500,
-          damping: 30,
-        }}
-      />
+      <LazyMotion features={domAnimation}>
+        <m.div
+          className={cn(
+            "absolute bottom-0 h-[2px] w-1/2",
+            activeTab === "A" ? "bg-sideA" : "bg-sideB"
+          )}
+          initial={false}
+          animate={{
+            x: activeTab === "A" ? "0%" : "100%",
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 500,
+            damping: 30,
+          }}
+        />
+      </LazyMotion>
     </div>
   );
 });

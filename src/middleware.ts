@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { UPLOAD_MAX_SIZE } from "@/lib/constants";
 
 // --- Request ID 생성 ---
 function generateRequestId(): string {
@@ -32,7 +33,7 @@ function validateCsrf(request: NextRequest): boolean {
 
 // --- Body Size 제한 ---
 const MAX_BODY_SIZES: Record<string, number> = {
-  "/api/upload": 5 * 1024 * 1024, // 5MB
+  "/api/upload": UPLOAD_MAX_SIZE,
   "/api/": 100 * 1024, // 100KB 기본
 };
 
@@ -94,6 +95,14 @@ const opinionLimiter = redis
     })
   : null;
 
+const uploadLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(5, "60 s"),
+      prefix: "ratelimit:upload",
+    })
+  : null;
+
 const RATE_LIMITED_ROUTES: Array<{
   pattern: RegExp;
   limiter: Ratelimit | null;
@@ -122,6 +131,11 @@ const RATE_LIMITED_ROUTES: Array<{
   {
     pattern: /^\/api\/opinions\/[^/]+\/replies$/,
     limiter: opinionLimiter,
+    methods: ["POST"],
+  },
+  {
+    pattern: /^\/api\/upload$/,
+    limiter: uploadLimiter,
     methods: ["POST"],
   },
 ];

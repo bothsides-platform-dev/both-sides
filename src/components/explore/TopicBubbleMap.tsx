@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect, useCallback, memo } from "react";
+import { useMemo, useRef, useEffect, useCallback, memo, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
-import * as d3 from "d3";
+import { hierarchy, pack } from "d3-hierarchy";
 import { useTheme } from "next-themes";
 import { fetcher } from "@/lib/fetcher";
-import { CATEGORY_META, CATEGORY_COLORS } from "@/lib/constants";
-import { Eye, MessageSquare, Users } from "lucide-react";
+import { CATEGORY_META, CATEGORY_CSS_VAR } from "@/lib/constants";
+import { Eye, Info, MessageSquare, Users } from "lucide-react";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import type { Category } from "@prisma/client";
 
 interface BubbleTopic {
@@ -17,6 +18,7 @@ interface BubbleTopic {
   optionB: string;
   category: Category;
   viewCount: number;
+  imageUrl?: string | null;
   _count: {
     votes: number;
     opinions: number;
@@ -48,7 +50,9 @@ interface BubbleData {
   topic: BubbleTopic;
 }
 
-const categories = Object.keys(CATEGORY_META) as Category[];
+interface TopicBubbleMapProps {
+  highlightCategory?: Category | null;
+}
 
 function truncateText(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text;
@@ -122,13 +126,32 @@ function getPopoverPosition(
   return { left, top };
 }
 
-export const TopicBubbleMap = memo(function TopicBubbleMap() {
+export const TopicBubbleMap = memo(function TopicBubbleMap({
+  highlightCategory = null,
+}: TopicBubbleMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [highlightCategory, setHighlightCategory] = useState<Category | null>(null);
+
+  const containerCallbackRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    containerRef.current = node;
+    if (node) {
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      });
+      observer.observe(node);
+      observerRef.current = observer;
+    }
+  }, []);
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
 
   const { data, isLoading } = useSWR<TopicsResponse>(
@@ -168,16 +191,6 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
     };
   }, [selectedBubbleId]);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
 
   const bubbles = useMemo(() => {
     if (!topics.length || !containerWidth) return [];
@@ -195,16 +208,14 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
 
     const rootData: BubbleNode = { r: 0, topic: nodes[0].topic, children: nodes };
 
-    const root = d3
-      .hierarchy<BubbleNode>(rootData)
+    const root = hierarchy<BubbleNode>(rootData)
       .sum((d) => (d.children ? 0 : d.r * d.r));
 
-    const pack = d3
-      .pack<BubbleNode>()
+    const packer = pack<BubbleNode>()
       .size([containerWidth, height])
       .padding(3);
 
-    const packed = pack(root);
+    const packed = packer(root);
 
     return packed.leaves().map((leaf) => ({
       x: leaf.x,
@@ -260,8 +271,29 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
 
   return (
     <div className="rounded-xl border bg-card p-4 sm:p-6">
-      <h2 className="mb-4 text-base font-semibold">토픽 버블맵</h2>
-      <div ref={containerRef} className="relative w-full overflow-visible min-h-[200px]">
+      <div className="mb-4 flex items-center gap-1.5">
+        <h2 className="text-base font-semibold">토픽 버블맵</h2>
+        <Tooltip.Provider delayDuration={200}>
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Info className="h-4 w-4" />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content
+                side="bottom"
+                sideOffset={4}
+                className="z-50 max-w-[240px] rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
+              >
+                인기 토픽을 버블 크기로 시각화한 맵이에요. 투표가 많을수록 버블이 커지고, 색상은 카테고리를 나타내요. 버블을 클릭하면 상세 정보를 볼 수 있어요.
+                <Tooltip.Arrow className="fill-border" />
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        </Tooltip.Provider>
+      </div>
+      <div ref={containerCallbackRef} className="relative w-full overflow-visible min-h-[200px]">
         {containerWidth > 0 && (
           <>
             <svg
@@ -270,72 +302,160 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
               viewBox={`0 0 ${containerWidth} ${svgHeight}`}
               className="select-none"
             >
+              <defs>
+                {bubbles.map((bubble) => {
+                  if (!bubble.topic.imageUrl) return null;
+                  const r = selectedBubbleId === bubble.topic.id ? bubble.r + 2 : bubble.r;
+                  return (
+                    <pattern
+                      key={`img-${bubble.topic.id}`}
+                      id={`img-${bubble.topic.id}`}
+                      patternUnits="objectBoundingBox"
+                      width="1"
+                      height="1"
+                    >
+                      <image
+                        href={bubble.topic.imageUrl}
+                        width={r * 2}
+                        height={r * 2}
+                        preserveAspectRatio="xMidYMid slice"
+                      />
+                    </pattern>
+                  );
+                })}
+                {bubbles.map((bubble) => {
+                  if (!bubble.topic.imageUrl) return null;
+                  return (
+                    <linearGradient
+                      key={`grad-${bubble.topic.id}`}
+                      id={`grad-${bubble.topic.id}`}
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="black" stopOpacity="0" />
+                      <stop offset={bubble.r > 25 ? "55%" : "100%"} stopColor="black" stopOpacity={bubble.r > 25 ? "0.55" : "0.3"} />
+                    </linearGradient>
+                  );
+                })}
+              </defs>
               {bubbles.map((bubble) => {
-                const color = CATEGORY_COLORS[bubble.topic.category];
-                const fill = isDark ? color.dark : color.light;
+                const fill = CATEGORY_CSS_VAR[bubble.topic.category];
                 const isHighlighted =
                   !highlightCategory || highlightCategory === bubble.topic.category;
                 const isSelected = selectedBubbleId === bubble.topic.id;
                 const r = isSelected ? bubble.r + 2 : bubble.r;
                 const meta = CATEGORY_META[bubble.topic.category];
                 const Icon = meta.icon;
+                const hasImage = !!bubble.topic.imageUrl;
 
                 return (
                   <g
                     key={bubble.topic.id}
                     data-bubble-id={bubble.topic.id}
-                    className="cursor-pointer"
+                    className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
                     style={{
                       opacity: isHighlighted ? 1 : 0.15,
                       transition: "opacity 0.2s",
                     }}
                     role="button"
                     tabIndex={0}
+                    aria-label={`${bubble.topic.title} - ${meta.label}`}
                     onClick={() => handleBubbleClick(bubble.topic.id)}
                     onKeyDown={(e) => handleBubbleKeyDown(e, bubble.topic.id)}
                   >
-                    <circle
-                      cx={bubble.x}
-                      cy={bubble.y}
-                      r={r}
-                      fill={fill}
-                      fillOpacity={isDark ? 0.35 : 0.3}
-                      stroke={fill}
-                      strokeWidth={isSelected ? 2.5 : 2}
-                    />
-                    {bubble.r > 40 ? (
-                      <text
-                        x={bubble.x}
-                        y={bubble.y}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        className="fill-foreground text-xs font-medium pointer-events-none"
-                      >
-                        {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
-                      </text>
-                    ) : bubble.r > 25 ? (
-                      <text
-                        x={bubble.x}
-                        y={bubble.y}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        className="fill-foreground text-2xs pointer-events-none"
-                      >
-                        {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
-                      </text>
-                    ) : (
-                      <foreignObject
-                        x={bubble.x - 7}
-                        y={bubble.y - 7}
-                        width={14}
-                        height={14}
-                        className="pointer-events-none"
-                      >
-                        <Icon
-                          className="h-3.5 w-3.5"
-                          style={{ color: fill }}
+                    {hasImage ? (
+                      <>
+                        {/* Thumbnail image circle */}
+                        <circle
+                          cx={bubble.x}
+                          cy={bubble.y}
+                          r={r}
+                          fill={`url(#img-${bubble.topic.id})`}
+                          style={{ stroke: fill }}
+                          strokeWidth={isSelected ? 2.5 : 2}
                         />
-                      </foreignObject>
+                        {/* Gradient overlay for text readability */}
+                        <circle
+                          cx={bubble.x}
+                          cy={bubble.y}
+                          r={r}
+                          fill={`url(#grad-${bubble.topic.id})`}
+                          className="pointer-events-none"
+                        />
+                        {/* Text on image bubbles */}
+                        {bubble.r > 40 ? (
+                          <text
+                            x={bubble.x}
+                            y={bubble.y + r * 0.3}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            className="text-xs font-semibold pointer-events-none"
+                            fill="var(--category-foreground)"
+                            style={{ textShadow: "0 1px 3px hsl(0 0% 0% / 0.8)" }}
+                          >
+                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
+                          </text>
+                        ) : bubble.r > 25 ? (
+                          <text
+                            x={bubble.x}
+                            y={bubble.y + r * 0.35}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            className="text-2xs font-semibold pointer-events-none"
+                            fill="var(--category-foreground)"
+                            style={{ textShadow: "0 1px 2px hsl(0 0% 0% / 0.8)" }}
+                          >
+                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
+                          </text>
+                        ) : null}
+                      </>
+                    ) : (
+                      <>
+                        <circle
+                          cx={bubble.x}
+                          cy={bubble.y}
+                          r={r}
+                          style={{ fill, stroke: fill }}
+                          fillOpacity={isDark ? 0.35 : 0.3}
+                          strokeWidth={isSelected ? 2.5 : 2}
+                        />
+                        {bubble.r > 40 ? (
+                          <text
+                            x={bubble.x}
+                            y={bubble.y}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            className="fill-foreground text-xs font-medium pointer-events-none"
+                          >
+                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
+                          </text>
+                        ) : bubble.r > 25 ? (
+                          <text
+                            x={bubble.x}
+                            y={bubble.y}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            className="fill-foreground text-2xs pointer-events-none"
+                          >
+                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
+                          </text>
+                        ) : (
+                          <foreignObject
+                            x={bubble.x - 7}
+                            y={bubble.y - 7}
+                            width={14}
+                            height={14}
+                            className="pointer-events-none"
+                          >
+                            <Icon
+                              className="h-3.5 w-3.5"
+                              style={{ color: fill } as React.CSSProperties}
+                            />
+                          </foreignObject>
+                        )}
+                      </>
                     )}
                   </g>
                 );
@@ -367,40 +487,6 @@ export const TopicBubbleMap = memo(function TopicBubbleMap() {
         )}
       </div>
 
-      {/* Category Legend */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        {categories.map((cat) => {
-          const meta = CATEGORY_META[cat];
-          const color = CATEGORY_COLORS[cat];
-          const isActive = highlightCategory === cat;
-          const hexColor = isDark ? color.dark : color.light;
-
-          return (
-            <button
-              key={cat}
-              onClick={() =>
-                setHighlightCategory(isActive ? null : cat)
-              }
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all ${
-                isActive
-                  ? "ring-2 ring-offset-1 ring-offset-background"
-                  : "opacity-70 hover:opacity-100"
-              }`}
-              style={{
-                backgroundColor: `${hexColor}20`,
-                color: hexColor,
-                ...(isActive ? { ringColor: hexColor } : {}),
-              }}
-            >
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: hexColor }}
-              />
-              {meta.label}
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 });

@@ -8,6 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatRelativeTime } from "@/lib/utils";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Loader2,
   UserX,
   User,
@@ -45,6 +53,8 @@ interface OpinionTableProps {
 export function OpinionTable({ opinions }: OpinionTableProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [processingAction, setProcessingAction] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const handleToggleAnonymity = async (id: string, isAnonymous: boolean) => {
     setProcessingId(id);
@@ -64,14 +74,18 @@ export function OpinionTable({ opinions }: OpinionTableProps) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("정말로 이 의견을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
-      return;
-    }
-    setProcessingId(id);
+  const handleOpenDeleteDialog = (id: string) => {
+    setDeleteTargetId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
+    setDeleteDialogOpen(false);
+    setProcessingId(deleteTargetId);
     setProcessingAction("delete");
     try {
-      await fetch(`/api/admin/opinions/${id}`, {
+      await fetch(`/api/admin/opinions/${deleteTargetId}`, {
         method: "DELETE",
       });
       mutate((key: string) => key.startsWith("/api/admin/opinions"));
@@ -80,6 +94,7 @@ export function OpinionTable({ opinions }: OpinionTableProps) {
     } finally {
       setProcessingId(null);
       setProcessingAction(null);
+      setDeleteTargetId(null);
     }
   };
 
@@ -119,7 +134,8 @@ export function OpinionTable({ opinions }: OpinionTableProps) {
                     target="_blank"
                   >
                     {opinion.topic.title}
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                    <span className="sr-only">(새 창에서 열림)</span>
                   </Link>
                 </div>
 
@@ -144,6 +160,7 @@ export function OpinionTable({ opinions }: OpinionTableProps) {
                   onClick={() => handleToggleAnonymity(opinion.id, opinion.isAnonymous ?? false)}
                   disabled={processingId === opinion.id}
                   title={opinion.isAnonymous ? "익명 해제" : "익명 설정"}
+                  aria-label={opinion.isAnonymous ? "익명 해제" : "익명 설정"}
                 >
                   {processingId === opinion.id && processingAction === "anonymity" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -157,10 +174,11 @@ export function OpinionTable({ opinions }: OpinionTableProps) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleDelete(opinion.id)}
+                  onClick={() => handleOpenDeleteDialog(opinion.id)}
                   disabled={processingId === opinion.id}
                   className="text-destructive hover:text-destructive"
                   title="삭제"
+                  aria-label="삭제"
                 >
                   {processingId === opinion.id && processingAction === "delete" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -173,6 +191,24 @@ export function OpinionTable({ opinions }: OpinionTableProps) {
           </CardContent>
         </Card>
       ))}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>의견 삭제</DialogTitle>
+            <DialogDescription>
+              정말로 이 의견을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              취소
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              삭제
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

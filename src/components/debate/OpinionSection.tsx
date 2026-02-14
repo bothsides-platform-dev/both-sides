@@ -1,16 +1,10 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 import { useSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
 import { Button } from "@/components/ui/button";
-
-// Dynamic import for framer-motion to reduce bundle size (~40KB)
-const MotionDiv = dynamic(
-  () => import("framer-motion").then((mod) => mod.motion.div),
-  { ssr: false }
-);
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -56,12 +50,14 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
   const { showRateLimitError } = useToast();
 
   // Mobile swipe tabs
-  const { activeTab, setActiveTab, handleDragEnd } = useSwipeableTabs();
+  const { activeTab, setActiveTab } = useSwipeableTabs();
 
   // Dynamic height for mobile swipe container
   const sideARef = useRef<HTMLDivElement>(null);
   const sideBRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState<number | undefined>(undefined);
+  const [sideAHeight, setSideAHeight] = useState<number>(0);
+  const [sideBHeight, setSideBHeight] = useState<number>(0);
 
   // Use combined vote-info endpoint (fetch for both logged-in and guest users)
   const { data: voteInfoData } = useSWR<{ data: { myVote: Side | null } }>(
@@ -100,21 +96,32 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
     fetchAncestorData();
   }, [highlightReplyId, setActiveTab]);
 
-  // Track active tab's content height for mobile swipe container
+  // Observe both sides simultaneously (no re-creation on tab change)
   useEffect(() => {
-    const activeRef = activeTab === "A" ? sideARef : sideBRef;
-    if (!activeRef.current) return;
+    if (!sideARef.current || !sideBRef.current) return;
+    const refA = sideARef.current;
+    const refB = sideBRef.current;
 
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        setContainerHeight(entry.contentRect.height);
+        const h = entry.contentRect.height;
+        if (entry.target === refA) setSideAHeight(h);
+        else if (entry.target === refB) setSideBHeight(h);
       }
     });
 
-    setContainerHeight(activeRef.current.scrollHeight);
-    observer.observe(activeRef.current);
+    setSideAHeight(refA.scrollHeight);
+    setSideBHeight(refB.scrollHeight);
+    observer.observe(refA);
+    observer.observe(refB);
     return () => observer.disconnect();
-  }, [activeTab]);
+  }, []);
+
+  // Apply the correct side's height when tab changes
+  useEffect(() => {
+    const height = activeTab === "A" ? sideAHeight : sideBHeight;
+    if (height > 0) setContainerHeight(height);
+  }, [activeTab, sideAHeight, sideBHeight]);
 
   // Fetch only top-level opinions (parentId=null)
   const queryParams = useMemo(() => {
@@ -290,12 +297,10 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
             className="overflow-hidden transition-[height] duration-300"
             style={containerHeight ? { height: containerHeight } : undefined}
           >
-            <MotionDiv
+            <LazyMotion features={domAnimation}>
+            <m.div
               className="flex"
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
-              onDragEnd={handleDragEnd}
+              initial={false}
               animate={{ x: activeTab === "A" ? 0 : "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
@@ -334,7 +339,8 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   expandedAncestorIds={ancestorData?.ancestorIds}
                 />
               </div>
-            </MotionDiv>
+            </m.div>
+            </LazyMotion>
           </div>
         </div>
 
@@ -348,7 +354,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
               <span className="hidden sm:inline">측으로 의견을 작성합니다</span>
               <span className="sm:hidden">측</span>
               {!isLoggedIn && (
-                <span className="text-xs text-muted-foreground/70">(손님)</span>
+                <span className="text-xs text-muted-foreground/80">(손님)</span>
               )}
             </div>
             {submitState.error && (
@@ -381,9 +387,10 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   onClick={handleSubmit}
                   disabled={submitState.isSubmitting || !newOpinion.trim()}
                   className={cn(
-                    "shrink-0 h-10 w-10 md:h-10 md:w-10",
+                    "shrink-0 h-11 w-11",
                     myVote === "A" ? "bg-sideA hover:bg-sideA/90" : "bg-sideB hover:bg-sideB/90"
                   )}
+                  aria-label="의견 등록"
                 >
                   {submitState.isSubmitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -411,7 +418,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   <div />
                 )}
                 {(isOpinionFocused || newOpinion.length > 0) && (
-                  <div className="text-xs text-muted-foreground text-right">
+                  <div className="text-xs text-muted-foreground text-right" aria-live="polite">
                     {newOpinion.length} / 1000
                   </div>
                 )}

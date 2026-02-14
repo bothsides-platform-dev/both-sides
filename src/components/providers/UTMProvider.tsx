@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 /**
@@ -13,6 +13,22 @@ import { usePathname, useSearchParams } from "next/navigation";
 export function UTMProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isFirstRender = useRef(true);
+
+  // SPA pageview 추적: pathname 변경 시 GA4에 page_view 전송
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (window.gtag) {
+      window.gtag("event", "page_view", {
+        page_path: pathname,
+        page_title: document.title,
+      });
+    }
+  }, [pathname]);
 
   useEffect(() => {
     // Only run on client side

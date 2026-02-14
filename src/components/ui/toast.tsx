@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { createContext, useContext, useState, useCallback, useRef, useEffect, ReactNode } from "react";
+import { LazyMotion, domAnimation, AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -57,8 +57,14 @@ interface ToastProviderProps {
 export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const shouldReduceMotion = useReducedMotion();
+  const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   const removeToast = useCallback((id: string) => {
+    const timer = timeoutRefs.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      timeoutRefs.current.delete(id);
+    }
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
@@ -70,11 +76,19 @@ export function ToastProvider({ children }: ToastProviderProps) {
       setToasts((prev) => [...prev, newToast]);
 
       if (duration > 0) {
-        setTimeout(() => removeToast(id), duration);
+        const timer = setTimeout(() => removeToast(id), duration);
+        timeoutRefs.current.set(id, timer);
       }
     },
     [removeToast]
   );
+
+  useEffect(() => {
+    const refs = timeoutRefs.current;
+    return () => {
+      refs.forEach(clearTimeout);
+    };
+  }, []);
 
   const showRateLimitError = useCallback(
     (retryAfter?: number) => {
@@ -90,36 +104,39 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <ToastContext.Provider value={{ showToast, showRateLimitError }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
-        <AnimatePresence mode="popLayout">
-          {toasts.map((toast) => {
-            const Icon = icons[toast.type];
-            return (
-              <motion.div
-                key={toast.id}
-                layout
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.95 }}
-                animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: 100, scale: 0.95 }}
-                transition={shouldReduceMotion ? { duration: 0.15 } : { type: "spring", stiffness: 500, damping: 30 }}
-                className={cn(
-                  "flex items-start gap-3 p-4 rounded-lg border shadow-lg",
-                  styles[toast.type]
-                )}
-              >
-                <Icon className={cn("h-5 w-5 shrink-0 mt-0.5", iconStyles[toast.type])} />
-                <p className="text-sm font-medium flex-1">{toast.message}</p>
-                <button
-                  onClick={() => removeToast(toast.id)}
-                  className="shrink-0 p-0.5 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+      <LazyMotion features={domAnimation}>
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm" role="status" aria-live="polite">
+          <AnimatePresence mode="popLayout">
+            {toasts.map((toast) => {
+              const Icon = icons[toast.type];
+              return (
+                <m.div
+                  key={toast.id}
+                  layout
+                  initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.95 }}
+                  animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                  exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: 100, scale: 0.95 }}
+                  transition={shouldReduceMotion ? { duration: 0.15 } : { type: "spring", stiffness: 500, damping: 30 }}
+                  className={cn(
+                    "flex items-start gap-3 p-4 rounded-lg border shadow-lg",
+                    styles[toast.type]
+                  )}
                 >
-                  <X className="h-4 w-4" />
-                </button>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
+                  <Icon className={cn("h-5 w-5 shrink-0 mt-0.5", iconStyles[toast.type])} />
+                  <p className="text-sm font-medium flex-1">{toast.message}</p>
+                  <button
+                    onClick={() => removeToast(toast.id)}
+                    className="shrink-0 p-0.5 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                    aria-label="알림 닫기"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </m.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      </LazyMotion>
     </ToastContext.Provider>
   );
 }

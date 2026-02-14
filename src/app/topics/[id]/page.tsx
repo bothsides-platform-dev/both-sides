@@ -9,10 +9,12 @@ import { TopicShareButton } from "@/components/topics/TopicShareButton";
 import { TopicAuthorSection } from "@/components/topics/TopicAuthorSection";
 import { ViewCountTracker } from "@/components/topics/ViewCountTracker";
 import { InAppBrowserRedirect } from "@/components/InAppBrowserRedirect";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { CATEGORY_LABELS, CATEGORY_TO_SLUG } from "@/lib/constants";
 import { ReferenceLinksCollapsible } from "@/components/topics/ReferenceLinksCollapsible";
 import { TopicSummary } from "@/components/debate/TopicSummary";
 import { GroundsSection } from "@/components/debate/GroundsSection";
+import { RelatedTopics } from "@/components/topics/RelatedTopics";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 interface ReferenceLink {
   url: string;
@@ -123,8 +125,8 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
     notFound();
   }
 
-  const authorName = topic.isAnonymous 
-    ? "익명" 
+  const authorName = topic.isAnonymous
+    ? "익명"
     : (topic.author.nickname || topic.author.name || "익명");
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club";
   const canonicalUrl = new URL(`/topics/${topic.id}`, siteUrl).toString();
@@ -168,6 +170,14 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: "홈", href: "/" },
+          { label: CATEGORY_LABELS[topic.category], href: `/explore?category=${CATEGORY_TO_SLUG[topic.category]}` },
+          { label: topic.title },
+        ]}
+      />
       {/* Topic Header */}
       <div className="space-y-4 md:space-y-6 border-b border-border pb-5 md:pb-8">
         <div className="space-y-2 md:space-y-3">
@@ -194,6 +204,10 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
               imageUrl={topic.imageUrl}
             />
           }
+          shareUrl={`/topics/${topic.id}`}
+          shareTitle={topic.title}
+          shareDescription={`${topic.optionA} vs ${topic.optionB}`}
+          shareImageUrl={topic.imageUrl || `/topics/${topic.id}/opengraph-image`}
         />
 
         {/* Hero Image */}
@@ -245,6 +259,9 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         optionB={topic.optionB}
         highlightReplyId={highlightReply}
       />
+
+      {/* Related Topics */}
+      <RelatedTopics topicId={topic.id} category={topic.category} />
     </div>
   );
 }

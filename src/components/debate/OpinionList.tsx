@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { OpinionThread } from "./OpinionThread";
 import type { Opinion } from "./types";
 import type { ReactionType, Side } from "@prisma/client";
@@ -36,15 +36,24 @@ export const OpinionList = memo(function OpinionList({
 }: OpinionListProps) {
   if (isLoading) {
     return (
-      <div className="flex justify-center py-4">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50" />
+      <div className="space-y-4 py-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-start gap-3">
+            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   if (opinions.length === 0) {
     return (
-      <div className="py-4 text-center text-sm text-muted-foreground/70">
+      <div className="py-4 text-center text-sm text-muted-foreground/80">
         {emptyMessage}
       </div>
     );
@@ -53,18 +62,22 @@ export const OpinionList = memo(function OpinionList({
   return (
     <div className="divide-y divide-border/50">
       {opinions.map((opinion) => (
-        <OpinionThread
+        <div
           key={opinion.id}
-          opinion={opinion}
-          optionA={optionA}
-          optionB={optionB}
-          currentUserId={currentUserId}
-          onReaction={onReaction}
-          onReplySuccess={onReplySuccess}
-          userVoteSide={userVoteSide}
-          highlightReplyId={highlightReplyId}
-          expandedAncestorIds={expandedAncestorIds}
-        />
+          style={{ contentVisibility: "auto", containIntrinsicSize: "auto 120px" }}
+        >
+          <OpinionThread
+            opinion={opinion}
+            optionA={optionA}
+            optionB={optionB}
+            currentUserId={currentUserId}
+            onReaction={onReaction}
+            onReplySuccess={onReplySuccess}
+            userVoteSide={userVoteSide}
+            highlightReplyId={highlightReplyId}
+            expandedAncestorIds={expandedAncestorIds}
+          />
+        </div>
       ))}
     </div>
   );

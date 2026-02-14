@@ -2,10 +2,7 @@ import { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { handleApiError } from "@/lib/errors";
 import { updateOpinionAnonymityByAdmin } from "@/modules/opinions/service";
-
-type RouteParams = {
-  params: Promise<{ id: string }>;
-};
+import type { RouteParams } from "@/types/api";
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {

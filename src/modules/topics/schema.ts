@@ -3,7 +3,8 @@ import { z } from "zod";
 const categoryEnum = z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH"]);
 
 const referenceLinkSchema = z.object({
-  url: z.string().url("올바른 URL 형식이 아닙니다.").max(2000, "URL은 2000자 이하여야 합니다."),
+  url: z.string().url("올바른 URL 형식이 아닙니다.").max(2000, "URL은 2000자 이하여야 합니다.")
+    .refine((val) => /^https?:\/\//i.test(val), { message: "http 또는 https URL만 허용됩니다." }),
   title: z.string().max(100, "제목은 100자 이하여야 합니다.").optional(),
 });
 
@@ -16,8 +17,8 @@ export const createTopicSchema = z.object({
   imageUrl: z
     .string()
     .refine(
-      (val) => val.startsWith("/") || z.string().url().safeParse(val).success,
-      { message: "올바른 URL 형식이 아닙니다." }
+      (val) => val.startsWith("/") || (z.string().url().safeParse(val).success && /^https?:\/\//i.test(val)),
+      { message: "올바른 URL 형식이 아닙니다. (http/https 또는 내부 경로만 허용)" }
     )
     .optional(),
   deadline: z.string().datetime().optional(),
@@ -31,6 +32,7 @@ export const getTopicsSchema = z.object({
   category: categoryEnum.optional(),
   sort: z.enum(["latest", "popular"]).default("latest"),
   featured: z.coerce.boolean().optional(),
+  exclude: z.string().optional(),
 });
 
 export const updateFeaturedSchema = z.object({
@@ -47,8 +49,8 @@ export const updateTopicSchema = z.object({
   imageUrl: z
     .string()
     .refine(
-      (val) => val.startsWith("/") || z.string().url().safeParse(val).success,
-      { message: "올바른 URL 형식이 아닙니다." }
+      (val) => val.startsWith("/") || (z.string().url().safeParse(val).success && /^https?:\/\//i.test(val)),
+      { message: "올바른 URL 형식이 아닙니다. (http/https 또는 내부 경로만 허용)" }
     )
     .optional()
     .nullable(),

@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatRelativeTime } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 import { Loader2, Pencil, Check, X, Ban, UserCheck } from "lucide-react";
 import type { Role } from "@prisma/client";
 
@@ -60,6 +61,9 @@ export function UserTable({ users }: UserTableProps) {
   const [blacklistTargetUser, setBlacklistTargetUser] = useState<User | null>(null);
   const [blacklistReason, setBlacklistReason] = useState("");
   const [blacklistError, setBlacklistError] = useState<string | null>(null);
+  const [unblacklistDialogOpen, setUnblacklistDialogOpen] = useState(false);
+  const [unblacklistTargetId, setUnblacklistTargetId] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const handleStartEdit = (user: User) => {
     setEditingId(user.id);
@@ -121,28 +125,35 @@ export function UserTable({ users }: UserTableProps) {
     }
   };
 
-  const handleUnblacklist = async (userId: string) => {
-    if (!confirm("정말 차단을 해제하시겠습니까?")) return;
+  const handleOpenUnblacklistDialog = (userId: string) => {
+    setUnblacklistTargetId(userId);
+    setUnblacklistDialogOpen(true);
+  };
 
-    setProcessingId(userId);
+  const handleUnblacklist = async () => {
+    if (!unblacklistTargetId) return;
+
+    setProcessingId(unblacklistTargetId);
+    setUnblacklistDialogOpen(false);
 
     try {
-      const response = await fetch(`/api/admin/users/${userId}/blacklist`, {
+      const response = await fetch(`/api/admin/users/${unblacklistTargetId}/blacklist`, {
         method: "DELETE",
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error || "차단 해제에 실패했습니다.");
+        showToast(data.error || "차단 해제에 실패했습니다.", "error");
         return;
       }
 
       mutate((key: string) => key.startsWith("/api/admin/users"));
     } catch {
-      alert("차단 해제에 실패했습니다.");
+      showToast("차단 해제에 실패했습니다.", "error");
     } finally {
       setProcessingId(null);
+      setUnblacklistTargetId(null);
     }
   };
 
@@ -228,6 +239,7 @@ export function UserTable({ users }: UserTableProps) {
                           variant="ghost"
                           onClick={() => handleSaveNickname(user.id)}
                           disabled={processingId === user.id}
+                          aria-label="닉네임 저장"
                         >
                           {processingId === user.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -240,6 +252,7 @@ export function UserTable({ users }: UserTableProps) {
                           variant="ghost"
                           onClick={handleCancelEdit}
                           disabled={processingId === user.id}
+                          aria-label="닉네임 수정 취소"
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -283,6 +296,7 @@ export function UserTable({ users }: UserTableProps) {
                         variant="ghost"
                         onClick={() => handleStartEdit(user)}
                         title="닉네임 수정"
+                        aria-label="닉네임 수정"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -291,9 +305,10 @@ export function UserTable({ users }: UserTableProps) {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleUnblacklist(user.id)}
+                            onClick={() => handleOpenUnblacklistDialog(user.id)}
                             disabled={processingId === user.id}
                             title="차단 해제"
+                            aria-label="차단 해제"
                           >
                             {processingId === user.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -308,6 +323,7 @@ export function UserTable({ users }: UserTableProps) {
                             onClick={() => handleOpenBlacklistDialog(user)}
                             disabled={processingId === user.id}
                             title="차단"
+                            aria-label="차단"
                           >
                             <Ban className="h-4 w-4 text-destructive" />
                           </Button>
@@ -355,6 +371,25 @@ export function UserTable({ users }: UserTableProps) {
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : null}
               차단
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={unblacklistDialogOpen} onOpenChange={setUnblacklistDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>차단 해제</DialogTitle>
+            <DialogDescription>
+              정말 차단을 해제하시겠습니까?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUnblacklistDialogOpen(false)}>
+              취소
+            </Button>
+            <Button onClick={handleUnblacklist}>
+              해제
             </Button>
           </DialogFooter>
         </DialogContent>

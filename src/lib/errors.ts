@@ -57,7 +57,7 @@ export function handleApiError(error: unknown, requestId?: string): Response {
 
   if (error instanceof Error) {
     return Response.json(
-      { error: error.message, code: "INTERNAL_ERROR", requestId: rid },
+      { error: "서버 오류가 발생했습니다.", code: "INTERNAL_ERROR", requestId: rid },
       { status: 500 }
     );
   }

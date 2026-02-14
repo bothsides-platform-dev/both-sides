@@ -37,11 +37,11 @@ function TrendingKeyword({ rank, query, onOpenChange }: TrendingKeywordProps) {
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
-          className="inline-flex items-center gap-1.5 whitespace-nowrap hover:text-primary transition-colors"
+          className="inline-flex items-center gap-1.5 min-w-0 max-w-full hover:text-primary transition-colors"
           aria-label={`${query} 옵션 보기`}
         >
           <span className="text-xs font-bold text-muted-foreground">{rank}</span>
-          <span className="text-sm font-medium">{query}</span>
+          <span className="text-sm font-medium truncate">{query}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-2" align="start">
@@ -66,6 +66,7 @@ function TrendingKeyword({ rank, query, onOpenChange }: TrendingKeywordProps) {
           >
             <Search className="h-4 w-4 text-muted-foreground" />
             Google에서 검색
+            <span className="sr-only">(새 창에서 열림)</span>
           </a>
         </div>
       </PopoverContent>
@@ -107,7 +108,7 @@ export function TrendingTicker() {
   if (isLoading) {
     return (
       <div className="w-full bg-muted/50 border-b">
-        <div className="w-full px-4 md:px-8 lg:px-12 py-2">
+        <div className="w-full px-4 md:px-8 lg:px-6 py-2">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 shrink-0">
               <TrendingUp className="h-4 w-4 text-green-500" />
@@ -130,7 +131,7 @@ export function TrendingTicker() {
 
   return (
     <div className="w-full bg-muted/50 border-b">
-      <div className="w-full px-4 md:px-8 lg:px-12 py-2">
+      <div className="w-full px-4 md:px-8 lg:px-6 py-2">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <div className="flex items-center gap-3">
             {/* Label + Toggle Button */}
@@ -154,7 +155,7 @@ export function TrendingTicker() {
             {/* Desktop Ticker - Hidden when collapsed */}
             {isOpen && (
               <div className="hidden md:block flex-1 ticker-container overflow-hidden">
-                <div className={`ticker-content flex items-center gap-6 ${popoverOpen ? "ticker-paused" : ""}`}>
+                <div className={`ticker-content flex items-center gap-6 w-max ${popoverOpen ? "ticker-paused" : ""}`}>
                   {duplicatedTrends.map((trend, index) => (
                     <TrendingKeyword
                       key={`${trend.rank}-${index}`}

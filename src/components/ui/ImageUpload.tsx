@@ -191,7 +191,7 @@ export function ImageUpload({ value, onChange, disabled, onUploadingChange }: Im
             src={value}
             alt="썸네일 미리보기"
             fill
-            className="object-contain"
+            className="object-cover"
           />
           <Button
             type="button"

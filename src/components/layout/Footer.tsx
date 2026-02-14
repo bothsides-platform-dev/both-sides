@@ -20,8 +20,8 @@ export function Footer() {
   return (
     // Hidden on mobile (bottom nav replaces footer), visible on desktop
     // On lg+ with sidebar, theme toggle is in sidebar, so footer is simpler
-    <footer className="hidden md:block border-t py-6">
-      <div className="w-full px-4 md:px-8 lg:px-12 flex flex-col items-center justify-between gap-4 md:flex-row">
+    <footer className="border-t py-4 md:py-6">
+      <div className="w-full px-4 sm:px-6 flex flex-col items-center justify-between gap-4 md:flex-row">
         <div className="flex items-center gap-4">
           {/* Theme toggle: hidden on lg+ (sidebar has it) */}
           {mounted && (

@@ -3,7 +3,6 @@
 import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,38 +37,53 @@ export interface TopicCardProps {
 }
 
 export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
-  const router = useRouter();
   const authorName = topic.isAnonymous
     ? "익명"
     : (topic.author.nickname || topic.author.name || "익명");
   const shareDescription = `${topic.optionA} vs ${topic.optionB}`;
 
   return (
-    <div className="relative h-full">
-      <Link href={`/topics/${topic.id}`}>
-        <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
-          <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-sideA/10 to-sideB/10 dark:from-sideA/20 dark:to-sideB/20">
-            {topic.imageUrl ? (
-              <Image src={topic.imageUrl} alt="" fill className="object-cover" />
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                {/* 대각선 분할 배경 */}
-                <div className="absolute inset-0 bg-gradient-to-br from-sideA/20 via-transparent to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-tl from-sideB/20 via-transparent to-transparent" />
+    <div className="relative group h-full">
+      <Card className="h-full overflow-hidden transition-shadow group-hover:shadow-md group-focus-within:shadow-md group-focus-within:ring-2 group-focus-within:ring-ring">
+        <div className={`relative aspect-video w-full overflow-hidden ${topic.imageUrl ? "bg-muted/50" : "bg-gradient-to-br from-sideA/10 to-sideB/10 dark:from-sideA/20 dark:to-sideB/20"}`}>
+          {topic.imageUrl ? (
+            <>
+              <Image
+                src={topic.imageUrl}
+                alt=""
+                fill
+                sizes="50vw"
+                className="object-cover blur-2xl scale-110 opacity-70"
+                aria-hidden="true"
+              />
+              <Image
+                src={topic.imageUrl}
+                alt={topic.title}
+                fill
+                className="object-cover z-[1]"
+              />
+            </>
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              {/* 대각선 분할 배경 */}
+              <div className="absolute inset-0 bg-gradient-to-br from-sideA/20 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-tl from-sideB/20 via-transparent to-transparent" />
 
-                {/* 중앙 VS 배지 */}
-                <div className="relative z-10 flex items-center gap-2 rounded-full bg-white/90 dark:bg-background/90 px-4 py-2 shadow-sm">
-                  <span className="text-lg font-bold text-sideA">A</span>
-                  <span className="text-sm font-medium text-muted-foreground">vs</span>
-                  <span className="text-lg font-bold text-sideB">B</span>
-                </div>
+              {/* 중앙 VS 배지 */}
+              <div className="relative z-10 flex items-center gap-2 rounded-full bg-white/90 dark:bg-background/90 px-4 py-2 shadow-sm">
+                <span className="text-lg font-bold text-sideA">A</span>
+                <span className="text-sm font-medium text-muted-foreground">vs</span>
+                <span className="text-lg font-bold text-sideB">B</span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <h3 className="line-clamp-2 text-lg font-semibold leading-tight">
-              {topic.title}
+              <Link href={`/topics/${topic.id}`} className="after:absolute after:inset-0">
+                {topic.title}
+              </Link>
             </h3>
             <Badge variant="secondary" className="shrink-0">
               {CATEGORY_LABELS[topic.category]}
@@ -102,14 +116,9 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
               <span className="text-sm text-muted-foreground">{authorName}</span>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                router.push(`/users/${topic.author.id}`);
-              }}
-              className="flex items-center gap-2 hover:underline"
+            <Link
+              href={`/users/${topic.author.id}`}
+              className="relative z-[2] flex items-center gap-2 hover:underline"
             >
               <Avatar className="h-6 w-6">
                 <AvatarImage src={topic.author.image || undefined} />
@@ -122,25 +131,27 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
                   차단됨
                 </Badge>
               )}
-            </button>
+            </Link>
           )}
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
+              <Users className="h-4 w-4" aria-hidden="true" />
+              <span className="sr-only">투표</span>
               {topic._count.votes}
             </span>
             <span className="flex items-center gap-1">
-              <MessageSquare className="h-4 w-4" />
+              <MessageSquare className="h-4 w-4" aria-hidden="true" />
+              <span className="sr-only">의견</span>
               {topic._count.opinions}
             </span>
             <span className="flex items-center gap-1">
-              <Eye className="h-4 w-4" />
+              <Eye className="h-4 w-4" aria-hidden="true" />
+              <span className="sr-only">조회</span>
               {topic.viewCount}
             </span>
           </div>
         </CardFooter>
-        </Card>
-      </Link>
+      </Card>
       <div className="absolute right-2 top-2 z-10">
         <ShareButton
           url={`/topics/${topic.id}`}

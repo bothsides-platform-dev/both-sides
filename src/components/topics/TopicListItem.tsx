@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatRelativeTime } from "@/lib/utils";
 import { Eye, MessageSquare, Users } from "lucide-react";
+import { CATEGORY_META } from "@/lib/constants";
 import type { Category } from "@prisma/client";
 
 export interface TopicListItemProps {
@@ -28,11 +29,26 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
   return (
     <Link
       href={`/topics/${topic.id}`}
-      className="flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors hover:bg-muted/50"
+      className="flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
     >
-      <div className="relative h-[60px] w-[80px] shrink-0 overflow-hidden rounded-md bg-gradient-to-r from-blue-50 to-red-50">
+      <div className={`relative h-[60px] w-[80px] shrink-0 overflow-hidden rounded-md hidden md:block ${topic.imageUrl ? "bg-muted/50" : "bg-gradient-to-r from-blue-50 to-red-50"}`}>
         {topic.imageUrl ? (
-          <Image src={topic.imageUrl} alt="" fill className="object-cover" />
+          <>
+            <Image
+              src={topic.imageUrl}
+              alt=""
+              fill
+              sizes="80px"
+              className="object-cover blur-2xl scale-110 opacity-70"
+              aria-hidden="true"
+            />
+            <Image
+              src={topic.imageUrl}
+              alt={topic.title}
+              fill
+              className="object-cover z-[1]"
+            />
+          </>
         ) : (
           <div className="flex h-full items-center justify-center">
             {/* 좌우 분할 배경 */}
@@ -52,11 +68,24 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <h4 className="min-w-0 flex-1 truncate font-medium">
-            {topic.title}
-          </h4>
-          <span className="shrink-0 text-xs text-muted-foreground md:hidden">
-            {topic._count.votes}표 · {topic._count.opinions}의견 · {topic.viewCount}회
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {(() => {
+              const meta = CATEGORY_META[topic.category];
+              const Icon = meta.icon;
+              return (
+                <span className={`hidden md:inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-2xs font-medium ${meta.bgColor} ${meta.color}`}>
+                  <Icon className="h-3 w-3" aria-hidden="true" />
+                  {meta.label}
+                </span>
+              );
+            })()}
+            <h4 className="min-w-0 flex-1 truncate font-medium">
+              {topic.title}
+            </h4>
+          </div>
+          <span className="shrink-0 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
+            <span className="flex items-center gap-0.5"><Users className="h-3 w-3" aria-hidden="true" /><span className="sr-only">투표</span>{topic._count.votes}</span>
+            <span className="flex items-center gap-0.5"><MessageSquare className="h-3 w-3" aria-hidden="true" /><span className="sr-only">의견</span>{topic._count.opinions}</span>
           </span>
         </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">
@@ -67,15 +96,18 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
       </div>
       <div className="hidden shrink-0 items-center gap-4 text-sm text-muted-foreground md:flex">
         <span className="flex items-center gap-1">
-          <Users className="h-4 w-4" />
+          <Users className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">투표</span>
           {topic._count.votes}
         </span>
         <span className="flex items-center gap-1">
-          <MessageSquare className="h-4 w-4" />
+          <MessageSquare className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">의견</span>
           {topic._count.opinions}
         </span>
         <span className="flex items-center gap-1">
-          <Eye className="h-4 w-4" />
+          <Eye className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">조회</span>
           {topic.viewCount}
         </span>
         <span className="hidden md:block md:w-16 md:text-right" suppressHydrationWarning>

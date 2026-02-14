@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
+import { AUTHOR_SELECT, OPINION_COUNT_SELECT, REACTION_SELECT } from "@/lib/prisma-selects";
 import type { CreateOpinionInput, GetOpinionsInput, UpdateOpinionAnonymityInput, GetOpinionsAdminInput } from "./schema";
 import { createReplyNotification } from "@/modules/notifications/service";
 import { getVote } from "@/modules/votes/service";
@@ -64,21 +65,8 @@ export async function createOpinion(
       parentId: input.parentId || null,
     },
     include: {
-      user: {
-        select: {
-          id: true,
-          nickname: true,
-          name: true,
-          image: true,
-          isBlacklisted: true,
-        },
-      },
-      _count: {
-        select: {
-          reactions: true,
-          replies: true,
-        },
-      },
+      user: { select: AUTHOR_SELECT },
+      _count: { select: { reactions: true, replies: true } },
     },
   });
 
@@ -137,61 +125,25 @@ export async function getOpinions(topicId: string, input: GetOpinionsInput) {
         parentId: true,
         createdAt: true,
         updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            nickname: true,
-            name: true,
-            image: true,
-            isBlacklisted: true,
-          },
-        },
-        reactions: {
-          select: {
-            id: true,
-            userId: true,
-            type: true,
-          },
-        },
-        _count: {
-          select: {
-            reactions: true,
-            reports: true,
-            replies: true,
-          },
-        },
+        user: { select: AUTHOR_SELECT },
+        reactions: { select: REACTION_SELECT },
+        _count: { select: OPINION_COUNT_SELECT },
       },
     }),
     prisma.opinion.count({ where }),
   ]);
 
-  // Get reaction counts aggregated from DB for each opinion
-  const opinionIds = opinions.map((o) => o.id);
-  const reactionCounts = await prisma.reaction.groupBy({
-    by: ["opinionId", "type"],
-    where: { opinionId: { in: opinionIds } },
-    _count: { id: true },
-  });
-
-  // Build a map for quick lookup
-  const reactionMap = new Map<string, { likes: number; dislikes: number }>();
-  for (const rc of reactionCounts) {
-    const existing = reactionMap.get(rc.opinionId) || { likes: 0, dislikes: 0 };
-    if (rc.type === "LIKE") {
-      existing.likes = rc._count.id;
-    } else if (rc.type === "DISLIKE") {
-      existing.dislikes = rc._count.id;
-    }
-    reactionMap.set(rc.opinionId, existing);
-  }
-
-  // Process opinions to add reaction summary
+  // Compute reaction summary from already-loaded reactions (no extra DB query)
   const processedOpinions = opinions.map((opinion) => {
-    const summary = reactionMap.get(opinion.id) || { likes: 0, dislikes: 0 };
-
+    let likes = 0;
+    let dislikes = 0;
+    for (const r of opinion.reactions) {
+      if (r.type === "LIKE") likes++;
+      else if (r.type === "DISLIKE") dislikes++;
+    }
     return {
       ...opinion,
-      reactionSummary: summary,
+      reactionSummary: { likes, dislikes },
     };
   });
 
@@ -210,15 +162,7 @@ export async function getOpinionById(id: string) {
   const opinion = await prisma.opinion.findUnique({
     where: { id },
     include: {
-      user: {
-        select: {
-          id: true,
-          nickname: true,
-          name: true,
-          image: true,
-          isBlacklisted: true,
-        },
-      },
+      user: { select: AUTHOR_SELECT },
     },
   });
 
@@ -240,29 +184,9 @@ export async function updateOpinionAnonymity(id: string, userId: string, input: 
     where: { id },
     data: { isAnonymous: input.isAnonymous },
     include: {
-      user: {
-        select: {
-          id: true,
-          nickname: true,
-          name: true,
-          image: true,
-          isBlacklisted: true,
-        },
-      },
-      reactions: {
-        select: {
-          id: true,
-          userId: true,
-          type: true,
-        },
-      },
-      _count: {
-        select: {
-          reactions: true,
-          reports: true,
-          replies: true,
-        },
-      },
+      user: { select: AUTHOR_SELECT },
+      reactions: { select: REACTION_SELECT },
+      _count: { select: OPINION_COUNT_SELECT },
     },
   });
 }
@@ -330,27 +254,9 @@ export async function getOpinionsForAdmin(input: GetOpinionsAdminInput) {
       skip,
       take: limit,
       include: {
-        user: {
-          select: {
-            id: true,
-            nickname: true,
-            name: true,
-            image: true,
-            isBlacklisted: true,
-          },
-        },
-        topic: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
-        _count: {
-          select: {
-            reactions: true,
-            reports: true,
-          },
-        },
+        user: { select: AUTHOR_SELECT },
+        topic: { select: { id: true, title: true } },
+        _count: { select: { reactions: true, reports: true } },
       },
     }),
     prisma.opinion.count({ where }),
@@ -378,27 +284,9 @@ export async function updateOpinionAnonymityByAdmin(id: string, isAnonymous: boo
     where: { id },
     data: { isAnonymous },
     include: {
-      user: {
-        select: {
-          id: true,
-          nickname: true,
-          name: true,
-          image: true,
-          isBlacklisted: true,
-        },
-      },
-      topic: {
-        select: {
-          id: true,
-          title: true,
-        },
-      },
-      _count: {
-        select: {
-          reactions: true,
-          reports: true,
-        },
-      },
+      user: { select: AUTHOR_SELECT },
+      topic: { select: { id: true, title: true } },
+      _count: { select: { reactions: true, reports: true } },
     },
   });
 }

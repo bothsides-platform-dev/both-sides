@@ -4,10 +4,7 @@ import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { updateFeaturedSchema } from "@/modules/topics/schema";
 import { updateFeatured } from "@/modules/topics/service";
-
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
+import type { RouteParams } from "@/types/api";
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {

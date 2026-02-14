@@ -12,6 +12,9 @@ import { ToastProvider } from "@/components/ui/toast";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AppShell } from "@/components/layout/AppShell";
+import { SidebarProvider } from "@/components/layout/SidebarContext";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -43,20 +46,20 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     title: "BothSides - 양자택일 토론 플랫폼",
     description: "A vs B, 당신의 선택은? 양자택일 토론 플랫폼에서 의견을 나눠보세요.",
-    images: [
-      {
-        url: "/og-default.png",
-        width: 1200,
-        height: 630,
-        alt: "BothSides - 양자택일 토론 플랫폼",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "BothSides - 양자택일 토론 플랫폼",
     description: "A vs B, 당신의 선택은? 양자택일 토론 플랫폼에서 의견을 나눠보세요.",
-    images: ["/og-default.png"],
+  },
+  alternates: {
+    types: {
+      "application/rss+xml": "/feed.xml",
+    },
+  },
+  verification: {
+    // Add Google Search Console verification code here after registration
+    // google: "VERIFICATION_CODE",
   },
 };
 
@@ -88,9 +91,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <head>
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.clarity.ms" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:ring-2 focus:ring-ring"
+        >
+          본문으로 건너뛰기
+        </a>
         {/* WebSite Schema */}
         <script
           type="application/ld+json"
@@ -99,9 +113,9 @@ export default function RootLayout({
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-XYHMPSDY1G"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -110,7 +124,7 @@ export default function RootLayout({
           `}
         </Script>
         {/* Microsoft Clarity */}
-        <Script id="clarity-script" strategy="afterInteractive">
+        <Script id="clarity-script" strategy="lazyOnload">
           {`
             (function(c,l,a,r,i,t,y){
                 c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -132,12 +146,14 @@ export default function RootLayout({
                   <SWRProvider>
                     <ToastProvider>
                       <Header />
+                      <SidebarProvider>
                       <AppShell>
-                        <main className="flex-1 w-full px-4 md:px-8 lg:px-12 py-4 md:py-6 pb-6">
+                        <main id="main-content" className="flex-1 w-full px-4 sm:px-6 py-4 md:py-6 pb-6">
                           {children}
                         </main>
                         <Footer />
                       </AppShell>
+                      </SidebarProvider>
                     </ToastProvider>
                   </SWRProvider>
                 </SessionProvider>
@@ -145,6 +161,8 @@ export default function RootLayout({
             </UTMProvider>
           </ThemeProvider>
         </Suspense>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

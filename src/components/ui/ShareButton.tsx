@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +12,7 @@ import { Share2, Link2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useKakao } from "@/components/providers/KakaoProvider";
 import { useToast } from "@/components/ui/toast";
-import { trackShare } from "@/lib/analytics";
+import { trackShare, addUTMParams } from "@/lib/analytics";
 
 interface ShareButtonProps {
   url: string;
@@ -37,42 +37,18 @@ export function ShareButton({
   const { shareKakao } = useKakao();
   const { showToast } = useToast();
 
+  useEffect(() => {
+    if (copied) {
+      const timer = setTimeout(() => setCopied(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copied]);
+
   // Extract topicId from URL if not provided
   const extractedTopicId = topicId || (() => {
     const match = url.match(/\/topics\/([^/?]+)/);
     return match ? match[1] : undefined;
   })();
-
-  /**
-   * Add UTM parameters to a URL based on the share platform
-   */
-  const addUTMParams = (baseUrl: string, platform: "kakao" | "twitter" | "facebook" | "instagram" | "link"): string => {
-    try {
-      const urlObj = new URL(baseUrl, typeof window !== "undefined" ? window.location.origin : "https://bothsides.club");
-      
-      // Set platform-specific UTM parameters
-      urlObj.searchParams.set("utm_source", platform);
-      urlObj.searchParams.set("utm_medium", platform === "link" ? "referral" : "social");
-      urlObj.searchParams.set("utm_campaign", "share");
-      
-      // Add topicId to utm_content if available
-      if (extractedTopicId) {
-        urlObj.searchParams.set("utm_content", extractedTopicId);
-      }
-      
-      return urlObj.toString();
-    } catch {
-      // Fallback: append as query string if URL parsing fails
-      const separator = baseUrl.includes("?") ? "&" : "?";
-      const utmParams = new URLSearchParams({
-        utm_source: platform,
-        utm_medium: platform === "link" ? "referral" : "social",
-        utm_campaign: "share",
-        ...(extractedTopicId && { utm_content: extractedTopicId }),
-      });
-      return `${baseUrl}${separator}${utmParams.toString()}`;
-    }
-  };
 
   const fullUrl = typeof window !== "undefined"
     ? `${window.location.origin}${url}`
@@ -90,12 +66,11 @@ export function ShareButton({
 
   const handleCopyLink = async () => {
     try {
-      const urlWithUTM = addUTMParams(fullUrl, "link");
+      const urlWithUTM = addUTMParams(fullUrl, "link", extractedTopicId);
       await navigator.clipboard.writeText(urlWithUTM);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
       showToast("링크가 복사되었습니다", "success", 2000);
-      
+
       // Track share event
       if (extractedTopicId) {
         trackShare("link", extractedTopicId);
@@ -107,7 +82,7 @@ export function ShareButton({
   };
 
   const handleTwitterShare = () => {
-    const urlWithUTM = addUTMParams(fullUrl, "twitter");
+    const urlWithUTM = addUTMParams(fullUrl, "twitter", extractedTopicId);
     const text = `${title}${description ? ` - ${description}` : ""}`;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(urlWithUTM)}`;
     window.open(twitterUrl, "_blank", "width=550,height=420");
@@ -119,7 +94,7 @@ export function ShareButton({
   };
 
   const handleFacebookShare = () => {
-    const urlWithUTM = addUTMParams(fullUrl, "facebook");
+    const urlWithUTM = addUTMParams(fullUrl, "facebook", extractedTopicId);
     const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(urlWithUTM)}`;
     window.open(facebookUrl, "_blank", "width=550,height=420");
     
@@ -130,7 +105,7 @@ export function ShareButton({
   };
 
   const handleKakaoShare = () => {
-    const urlWithUTM = addUTMParams(fullUrl, "kakao");
+    const urlWithUTM = addUTMParams(fullUrl, "kakao", extractedTopicId);
     shareKakao({
       title,
       description,
@@ -146,10 +121,9 @@ export function ShareButton({
 
   const handleInstagramShare = async () => {
     try {
-      const urlWithUTM = addUTMParams(fullUrl, "instagram");
+      const urlWithUTM = addUTMParams(fullUrl, "instagram", extractedTopicId);
       await navigator.clipboard.writeText(urlWithUTM);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
 
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       if (isMobile) {

@@ -16,6 +16,7 @@ import {
 import { ThumbsUp, Eye, EyeOff, User, UserRound, MoreVertical, Flag, MessageCircle, ChevronDown, ChevronUp, Loader2, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 import { ReportDialog } from "./ReportDialog";
 import { ReplyForm } from "./ReplyForm";
 import type { Opinion } from "./types";
@@ -58,6 +59,7 @@ export const OpinionItem = memo(function OpinionItem({
   isHighlighted = false,
 }: OpinionItemProps) {
   const { data: session } = useSession();
+  const { showToast } = useToast();
   const [isAnonymous, setIsAnonymous] = useState(opinion.isAnonymous ?? false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
@@ -122,7 +124,7 @@ export const OpinionItem = memo(function OpinionItem({
       setIsAnonymous(!isAnonymous);
     } catch (error) {
       console.error("Failed to toggle anonymity:", error);
-      alert(error instanceof Error ? error.message : "익명 상태 변경에 실패했습니다.");
+      showToast(error instanceof Error ? error.message : "익명 상태 변경에 실패했습니다.", "error");
     } finally {
       setIsUpdating(false);
     }
@@ -130,7 +132,7 @@ export const OpinionItem = memo(function OpinionItem({
 
   const handleReplyClick = () => {
     if (!session?.user && !userVoteSide) {
-      alert("투표를 먼저 해주세요.");
+      showToast("투표를 먼저 해주세요.", "error");
       return;
     }
     setShowReplyForm(!showReplyForm);
@@ -162,10 +164,10 @@ export const OpinionItem = memo(function OpinionItem({
   // Tailwind는 동적 클래스(ml-${n})를 컴파일하지 않으므로 정적 매핑 사용
   const indentClasses: Record<number, string> = {
     0: "",
-    1: "ml-4 md:ml-8",
-    2: "ml-8 md:ml-16",
-    3: "ml-12 md:ml-24",
-    4: "ml-16 md:ml-32",
+    1: "ml-3 md:ml-8",
+    2: "ml-6 md:ml-16",
+    3: "ml-6 md:ml-24",
+    4: "ml-6 md:ml-32",
   };
   const indentClass = indentClasses[Math.min(depth, 4)] || "";
 
@@ -226,7 +228,7 @@ export const OpinionItem = memo(function OpinionItem({
             <Badge variant={opinion.side === "A" ? "sideA" : "sideB"} className="text-xs px-1.5 py-0">
               {sideLabel}
             </Badge>
-            <span className="text-xs text-muted-foreground/70" suppressHydrationWarning>
+            <span className="text-xs text-muted-foreground/80" suppressHydrationWarning>
               {formatRelativeTime(opinion.createdAt)}
             </span>
           </div>
@@ -244,6 +246,7 @@ export const OpinionItem = memo(function OpinionItem({
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="text-xs text-primary hover:underline mt-1"
+                aria-label={isExpanded ? "의견 접기" : "의견 더보기"}
               >
                 {isExpanded ? "접기" : "더보기"}
               </button>

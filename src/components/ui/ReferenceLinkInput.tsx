@@ -101,6 +101,7 @@ export function ReferenceLinkInput({
                   onClick={() => handleRemoveLink(index)}
                   disabled={disabled}
                   className="h-10 w-10 shrink-0 text-muted-foreground hover:text-destructive"
+                  aria-label="참고링크 삭제"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
