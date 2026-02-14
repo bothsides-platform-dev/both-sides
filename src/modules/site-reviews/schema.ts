@@ -6,4 +6,11 @@ export const createSiteReviewSchema = z.object({
   pathname: z.string().optional(),
 });
 
+export const getSiteReviewsSchema = z.object({
+  scoreGroup: z.enum(["detractor", "passive", "promoter"]).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
 export type CreateSiteReviewInput = z.infer<typeof createSiteReviewSchema>;
+export type GetSiteReviewsInput = z.infer<typeof getSiteReviewsSchema>;
