@@ -59,7 +59,7 @@ export function formatNumber(num: number): string {
  * @param allOpinions - All opinions in the current context (to ensure consistent numbering)
  * @returns A label string like "손님1", "손님2", etc.
  */
-export function getGuestLabel(visitorId: string | null | undefined, allOpinions: Array<{ visitorId?: string | null; user?: { id: string } | null }>): string {
+export function getGuestLabel(visitorId: string | null | undefined, allOpinions: Array<{ visitorId?: string | null; user?: unknown }>): string {
   if (!visitorId) return "손님";
 
   // Get unique guest visitor IDs in order of first appearance

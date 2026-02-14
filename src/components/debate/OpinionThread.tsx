@@ -63,8 +63,20 @@ export const OpinionThread = memo(function OpinionThread({
   const replies = repliesData?.data?.opinions || [];
 
   // Combine current opinion, its replies, and parent context for guest label generation
+  // Use a Map to deduplicate by opinion ID to prevent duplicate entries
   const combinedOpinions = useMemo(() => {
-    return [...allVisibleOpinions, opinion, ...replies];
+    const opinionMap = new Map<string, Opinion>();
+    
+    // Add all opinions from parent context
+    allVisibleOpinions.forEach(op => opinionMap.set(op.id, op));
+    
+    // Add current opinion
+    opinionMap.set(opinion.id, opinion);
+    
+    // Add replies
+    replies.forEach(reply => opinionMap.set(reply.id, reply));
+    
+    return Array.from(opinionMap.values());
   }, [allVisibleOpinions, opinion, replies]);
 
   // Auto-expand when ancestor data changes

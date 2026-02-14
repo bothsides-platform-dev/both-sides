@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
