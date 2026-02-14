@@ -118,6 +118,7 @@ export async function getOpinions(topicId: string, input: GetOpinionsInput) {
         id: true,
         topicId: true,
         userId: true,
+        visitorId: true,
         side: true,
         body: true,
         isBlinded: true,

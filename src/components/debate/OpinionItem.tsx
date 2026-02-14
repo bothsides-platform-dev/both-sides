@@ -1,6 +1,4 @@
-"use client";
-
-import { memo, useState, useEffect, useRef } from "react";
+import { memo, useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useTruncationDetection } from "@/hooks/useTruncationDetection";
@@ -15,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThumbsUp, Eye, EyeOff, User, UserRound, MoreVertical, Flag, MessageCircle, ChevronDown, ChevronUp, Loader2, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, getGuestLabel } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 import { ReportDialog } from "./ReportDialog";
 import { ReplyForm } from "./ReplyForm";
@@ -39,6 +37,7 @@ interface OpinionItemProps {
   loadingReplies?: boolean;
   hasReplies?: boolean;
   isHighlighted?: boolean;
+  allVisibleOpinions?: Opinion[];
 }
 
 export const OpinionItem = memo(function OpinionItem({
@@ -57,6 +56,7 @@ export const OpinionItem = memo(function OpinionItem({
   loadingReplies = false,
   hasReplies = false,
   isHighlighted = false,
+  allVisibleOpinions = [],
 }: OpinionItemProps) {
   const { data: session } = useSession();
   const { showToast } = useToast();
@@ -93,8 +93,14 @@ export const OpinionItem = memo(function OpinionItem({
   }, [isHighlighted]);
 
   const isGuest = !opinion.user;
+  
+  // Generate guest label using the utility function
+  const guestLabel = useMemo(() => {
+    return isGuest ? getGuestLabel(opinion.visitorId, allVisibleOpinions) : "";
+  }, [isGuest, opinion.visitorId, allVisibleOpinions]);
+  
   const authorName = isGuest
-    ? "손님"
+    ? guestLabel
     : isAnonymous 
       ? "익명" 
       : (opinion.user!.nickname || opinion.user!.name || "익명");

@@ -51,3 +51,35 @@ export function formatNumber(num: number): string {
   }
   return num.toLocaleString();
 }
+
+/**
+ * Generate a consistent guest label for anonymous users based on their visitorId.
+ * Returns labels like "손님1", "손님2", etc. within a given set of opinions.
+ * @param visitorId - The visitor ID of the anonymous user
+ * @param allOpinions - All opinions in the current context (to ensure consistent numbering)
+ * @returns A label string like "손님1", "손님2", etc.
+ */
+export function getGuestLabel(visitorId: string | null | undefined, allOpinions: Array<{ visitorId?: string | null; user?: { id: string } | null }>): string {
+  if (!visitorId) return "손님";
+
+  // Get unique guest visitor IDs in order of first appearance
+  const uniqueGuestIds: string[] = [];
+  const seenIds = new Set<string>();
+
+  for (const opinion of allOpinions) {
+    // Only consider opinions from guests (no user)
+    if (!opinion.user && opinion.visitorId) {
+      if (!seenIds.has(opinion.visitorId)) {
+        seenIds.add(opinion.visitorId);
+        uniqueGuestIds.push(opinion.visitorId);
+      }
+    }
+  }
+
+  // Find the index of this visitorId
+  const index = uniqueGuestIds.indexOf(visitorId);
+  if (index === -1) return "손님";
+
+  // Return label like "손님1", "손님2", etc.
+  return `손님${index + 1}`;
+}

@@ -76,6 +76,7 @@ export const OpinionList = memo(function OpinionList({
             userVoteSide={userVoteSide}
             highlightReplyId={highlightReplyId}
             expandedAncestorIds={expandedAncestorIds}
+            allVisibleOpinions={opinions}
           />
         </div>
       ))}

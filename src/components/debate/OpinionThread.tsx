@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState, useEffect } from "react";
+import { memo, useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { OpinionItem } from "./OpinionItem";
@@ -19,6 +19,7 @@ interface OpinionThreadProps {
   userVoteSide?: "A" | "B";
   highlightReplyId?: string;
   expandedAncestorIds?: string[];
+  allVisibleOpinions?: Opinion[];
 }
 
 const MAX_DEPTH = 4;
@@ -35,6 +36,7 @@ export const OpinionThread = memo(function OpinionThread({
   userVoteSide,
   highlightReplyId,
   expandedAncestorIds,
+  allVisibleOpinions = [],
 }: OpinionThreadProps) {
   // Check if this opinion should be auto-expanded (is in the ancestor chain)
   const shouldAutoExpand = expandedAncestorIds?.includes(opinion.id) ?? false;
@@ -59,6 +61,11 @@ export const OpinionThread = memo(function OpinionThread({
   );
 
   const replies = repliesData?.data?.opinions || [];
+
+  // Combine current opinion, its replies, and parent context for guest label generation
+  const combinedOpinions = useMemo(() => {
+    return [...allVisibleOpinions, opinion, ...replies];
+  }, [allVisibleOpinions, opinion, replies]);
 
   // Auto-expand when ancestor data changes
   useEffect(() => {
@@ -106,6 +113,7 @@ export const OpinionThread = memo(function OpinionThread({
         loadingReplies={loadingReplies}
         hasReplies={hasReplies}
         isHighlighted={highlightReplyId === opinion.id}
+        allVisibleOpinions={combinedOpinions}
       />
 
       {/* Replies */}
@@ -125,6 +133,7 @@ export const OpinionThread = memo(function OpinionThread({
               userVoteSide={userVoteSide}
               highlightReplyId={highlightReplyId}
               expandedAncestorIds={expandedAncestorIds}
+              allVisibleOpinions={combinedOpinions}
             />
           ))}
         </div>
