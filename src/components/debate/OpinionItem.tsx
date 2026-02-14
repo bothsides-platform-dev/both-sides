@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThumbsUp, Eye, EyeOff, User, UserRound, MoreVertical, Flag, MessageCircle, ChevronDown, ChevronUp, Loader2, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatRelativeTime, getGuestLabel } from "@/lib/utils";
+import { formatRelativeTime, getGuestLabel, getAnonymousLabel } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 import { ReportDialog } from "./ReportDialog";
 import { ReplyForm } from "./ReplyForm";
@@ -100,11 +100,16 @@ export const OpinionItem = memo(function OpinionItem({
   const guestLabel = useMemo(() => {
     return isGuest ? getGuestLabel(opinion.visitorId, allVisibleOpinions) : "";
   }, [isGuest, opinion.visitorId, allVisibleOpinions]);
+
+  // Generate anonymous label for logged-in users who post anonymously
+  const anonymousLabel = useMemo(() => {
+    return (!isGuest && isAnonymous) ? getAnonymousLabel(opinion.user?.id, allVisibleOpinions) : "";
+  }, [isGuest, isAnonymous, opinion.user?.id, allVisibleOpinions]);
   
   const authorName = isGuest
     ? guestLabel
     : isAnonymous 
-      ? "익명" 
+      ? anonymousLabel 
       : (opinion.user!.nickname || opinion.user!.name || "익명");
   const sideLabel = opinion.side === "A" ? optionA : optionB;
   const isOwner = !isGuest && currentUserId === opinion.user?.id;
