@@ -14,6 +14,7 @@ import {
   Settings,
   ChevronsLeft,
   ChevronsRight,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -137,13 +138,14 @@ export function DesktopSidebar() {
             {!collapsed && (
               <Link
                 href="/explore"
-                className="flex items-center justify-between px-3 mb-2 group"
+                className="flex items-center justify-between px-3 py-1 mb-2 rounded-md hover:bg-accent/50 transition-colors group"
               >
                 <span className="text-xs font-semibold tracking-wide text-muted-foreground">
                   카테고리
                 </span>
-                <span className="text-xs text-muted-foreground/0 group-hover:text-muted-foreground transition-colors">
+                <span className="flex items-center gap-0.5 text-xs text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
                   전체
+                  <ChevronRight className="h-3 w-3" />
                 </span>
               </Link>
             )}
