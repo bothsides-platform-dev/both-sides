@@ -13,6 +13,8 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AppShell } from "@/components/layout/AppShell";
 import { SidebarProvider } from "@/components/layout/SidebarContext";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -159,6 +161,8 @@ export default function RootLayout({
             </UTMProvider>
           </ThemeProvider>
         </Suspense>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
