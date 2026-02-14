@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { FeaturedTopicCard, type FeaturedTopicCardProps } from "./FeaturedTopicCard";
-import { Sparkles } from "lucide-react";
+import { Flame } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { HorizontalScroll } from "@/components/ui/horizontal-scroll";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,7 +17,7 @@ export function FeaturedSection() {
     return (
       <section className="space-y-4">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-orange-500" />
+          <Flame className="h-5 w-5 text-orange-500" />
           <h2 className="text-xl font-bold">오늘의 토론</h2>
         </div>
         <div className="flex gap-4 overflow-hidden">
@@ -46,7 +46,7 @@ export function FeaturedSection() {
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-orange-500" />
+        <Flame className="h-5 w-5 text-orange-500" />
         <h2 className="text-xl font-bold">오늘의 토론</h2>
       </div>
       <HorizontalScroll>
