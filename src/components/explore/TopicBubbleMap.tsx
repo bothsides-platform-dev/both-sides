@@ -359,7 +359,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                   <g
                     key={bubble.topic.id}
                     data-bubble-id={bubble.topic.id}
-                    className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+                    className="cursor-pointer focus:outline-none"
                     role="button"
                     tabIndex={0}
                     aria-label={`${bubble.topic.title} - ${meta.label}`}
