@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { DesktopRightSidebar } from "./DesktopRightSidebar";
 import { useSidebar } from "./SidebarContext";
+import { NPSPrompt } from "@/components/site-review/NPSPrompt";
 import { cn } from "@/lib/utils";
 
 interface AppShellProps {
@@ -42,6 +43,9 @@ export function AppShell({ children }: AppShellProps) {
       >
         {children}
       </div>
+
+      {/* NPS Review Prompt */}
+      <NPSPrompt />
     </>
   );
 }
