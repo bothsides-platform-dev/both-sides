@@ -59,7 +59,10 @@ export function formatNumber(num: number): string {
  * @param allOpinions - All opinions in the current context (to ensure consistent numbering)
  * @returns A label string like "손님1", "손님2", etc.
  */
-export function getGuestLabel(visitorId: string | null | undefined, allOpinions: Array<{ visitorId?: string | null; user?: unknown }>): string {
+export function getGuestLabel(
+  visitorId: string | null | undefined, 
+  allOpinions: Array<{ visitorId?: string | null; user?: { id: string; nickname?: string | null; name?: string | null } | null }>
+): string {
   if (!visitorId) return "손님";
 
   // Get unique guest visitor IDs in order of first appearance
@@ -78,6 +81,8 @@ export function getGuestLabel(visitorId: string | null | undefined, allOpinions:
 
   // Find the index of this visitorId
   const index = uniqueGuestIds.indexOf(visitorId);
+  
+  // If not found, return generic label (e.g., current opinion not yet in allOpinions array)
   if (index === -1) return "손님";
 
   // Return label like "손님1", "손님2", etc.
