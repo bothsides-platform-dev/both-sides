@@ -88,3 +88,40 @@ export function getGuestLabel(
   // Return label like "손님1", "손님2", etc.
   return `손님${index + 1}`;
 }
+
+/**
+ * Generate a consistent anonymous label for logged-in users who post anonymously.
+ * Returns labels like "익명1", "익명2", etc. within a given set of opinions.
+ * @param userId - The user ID of the anonymous user
+ * @param allOpinions - All opinions in the current context (to ensure consistent numbering)
+ * @returns A label string like "익명1", "익명2", etc.
+ */
+export function getAnonymousLabel(
+  userId: string | null | undefined,
+  allOpinions: Array<{ isAnonymous?: boolean; user?: { id: string } | null }>
+): string {
+  if (!userId) return "익명";
+
+  // Get unique anonymous user IDs in order of first appearance
+  const uniqueAnonUserIds: string[] = [];
+  const seenIds = new Set<string>();
+
+  for (const opinion of allOpinions) {
+    // Only consider anonymous opinions from logged-in users
+    if (opinion.isAnonymous && opinion.user?.id) {
+      if (!seenIds.has(opinion.user.id)) {
+        seenIds.add(opinion.user.id);
+        uniqueAnonUserIds.push(opinion.user.id);
+      }
+    }
+  }
+
+  // Find the index of this userId
+  const index = uniqueAnonUserIds.indexOf(userId);
+
+  // If not found, return generic label
+  if (index === -1) return "익명";
+
+  // Return label like "익명1", "익명2", etc.
+  return `익명${index + 1}`;
+}
