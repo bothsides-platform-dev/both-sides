@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarWithSkin } from "@/components/ui/AvatarWithSkin";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { Eye, MessageSquare, Users, User, Ban } from "lucide-react";
 import { ShareButton } from "@/components/ui/ShareButton";
@@ -28,6 +29,7 @@ export interface TopicCardProps {
       name?: string | null;
       image?: string | null;
       isBlacklisted?: boolean;
+      selectedBadgeId?: string | null;
     };
     _count: {
       votes: number;
@@ -120,10 +122,12 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
               href={`/users/${topic.author.id}`}
               className="relative z-[2] flex items-center gap-2 hover:underline"
             >
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={topic.author.image || undefined} />
-                <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
-              </Avatar>
+              <AvatarWithSkin
+                src={topic.author.image}
+                fallback={authorName.charAt(0)}
+                selectedBadgeId={topic.author.selectedBadgeId}
+                size="xs"
+              />
               <span className="text-sm text-muted-foreground">{authorName}</span>
               {topic.author.isBlacklisted && (
                 <Badge variant="outline" className="text-2xs px-1 py-0 text-destructive border-destructive/50">

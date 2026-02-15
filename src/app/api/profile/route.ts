@@ -9,6 +9,7 @@ import { z } from "zod";
 const updateProfileSchema = z.object({
   nickname: nicknameSchema.optional(),
   image: z.string().url("유효한 이미지 URL이어야 합니다.").optional(),
+  selectedBadgeId: z.string().nullable().optional(),
 });
 
 export async function GET() {
@@ -54,7 +55,7 @@ export async function GET() {
       prisma.opinion.count({ where: { userId: user.id } }),
       prisma.topic.count({ where: { authorId: user.id } }),
       prisma.reaction.count({ where: { userId: user.id } }),
-      prisma.user.findUnique({ where: { id: user.id }, select: { joinOrder: true } }),
+      prisma.user.findUnique({ where: { id: user.id }, select: { joinOrder: true, selectedBadgeId: true } }),
     ]);
 
     // Compute badges
@@ -77,6 +78,7 @@ export async function GET() {
         topicsCount,
         reactionsCount,
         joinOrder: userInfo?.joinOrder,
+        selectedBadgeId: userInfo?.selectedBadgeId ?? null,
         badges,
         badgeProgress,
       },
@@ -94,8 +96,28 @@ export async function PATCH(request: Request) {
     const data = await validateRequest(updateProfileSchema, body);
 
     // Check if there's anything to update
-    if (!data.nickname && !data.image) {
+    if (!data.nickname && !data.image && data.selectedBadgeId === undefined) {
       throw new ValidationError("변경할 내용이 없습니다.");
+    }
+
+    // Validate selectedBadgeId if provided
+    if (data.selectedBadgeId !== undefined && data.selectedBadgeId !== null) {
+      const [uVotesCount, uOpinionsCount, uTopicsCount, uReactionsCount] = await Promise.all([
+        prisma.vote.count({ where: { userId: user.id } }),
+        prisma.opinion.count({ where: { userId: user.id } }),
+        prisma.topic.count({ where: { authorId: user.id } }),
+        prisma.reaction.count({ where: { userId: user.id } }),
+      ]);
+      const earnedBadges = computeBadges({
+        votesCount: uVotesCount,
+        opinionsCount: uOpinionsCount,
+        topicsCount: uTopicsCount,
+        reactionsCount: uReactionsCount,
+      });
+      const hasEarned = earnedBadges.some((b) => b.id === data.selectedBadgeId);
+      if (!hasEarned) {
+        throw new ValidationError("획득하지 않은 배지는 선택할 수 없습니다.");
+      }
     }
 
     // Validate nickname if provided
@@ -126,6 +148,7 @@ export async function PATCH(request: Request) {
       data: {
         ...(data.nickname && { nickname: data.nickname }),
         ...(data.image && { image: data.image }),
+        ...(data.selectedBadgeId !== undefined && { selectedBadgeId: data.selectedBadgeId }),
       },
       select: {
         id: true,
@@ -134,6 +157,7 @@ export async function PATCH(request: Request) {
         nickname: true,
         image: true,
         role: true,
+        selectedBadgeId: true,
       },
     });
 

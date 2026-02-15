@@ -16,6 +16,7 @@ export interface Opinion {
     name?: string | null;
     image?: string | null;
     isBlacklisted?: boolean;
+    selectedBadgeId?: string | null;
   } | null;
   reactions?: Array<{
     id: string;

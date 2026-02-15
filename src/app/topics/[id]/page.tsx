@@ -36,6 +36,7 @@ const getTopic = cache(async (id: string) => {
           name: true,
           image: true,
           isBlacklisted: true,
+          selectedBadgeId: true,
         },
       },
     },
@@ -191,6 +192,7 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
           authorImage={topic.author.image}
           isAnonymous={topic.isAnonymous}
           isBlacklisted={topic.author.isBlacklisted}
+          selectedBadgeId={topic.author.selectedBadgeId}
           createdAt={topic.createdAt}
           viewCount={topic.viewCount}
           shareButton={

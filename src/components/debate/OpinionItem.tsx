@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useTruncationDetection } from "@/hooks/useTruncationDetection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarWithSkin } from "@/components/ui/AvatarWithSkin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -214,12 +215,13 @@ export const OpinionItem = memo(function OpinionItem({
             </AvatarFallback>
           </Avatar>
         ) : (
-          <Link href={`/users/${opinion.user!.id}`}>
-            <Avatar className="h-8 w-8 shrink-0 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
-              <AvatarImage src={opinion.user!.image || undefined} />
-              <AvatarFallback className="text-xs">{authorName.charAt(0)}</AvatarFallback>
-            </Avatar>
-          </Link>
+          <AvatarWithSkin
+            src={opinion.user!.image}
+            fallback={authorName.charAt(0)}
+            selectedBadgeId={opinion.user!.selectedBadgeId}
+            size="sm"
+            linkHref={`/users/${opinion.user!.id}`}
+          />
         )}
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center gap-2 flex-wrap">

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarWithSkin } from "@/components/ui/AvatarWithSkin";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -30,6 +31,7 @@ interface TopicAuthorSectionProps {
   authorImage: string | null;
   isAnonymous: boolean;
   isBlacklisted?: boolean;
+  selectedBadgeId?: string | null;
   createdAt: Date;
   viewCount: number;
   shareButton?: React.ReactNode;
@@ -46,6 +48,7 @@ export function TopicAuthorSection({
   authorImage,
   isAnonymous: initialIsAnonymous,
   isBlacklisted,
+  selectedBadgeId,
   createdAt,
   viewCount,
   shareButton,
@@ -185,12 +188,13 @@ export function TopicAuthorSection({
             </AvatarFallback>
           </Avatar>
         ) : (
-          <Link href={`/users/${authorId}`} className="hover:opacity-80 transition-opacity">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={authorImage || undefined} />
-              <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
-            </Avatar>
-          </Link>
+          <AvatarWithSkin
+            src={authorImage}
+            fallback={authorName.charAt(0)}
+            selectedBadgeId={selectedBadgeId}
+            size="md"
+            linkHref={`/users/${authorId}`}
+          />
         )}
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
