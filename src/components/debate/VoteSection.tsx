@@ -149,7 +149,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <Button
           variant={myVote === "A" ? "sideA" : "sideAOutline"}
           className={cn(
-            "flex-1 min-w-0 whitespace-normal h-14 flex-col gap-0.5 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
+            "flex-1 min-w-0 whitespace-normal min-h-14 py-3 flex-col gap-0.5 sm:min-h-20 sm:py-4 sm:gap-1.5 relative transition-all duration-200",
             "active:scale-[0.98]",
             myVote === "A" && "ring-2 ring-sideA ring-offset-2 shadow-lg"
           )}
@@ -169,7 +169,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
             A
           </span>
           <span
-            className={cn("text-sm sm:text-base md:text-lg font-bold line-clamp-2", showSpinnerA && "invisible")}
+            className={cn("text-sm sm:text-base md:text-lg font-bold", showSpinnerA && "invisible")}
           >
             {optionA}
           </span>
@@ -178,7 +178,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <Button
           variant={myVote === "B" ? "sideB" : "sideBOutline"}
           className={cn(
-            "flex-1 min-w-0 whitespace-normal h-14 flex-col gap-0.5 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
+            "flex-1 min-w-0 whitespace-normal min-h-14 py-3 flex-col gap-0.5 sm:min-h-20 sm:py-4 sm:gap-1.5 relative transition-all duration-200",
             "active:scale-[0.98]",
             myVote === "B" && "ring-2 ring-sideB ring-offset-2 shadow-lg"
           )}
@@ -198,7 +198,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
             B
           </span>
           <span
-            className={cn("text-sm sm:text-base md:text-lg font-bold line-clamp-2", showSpinnerB && "invisible")}
+            className={cn("text-sm sm:text-base md:text-lg font-bold", showSpinnerB && "invisible")}
           >
             {optionB}
           </span>
