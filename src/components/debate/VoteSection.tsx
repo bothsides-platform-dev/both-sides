@@ -35,34 +35,6 @@ interface VoteInfoResponse {
   };
 }
 
-// 편승 효과 감소를 위한 로그 스케일(sqrt 압축) 적용
-// 큰 차이도 시각적으로 접전처럼 보이게 함
-function compressPercentage(percentage: number): number {
-  const deviation = percentage - 50;
-  const sign = deviation >= 0 ? 1 : -1;
-  const absDeviation = Math.abs(deviation);
-  const compressedDeviation =
-    sign * (Math.sqrt(absDeviation) / Math.sqrt(50)) * 50;
-  return 50 + compressedDeviation;
-}
-
-// 투표 상황을 설명하는 문구 생성
-function getVoteStatusText(
-  aPercentage: number,
-  optionA: string,
-  optionB: string
-): string {
-  const diff = Math.abs(aPercentage - 50);
-
-  if (diff <= 5) {
-    return "팽팽한 접전 중";
-  } else if (aPercentage > 50) {
-    return `${optionA}이(가) 앞서고 있습니다`;
-  } else {
-    return `${optionB}이(가) 앞서고 있습니다`;
-  }
-}
-
 export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSectionProps) {
   const [isVoting, setIsVoting] = useState(false);
   const { showRateLimitError, showToast } = useToast();
@@ -226,29 +198,43 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         </Button>
       </div>
 
-      {/* Vote Stats Bar - 숫자 없이 압축된 비율로 표시 */}
+      {/* Vote Stats Bar */}
       <div className="space-y-2">
-        <div
-          className="h-5 w-full overflow-hidden rounded-full bg-muted"
-          role="img"
-          aria-label={`투표 비율: ${optionA} ${stats.aPercentage.toFixed(0)}%, ${optionB} ${stats.bPercentage.toFixed(0)}%`}
-        >
-          <div className="flex h-full">
+        {stats.total > 0 ? (
+          <>
+            <div className="flex justify-between text-sm font-medium">
+              <span className="text-sideA">
+                {stats.aPercentage.toFixed(0)}% ({stats.aCount}명)
+              </span>
+              <span className="text-sideB">
+                {stats.bPercentage.toFixed(0)}% ({stats.bCount}명)
+              </span>
+            </div>
             <div
-              className="bg-sideA transition-all duration-300"
-              style={{ width: `${compressPercentage(stats.aPercentage)}%` }}
-            />
-            <div
-              className="bg-sideB transition-all duration-300"
-              style={{
-                width: `${100 - compressPercentage(stats.aPercentage)}%`,
-              }}
-            />
-          </div>
-        </div>
-        <p className="text-center text-sm font-medium text-muted-foreground">
-          {getVoteStatusText(stats.aPercentage, optionA, optionB)}
-        </p>
+              className="h-5 w-full overflow-hidden rounded-full bg-muted"
+              role="img"
+              aria-label={`투표 비율: ${optionA} ${stats.aPercentage.toFixed(0)}%, ${optionB} ${stats.bPercentage.toFixed(0)}%`}
+            >
+              <div className="flex h-full">
+                <div
+                  className="bg-sideA transition-all duration-300"
+                  style={{ width: `${stats.aPercentage}%` }}
+                />
+                <div
+                  className="bg-sideB transition-all duration-300"
+                  style={{ width: `${stats.bPercentage}%` }}
+                />
+              </div>
+            </div>
+            <p className="text-center text-sm font-medium text-muted-foreground">
+              총 {stats.total}명 참여
+            </p>
+          </>
+        ) : (
+          <p className="text-center text-sm font-medium text-muted-foreground">
+            아직 투표가 없습니다
+          </p>
+        )}
       </div>
 
       {myVote && (
