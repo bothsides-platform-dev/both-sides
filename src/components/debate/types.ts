@@ -15,6 +15,7 @@ export interface Opinion {
     nickname?: string | null;
     name?: string | null;
     image?: string | null;
+    selectedBadgeId?: string | null;
     isBlacklisted?: boolean;
   } | null;
   reactions?: Array<{

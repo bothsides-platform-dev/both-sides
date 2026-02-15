@@ -6,6 +6,7 @@ export const AUTHOR_SELECT = {
   nickname: true,
   name: true,
   image: true,
+  selectedBadgeId: true,
   isBlacklisted: true,
 } as const satisfies Prisma.UserSelectScalar;
 
@@ -15,6 +16,7 @@ export const AUTHOR_SELECT_PUBLIC = {
   nickname: true,
   name: true,
   image: true,
+  selectedBadgeId: true,
 } as const satisfies Prisma.UserSelectScalar;
 
 /** Topic relation counts */

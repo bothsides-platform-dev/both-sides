@@ -27,6 +27,7 @@ export interface TopicCardProps {
       nickname?: string | null;
       name?: string | null;
       image?: string | null;
+      selectedBadgeId?: string | null;
       isBlacklisted?: boolean;
     };
     _count: {
@@ -120,7 +121,7 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
               href={`/users/${topic.author.id}`}
               className="relative z-[2] flex items-center gap-2 hover:underline"
             >
-              <Avatar className="h-6 w-6">
+              <Avatar className="h-6 w-6" badgeId={topic.author.selectedBadgeId}>
                 <AvatarImage src={topic.author.image || undefined} />
                 <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
               </Avatar>

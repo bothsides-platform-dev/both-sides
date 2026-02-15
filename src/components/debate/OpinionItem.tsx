@@ -215,7 +215,10 @@ export const OpinionItem = memo(function OpinionItem({
           </Avatar>
         ) : (
           <Link href={`/users/${opinion.user!.id}`}>
-            <Avatar className="h-8 w-8 shrink-0 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
+            <Avatar
+              className="h-8 w-8 shrink-0 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+              badgeId={opinion.user!.selectedBadgeId}
+            >
               <AvatarImage src={opinion.user!.image || undefined} />
               <AvatarFallback className="text-xs">{authorName.charAt(0)}</AvatarFallback>
             </Avatar>

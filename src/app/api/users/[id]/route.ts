@@ -18,6 +18,7 @@ export async function GET(
         nickname: true,
         name: true,
         image: true,
+        selectedBadgeId: true,
         joinOrder: true,
       },
     });

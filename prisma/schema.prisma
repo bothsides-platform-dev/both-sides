@@ -104,6 +104,7 @@ model User {
   emailVerified   DateTime?
   image           String?
   nickname        String?   @unique
+  selectedBadgeId String?
   role            Role      @default(USER)
   isBlacklisted   Boolean   @default(false)
   blacklistedAt   DateTime?

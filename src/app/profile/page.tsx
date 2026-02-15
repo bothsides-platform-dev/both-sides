@@ -60,6 +60,7 @@ interface ProfileData {
   topicsCount: number;
   reactionsCount: number;
   joinOrder?: number | null;
+  selectedBadgeId?: string | null;
   votes: VoteItem[];
   opinions: OpinionItem[];
   topics: TopicItem[];
@@ -98,6 +99,7 @@ export default function ProfilePage() {
   const user = session.user;
   const displayName = user.nickname || user.name || "사용자";
   const profile = profileData?.data;
+  const selectedBadgeId = profile?.selectedBadgeId ?? user.selectedBadgeId ?? null;
 
   // Get next achievable badge
   const nextBadge = profile
@@ -118,12 +120,14 @@ export default function ProfilePage() {
             <ProfileEditForm
               onCancel={() => setIsEditing(false)}
               onSuccess={handleEditSuccess}
+              badges={profile?.badges ?? []}
+              selectedBadgeId={selectedBadgeId}
             />
           ) : (
             <div className="space-y-4">
               {/* Profile Info */}
               <div className="flex items-center gap-4 sm:gap-6">
-                <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
+                <Avatar className="h-16 w-16 sm:h-20 sm:w-20" badgeId={selectedBadgeId}>
                   <AvatarImage src={user.image || undefined} />
                   <AvatarFallback className="text-xl sm:text-2xl">
                     {displayName.charAt(0)}

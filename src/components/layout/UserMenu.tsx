@@ -39,7 +39,7 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10">
+          <Avatar className="h-10 w-10" badgeId={user.selectedBadgeId}>
             <AvatarImage src={user.image || undefined} alt={displayName} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>

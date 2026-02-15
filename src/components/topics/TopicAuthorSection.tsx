@@ -28,6 +28,7 @@ interface TopicAuthorSectionProps {
   authorId: string;
   authorName: string;
   authorImage: string | null;
+  authorBadgeId?: string | null;
   isAnonymous: boolean;
   isBlacklisted?: boolean;
   createdAt: Date;
@@ -44,6 +45,7 @@ export function TopicAuthorSection({
   authorId,
   authorName,
   authorImage,
+  authorBadgeId,
   isAnonymous: initialIsAnonymous,
   isBlacklisted,
   createdAt,
@@ -186,7 +188,7 @@ export function TopicAuthorSection({
           </Avatar>
         ) : (
           <Link href={`/users/${authorId}`} className="hover:opacity-80 transition-opacity">
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-10 w-10" badgeId={authorBadgeId}>
               <AvatarImage src={authorImage || undefined} />
               <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
             </Avatar>

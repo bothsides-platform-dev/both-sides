@@ -9,18 +9,23 @@ import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { Loader2 } from "lucide-react";
 import { containsProfanity } from "@/lib/profanity";
+import { EarnedBadge, getBadgeTierColors } from "@/lib/badges";
+import { cn } from "@/lib/utils";
 
 interface ProfileEditFormProps {
   onCancel: () => void;
   onSuccess: () => void;
+  badges?: EarnedBadge[];
+  selectedBadgeId?: string | null;
 }
 
-export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
+export function ProfileEditForm({ onCancel, onSuccess, badges = [], selectedBadgeId }: ProfileEditFormProps) {
   const { data: session, update: updateSession } = useSession();
   const user = session?.user;
 
   const [nickname, setNickname] = useState(user?.nickname || user?.name || "");
   const [image, setImage] = useState<string | undefined>(user?.image || undefined);
+  const [badgeId, setBadgeId] = useState<string | null>(selectedBadgeId ?? null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
@@ -73,8 +78,9 @@ export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
     const trimmedNickname = nickname.trim();
     const hasNicknameChanged = trimmedNickname !== (user?.nickname || user?.name || "");
     const hasImageChanged = image !== user?.image;
+    const hasBadgeChanged = (selectedBadgeId ?? null) !== badgeId;
 
-    if (!hasNicknameChanged && !hasImageChanged) {
+    if (!hasNicknameChanged && !hasImageChanged && !hasBadgeChanged) {
       setError("변경된 내용이 없습니다.");
       return;
     }
@@ -82,7 +88,7 @@ export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
     setIsLoading(true);
 
     try {
-      const updateData: { nickname?: string; image?: string } = {};
+      const updateData: { nickname?: string; image?: string; selectedBadgeId?: string | null } = {};
       
       if (hasNicknameChanged) {
         updateData.nickname = trimmedNickname;
@@ -90,6 +96,10 @@ export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
       
       if (hasImageChanged) {
         updateData.image = image;
+      }
+
+      if (hasBadgeChanged) {
+        updateData.selectedBadgeId = badgeId;
       }
 
       const res = await fetch("/api/profile", {
@@ -124,7 +134,7 @@ export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
         <div className="space-y-2">
           <Label>프로필 사진</Label>
           <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
+            <Avatar className="h-20 w-20" badgeId={badgeId}>
               <AvatarImage src={image} />
               <AvatarFallback className="text-2xl">
                 {nickname.charAt(0) || "?"}
@@ -140,6 +150,59 @@ export function ProfileEditForm({ onCancel, onSuccess }: ProfileEditFormProps) {
             </div>
           </div>
         </div>
+
+        {/* Badge Selection */}
+        {badges.length > 0 && (
+          <div className="space-y-2">
+            <Label>대표 뱃지</Label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {badges.map((badge) => {
+                const colors = getBadgeTierColors(badge.tier);
+                const isSelected = badgeId === badge.id;
+                return (
+                  <button
+                    type="button"
+                    key={badge.id}
+                    onClick={() => setBadgeId(badge.id)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-all",
+                      isSelected ? colors.bg : "bg-card",
+                      isSelected ? colors.text : "text-foreground",
+                      isSelected
+                        ? "border-primary ring-2 ring-primary/40"
+                        : "hover:border-primary/40"
+                    )}
+                  >
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full text-lg">
+                      {badge.icon}
+                    </span>
+                    <div className="flex-1 space-y-0.5">
+                      <p className="font-semibold leading-tight">{badge.name}</p>
+                      <p className="text-xs text-muted-foreground">{badge.description}</p>
+                    </div>
+                    {isSelected && (
+                      <span className="text-xs font-semibold text-primary">대표</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                획득한 뱃지 중 하나를 대표 뱃지로 선택하세요.
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setBadgeId(null)}
+                disabled={isLoading}
+              >
+                선택 해제
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Nickname */}
         <div className="space-y-2">

@@ -35,6 +35,7 @@ const getTopic = cache(async (id: string) => {
           nickname: true,
           name: true,
           image: true,
+          selectedBadgeId: true,
           isBlacklisted: true,
         },
       },
@@ -189,6 +190,7 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
           authorId={topic.author.id}
           authorName={authorName}
           authorImage={topic.author.image}
+          authorBadgeId={topic.author.selectedBadgeId}
           isAnonymous={topic.isAnonymous}
           isBlacklisted={topic.author.isBlacklisted}
           createdAt={topic.createdAt}

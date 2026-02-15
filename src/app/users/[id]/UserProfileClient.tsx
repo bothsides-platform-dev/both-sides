@@ -74,6 +74,7 @@ interface PublicProfileData {
     nickname?: string | null;
     name?: string | null;
     image?: string | null;
+    selectedBadgeId?: string | null;
     joinOrder?: number | null;
   };
   votes: VoteItem[];
@@ -117,7 +118,7 @@ export function UserProfileClient({ userId }: { userId: string }) {
           <div className="space-y-4">
             {/* Profile Info */}
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6">
-              <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
+              <Avatar className="h-16 w-16 sm:h-20 sm:w-20" badgeId={profile.user.selectedBadgeId}>
                 <AvatarImage src={profile.user.image || undefined} />
                 <AvatarFallback className="text-xl sm:text-2xl">
                   {displayName.charAt(0)}

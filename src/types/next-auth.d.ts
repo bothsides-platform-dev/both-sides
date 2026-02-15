@@ -9,6 +9,7 @@ declare module "next-auth" {
       name?: string | null;
       image?: string | null;
       nickname?: string | null;
+      selectedBadgeId?: string | null;
       role: Role;
       isNewUser?: boolean;
     };
@@ -16,18 +17,20 @@ declare module "next-auth" {
 
   interface User {
     id: string;
-    email?: string | null;
-    name?: string | null;
-    image?: string | null;
-    nickname?: string | null;
-    role: Role;
+      email?: string | null;
+      name?: string | null;
+      image?: string | null;
+      nickname?: string | null;
+      selectedBadgeId?: string | null;
+      role: Role;
+    }
   }
-}
 
-declare module "next-auth/jwt" {
+  declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     nickname?: string | null;
+    selectedBadgeId?: string | null;
     role: Role;
   }
 }
