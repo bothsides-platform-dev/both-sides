@@ -142,7 +142,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <Button
           variant={myVote === "A" ? "sideA" : "sideAOutline"}
           className={cn(
-            "flex-1 h-20 flex-col gap-1 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
+            "flex-1 min-w-0 whitespace-normal h-20 flex-col gap-1 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
             "active:scale-[0.98]",
             myVote === "A" && "ring-2 ring-sideA ring-offset-2 shadow-lg"
           )}
@@ -171,7 +171,7 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
         <Button
           variant={myVote === "B" ? "sideB" : "sideBOutline"}
           className={cn(
-            "flex-1 h-20 flex-col gap-1 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
+            "flex-1 min-w-0 whitespace-normal h-20 flex-col gap-1 sm:h-20 sm:gap-1.5 relative transition-all duration-200",
             "active:scale-[0.98]",
             myVote === "B" && "ring-2 ring-sideB ring-offset-2 shadow-lg"
           )}
