@@ -73,7 +73,7 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
               const meta = CATEGORY_META[topic.category];
               const Icon = meta.icon;
               return (
-                <span className={`hidden md:inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-2xs font-medium ${meta.bgColor} ${meta.color}`}>
+                <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-2xs font-medium ${meta.bgColor} ${meta.color}`}>
                   <Icon className="h-3 w-3" aria-hidden="true" />
                   {meta.label}
                 </span>

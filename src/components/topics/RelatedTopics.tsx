@@ -27,7 +27,7 @@ interface TopicsResponse {
 
 type FilterMode = "category" | "popular" | "latest";
 
-const LIMIT = 4;
+const LIMIT = 6;
 
 const swrOptions = {
   revalidateOnFocus: false,
@@ -35,7 +35,7 @@ const swrOptions = {
 };
 
 export function RelatedTopics({ topicId, category }: RelatedTopicsProps) {
-  const [filter, setFilter] = useState<FilterMode>("category");
+  const [filter, setFilter] = useState<FilterMode>("popular");
   const [page, setPage] = useState(1);
 
   const apiUrl = useMemo(() => {
@@ -68,8 +68,8 @@ export function RelatedTopics({ topicId, category }: RelatedTopicsProps) {
 
   const CategoryIcon = CATEGORY_META[category].icon;
   const filters: { key: FilterMode; label: string; icon: typeof TrendingUp }[] = [
-    { key: "category", label: CATEGORY_META[category].label, icon: CategoryIcon },
     { key: "popular", label: "인기", icon: TrendingUp },
+    { key: "category", label: CATEGORY_META[category].label, icon: CategoryIcon },
     { key: "latest", label: "최신", icon: Clock },
   ];
 
