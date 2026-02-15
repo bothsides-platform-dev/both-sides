@@ -283,6 +283,21 @@ export function getNextBadge(stats: UserActivityStats): BadgeProgress | null {
 }
 
 /**
+ * Get the default badge ID (highest tier earned badge) for auto-apply
+ */
+export function getDefaultBadgeId(earnedBadges: EarnedBadge[]): string | null {
+  if (earnedBadges.length === 0) return null;
+  const tierOrder = [BadgeTier.PLATINUM, BadgeTier.GOLD, BadgeTier.SILVER, BadgeTier.BRONZE];
+  for (const tier of tierOrder) {
+    const badge = BADGE_DEFINITIONS.find(
+      (def) => def.tier === tier && earnedBadges.some((e) => e.id === def.id)
+    );
+    if (badge) return badge.id;
+  }
+  return null;
+}
+
+/**
  * Get tier color classes for Tailwind
  */
 export function getBadgeTierColors(tier: BadgeTier): {

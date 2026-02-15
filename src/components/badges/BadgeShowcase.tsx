@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Lock, Check, Sparkles } from "lucide-react";
+import { Lock, Check, Sparkles, Ban, Wand2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface BadgeShowcaseProps {
@@ -26,6 +26,7 @@ interface BadgeShowcaseProps {
   trigger?: React.ReactNode;
   selectedBadgeId?: string | null;
   onSelectBadge?: (badgeId: string | null) => void;
+  isAutoDefault?: boolean;
 }
 
 const CATEGORY_LABELS: Record<BadgeCategory, string> = {
@@ -40,7 +41,7 @@ const CATEGORY_LABELS: Record<BadgeCategory, string> = {
  * Full badge showcase with progress tracking
  * Shows all badges (earned and locked) with motivation text
  */
-export function BadgeShowcase({ stats, trigger, selectedBadgeId, onSelectBadge }: BadgeShowcaseProps) {
+export function BadgeShowcase({ stats, trigger, selectedBadgeId, onSelectBadge, isAutoDefault }: BadgeShowcaseProps) {
   const [open, setOpen] = useState(false);
   const allBadges = computeBadgeProgress(stats);
 
@@ -79,12 +80,20 @@ export function BadgeShowcase({ stats, trigger, selectedBadgeId, onSelectBadge }
 
   const handleBadgeClick = (badge: BadgeProgress) => {
     if (!badge.earned || !onSelectBadge) return;
-    if (selectedBadgeId === badge.id) {
-      onSelectBadge(null);
-    } else {
-      onSelectBadge(badge.id);
-    }
+    onSelectBadge(badge.id);
   };
+
+  const handleNoneClick = () => {
+    if (!onSelectBadge) return;
+    onSelectBadge("none");
+  };
+
+  const handleAutoDefaultClick = () => {
+    if (!onSelectBadge) return;
+    onSelectBadge(null);
+  };
+
+  const hasEarnedBadges = allBadges.some((b) => b.earned);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -100,12 +109,41 @@ export function BadgeShowcase({ stats, trigger, selectedBadgeId, onSelectBadge }
           <DialogTitle>나의 뱃지 컬렉션</DialogTitle>
           <DialogDescription>
             {onSelectBadge
-              ? "획득한 뱃지를 클릭하면 프로필 스킨으로 적용됩니다."
+              ? "가장 높은 등급의 배지가 자동으로 적용됩니다. 다른 배지를 선택하거나 미적용할 수 있습니다."
               : "활동을 통해 다양한 뱃지를 획득하고 성장해보세요!"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Skin control options */}
+          {onSelectBadge && hasEarnedBadges && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleAutoDefaultClick}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                  isAutoDefault
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                )}
+              >
+                <Wand2 className="h-3 w-3" />
+                자동 적용
+              </button>
+              <button
+                onClick={handleNoneClick}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                  !selectedBadgeId && !isAutoDefault
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                )}
+              >
+                <Ban className="h-3 w-3" />
+                미적용
+              </button>
+            </div>
+          )}
           {Object.entries(badgesByCategory).map(([category, badges]) => (
             <div key={category}>
               <h3 className="mb-3 text-sm font-semibold text-foreground">
@@ -134,8 +172,17 @@ export function BadgeShowcase({ stats, trigger, selectedBadgeId, onSelectBadge }
                       {/* Selected indicator */}
                       {isSelected && (
                         <div className="absolute top-2 right-2 flex items-center gap-1 text-xs text-primary font-medium">
-                          <Sparkles className="h-3 w-3" />
-                          적용 중
+                          {isAutoDefault ? (
+                            <>
+                              <Wand2 className="h-3 w-3" />
+                              자동 적용
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-3 w-3" />
+                              적용 중
+                            </>
+                          )}
                         </div>
                       )}
 

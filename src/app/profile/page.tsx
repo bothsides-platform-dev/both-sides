@@ -67,6 +67,7 @@ interface ProfileData {
   topics: TopicItem[];
   badges: EarnedBadge[];
   badgeProgress: BadgeProgress[];
+  isAutoDefaultBadge?: boolean;
 }
 
 export default function ProfilePage() {
@@ -98,7 +99,12 @@ export default function ProfilePage() {
         throw new Error(result.error || "배지 적용에 실패했습니다.");
       }
       mutate();
-      showToast(badgeId ? "배지 스킨이 적용되었습니다." : "배지 스킨이 해제되었습니다.", "success");
+      const message = badgeId === "none"
+        ? "배지 스킨이 해제되었습니다."
+        : badgeId === null
+          ? "자동 적용으로 설정되었습니다."
+          : "배지 스킨이 적용되었습니다.";
+      showToast(message, "success");
     } catch (error) {
       showToast(error instanceof Error ? error.message : "배지 적용에 실패했습니다.", "error");
     }
@@ -204,6 +210,7 @@ export default function ProfilePage() {
                         }}
                         selectedBadgeId={profile.selectedBadgeId}
                         onSelectBadge={handleSelectBadge}
+                        isAutoDefault={profile.isAutoDefaultBadge}
                       />
                     )}
                   </div>

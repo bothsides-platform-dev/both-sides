@@ -1,6 +1,6 @@
 import { handleApiError, NotFoundError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
-import { computeBadges } from "@/lib/badges";
+import { computeBadges, getDefaultBadgeId } from "@/lib/badges";
 import { NextRequest } from "next/server";
 
 export async function GET(
@@ -127,9 +127,15 @@ export async function GET(
     };
     const badges = computeBadges(stats);
 
+    // Resolve selectedBadgeId: null → auto-default, "none" → no skin, specific ID → as-is
+    const rawSelectedBadgeId = user.selectedBadgeId;
+    const resolvedBadgeId = rawSelectedBadgeId === "none"
+      ? null
+      : (rawSelectedBadgeId ?? getDefaultBadgeId(badges));
+
     return Response.json({
       data: {
-        user,
+        user: { ...user, selectedBadgeId: resolvedBadgeId },
         votes,
         opinions,
         topics,

@@ -3,7 +3,7 @@ import { handleApiError, ValidationError, ConflictError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
 import { validateRequest, nicknameSchema } from "@/lib/validation";
 import { containsProfanity } from "@/lib/profanity";
-import { computeBadges, computeBadgeProgress } from "@/lib/badges";
+import { computeBadges, computeBadgeProgress, getDefaultBadgeId } from "@/lib/badges";
 import { z } from "zod";
 
 const updateProfileSchema = z.object({
@@ -68,6 +68,12 @@ export async function GET() {
     const badges = computeBadges(stats);
     const badgeProgress = computeBadgeProgress(stats);
 
+    // Resolve selectedBadgeId: null → auto-default, "none" → no skin, specific ID → as-is
+    const rawSelectedBadgeId = userInfo?.selectedBadgeId;
+    const resolvedBadgeId = rawSelectedBadgeId === "none"
+      ? null
+      : (rawSelectedBadgeId ?? getDefaultBadgeId(badges));
+
     return Response.json({
       data: {
         votes,
@@ -78,7 +84,8 @@ export async function GET() {
         topicsCount,
         reactionsCount,
         joinOrder: userInfo?.joinOrder,
-        selectedBadgeId: userInfo?.selectedBadgeId ?? null,
+        selectedBadgeId: resolvedBadgeId,
+        isAutoDefaultBadge: !rawSelectedBadgeId,
         badges,
         badgeProgress,
       },
@@ -100,8 +107,8 @@ export async function PATCH(request: Request) {
       throw new ValidationError("변경할 내용이 없습니다.");
     }
 
-    // Validate selectedBadgeId if provided
-    if (data.selectedBadgeId !== undefined && data.selectedBadgeId !== null) {
+    // Validate selectedBadgeId if provided (skip for "none" and null)
+    if (data.selectedBadgeId !== undefined && data.selectedBadgeId !== null && data.selectedBadgeId !== "none") {
       const [uVotesCount, uOpinionsCount, uTopicsCount, uReactionsCount] = await Promise.all([
         prisma.vote.count({ where: { userId: user.id } }),
         prisma.opinion.count({ where: { userId: user.id } }),
