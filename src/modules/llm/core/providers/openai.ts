@@ -23,7 +23,9 @@ type OpenAiChatResponse = {
 const isTransientStatus = (status: number) => status === 429 || status >= 500;
 
 const buildChatUrl = (baseUrl: string) => {
-  return new URL("/chat/completions", baseUrl).toString();
+  // Ensure baseUrl ends with / for proper URL joining
+  const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+  return `${normalizedBase}chat/completions`;
 };
 
 export const createOpenAiProvider = (config: OpenAiConfig): LlmProvider => {
