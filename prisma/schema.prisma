@@ -395,6 +395,9 @@ model LlmSettings {
   // Timeout configuration
   timeoutMs Int @default(30000)
 
+  // Bot opinion generation
+  anonymousProbability Int @default(60) // 0-100 percentage for bot opinion anonymity
+
   // Audit trail
   updatedBy String?  // Admin user ID
   createdAt DateTime @default(now())

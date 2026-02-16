@@ -10,13 +10,14 @@ import { LlmTopicList } from "@/components/admin/llm/LlmTopicList";
 import { LlmOpinionGeneration } from "@/components/admin/llm/LlmOpinionGeneration";
 import { LlmBotAccounts } from "@/components/admin/llm/LlmBotAccounts";
 import { LlmSettings } from "@/components/admin/llm/LlmSettings";
+import { UnifiedBotOpinionGeneration } from "@/components/admin/llm/UnifiedBotOpinionGeneration";
 
-type TabType = "topics" | "opinions" | "bots" | "settings";
+type TabType = "generate" | "topics" | "opinions" | "bots" | "settings";
 
 export default function AdminLlmPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [activeTab, setActiveTab] = useState<TabType>("topics");
+  const [activeTab, setActiveTab] = useState<TabType>("generate");
 
   if (status === "loading") {
     return (
@@ -32,10 +33,9 @@ export default function AdminLlmPage() {
   }
 
   const tabs: { value: TabType; label: string }[] = [
-    { value: "topics", label: "토론 AI 작업" },
-    { value: "opinions", label: "의견 생성" },
-    { value: "bots", label: "봇 계정 관리" },
-    { value: "settings", label: "설정" },
+    { value: "generate", label: "🤖 봇 의견 생성" },
+    { value: "topics", label: "📊 AI 작업 현황" },
+    { value: "settings", label: "⚙️ 설정" },
   ];
 
   return (
@@ -57,9 +57,8 @@ export default function AdminLlmPage() {
       </Card>
 
       {/* Tab Content */}
+      {activeTab === "generate" && <UnifiedBotOpinionGeneration />}
       {activeTab === "topics" && <LlmTopicList />}
-      {activeTab === "opinions" && <LlmOpinionGeneration />}
-      {activeTab === "bots" && <LlmBotAccounts />}
       {activeTab === "settings" && <LlmSettings />}
     </div>
   );

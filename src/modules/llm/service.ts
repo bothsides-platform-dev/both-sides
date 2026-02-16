@@ -296,10 +296,12 @@ export async function generateBotOpinions({
   topicId,
   countA,
   countB,
+  anonymousProbability = 60,
 }: {
   topicId: string;
   countA: number;
   countB: number;
+  anonymousProbability?: number;
 }) {
   const topic = await prisma.topic.findUnique({
     where: { id: topicId },
@@ -353,13 +355,16 @@ export async function generateBotOpinions({
           style,
         });
 
+        // Use probabilistic anonymity based on configured percentage
+        const isAnonymous = Math.random() * 100 < anonymousProbability;
+
         await prisma.opinion.create({
           data: {
             topicId: topic.id,
             userId: botUser.id,
             side,
             body: result.text,
-            isAnonymous: true,
+            isAnonymous,
           },
         });
 
