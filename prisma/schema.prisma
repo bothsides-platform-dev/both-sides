@@ -383,6 +383,7 @@ model LlmSettings {
   // Model configuration
   modelSummarize String? // Override for summarization model
   modelGenerate  String? // Override for opinion generation model
+  modelGrounds   String? // Override for grounds summary + classification model
 
   // Feature flags
   isEnabled         Boolean @default(true)

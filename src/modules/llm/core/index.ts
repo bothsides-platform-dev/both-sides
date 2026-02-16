@@ -23,6 +23,7 @@ export type CoreConfig = {
     baseUrl: string;
     modelSummarize: string;
     modelGenerate: string;
+    modelGrounds: string;
   };
   timeoutMs: number;
 };
@@ -38,7 +39,8 @@ const loadEnvConfig = (): CoreConfig => {
       apiKey: process.env.OPENAI_API_KEY ?? "",
       baseUrl: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
       modelSummarize: process.env.OPENAI_MODEL_SUMMARIZE ?? "gpt-4o-mini",
-      modelGenerate: process.env.OPENAI_MODEL_GENERATE ?? "gpt-4o-mini"
+      modelGenerate: process.env.OPENAI_MODEL_GENERATE ?? "gpt-4o-mini",
+      modelGrounds: process.env.OPENAI_MODEL_GROUNDS ?? "gpt-4o"
     },
     timeoutMs: Number.parseInt(process.env.LLM_TIMEOUT_MS ?? "30000", 10)
   };
@@ -52,7 +54,8 @@ const mergeConfig = (envConfig: CoreConfig, input?: CoreConfigInput): CoreConfig
       apiKey: input?.openai?.apiKey ?? envConfig.openai.apiKey,
       baseUrl: input?.openai?.baseUrl ?? envConfig.openai.baseUrl,
       modelSummarize: input?.openai?.modelSummarize ?? envConfig.openai.modelSummarize,
-      modelGenerate: input?.openai?.modelGenerate ?? envConfig.openai.modelGenerate
+      modelGenerate: input?.openai?.modelGenerate ?? envConfig.openai.modelGenerate,
+      modelGrounds: input?.openai?.modelGrounds ?? envConfig.openai.modelGrounds
     }
   };
 };
@@ -184,7 +187,7 @@ export const createCore = (input?: CoreConfigInput) => {
     );
     const prompt = replacePlaceholders(basePrompt, { "{{COMMENTS_JSON}}": commentsJson });
     const generated = await provider.complete(
-      { prompt, temperature: 0.2, maxTokens: 900 },
+      { prompt, temperature: 0.2, maxTokens: 900, model: config.openai.modelGrounds },
       { timeoutMs: config.timeoutMs }
     );
 
@@ -243,7 +246,7 @@ export const createCore = (input?: CoreConfigInput) => {
     const basePrompt = buildAddOpinionPrompt(inputData);
     const prompt = replacePlaceholders(basePrompt, { "{{MAX_GROUNDS_TOTAL}}": "8" });
     const generated = await provider.complete(
-      { prompt, temperature: 0.1, maxTokens: 300 },
+      { prompt, temperature: 0.1, maxTokens: 300, model: config.openai.modelGrounds },
       { timeoutMs: config.timeoutMs }
     );
 

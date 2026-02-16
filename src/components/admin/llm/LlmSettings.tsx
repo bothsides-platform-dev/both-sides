@@ -17,6 +17,7 @@ interface LlmSettingsData {
   baseUrl?: string;
   modelSummarize?: string;
   modelGenerate?: string;
+  modelGrounds?: string;
   isEnabled: boolean;
   enableSummarize: boolean;
   enableGenerate: boolean;
@@ -42,6 +43,7 @@ export function LlmSettings() {
   const [baseUrl, setBaseUrl] = useState("");
   const [modelSummarize, setModelSummarize] = useState("");
   const [modelGenerate, setModelGenerate] = useState("");
+  const [modelGrounds, setModelGrounds] = useState("");
   const [isEnabled, setIsEnabled] = useState(true);
   const [enableSummarize, setEnableSummarize] = useState(true);
   const [enableGenerate, setEnableGenerate] = useState(true);
@@ -58,6 +60,7 @@ export function LlmSettings() {
       setBaseUrl(s.baseUrl || "");
       setModelSummarize(s.modelSummarize || "");
       setModelGenerate(s.modelGenerate || "");
+      setModelGrounds(s.modelGrounds || "");
       setIsEnabled(s.isEnabled);
       setEnableSummarize(s.enableSummarize);
       setEnableGenerate(s.enableGenerate);
@@ -83,6 +86,7 @@ export function LlmSettings() {
           baseUrl: baseUrl || undefined,
           modelSummarize: modelSummarize || undefined,
           modelGenerate: modelGenerate || undefined,
+          modelGrounds: modelGrounds || undefined,
           isEnabled,
           enableSummarize,
           enableGenerate,
@@ -202,24 +206,46 @@ export function LlmSettings() {
             </div>
 
             {/* Models */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium">모델 설정</h3>
+
               <div className="space-y-2">
-                <Label htmlFor="modelSummarize">요약 모델</Label>
+                <Label htmlFor="modelSummarize">토픽 요약 모델 (빠른 처리 권장)</Label>
                 <Input
                   id="modelSummarize"
                   value={modelSummarize}
                   onChange={(e) => setModelSummarize(e.target.value)}
-                  placeholder="gpt-4o-mini"
+                  placeholder="gpt-4o-mini (기본값)"
                 />
+                <p className="text-xs text-muted-foreground">
+                  토픽 제목/설명을 요약하는 모델. 간단한 작업이므로 가벼운 모델 권장.
+                </p>
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="modelGenerate">생성 모델</Label>
+                <Label htmlFor="modelGenerate">의견 생성 모델</Label>
                 <Input
                   id="modelGenerate"
                   value={modelGenerate}
                   onChange={(e) => setModelGenerate(e.target.value)}
-                  placeholder="gpt-4o-mini"
+                  placeholder="gpt-4o-mini (기본값)"
                 />
+                <p className="text-xs text-muted-foreground">
+                  봇이 의견을 생성할 때 사용하는 모델.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="modelGrounds">논거 요약 및 분류 모델 (고성능 권장)</Label>
+                <Input
+                  id="modelGrounds"
+                  value={modelGrounds}
+                  onChange={(e) => setModelGrounds(e.target.value)}
+                  placeholder="gpt-4o (기본값)"
+                />
+                <p className="text-xs text-muted-foreground">
+                  의견을 분석하여 논거를 추출하고 분류하는 모델. 복잡한 작업이므로 고성능 모델 권장.
+                </p>
               </div>
             </div>
 

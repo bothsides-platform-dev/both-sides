@@ -44,6 +44,7 @@ export type CompleteInput = {
   prompt: string;
   temperature?: number;
   maxTokens?: number;
+  model?: string;
 };
 
 export type Usage = {

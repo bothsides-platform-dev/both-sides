@@ -11,6 +11,7 @@ export type OpenAiConfig = {
   baseUrl: string;
   modelSummarize: string;
   modelGenerate: string;
+  modelGrounds: string;
 };
 
 type OpenAiChatResponse = {
@@ -141,9 +142,12 @@ export const createOpenAiProvider = (config: OpenAiConfig): LlmProvider => {
     };
   };
 
-  const complete = async (input: CompleteInput, opts: CallOpts): Promise<GenerateOutput> => {
+  const complete = async (
+    input: CompleteInput,
+    opts: CallOpts
+  ): Promise<GenerateOutput> => {
     const payload = {
-      model: config.modelGenerate,
+      model: input.model ?? config.modelGenerate,
       messages: [{ role: "user", content: input.prompt }],
       temperature: input.temperature ?? 0.7,
       max_tokens: input.maxTokens ?? 256
@@ -154,7 +158,7 @@ export const createOpenAiProvider = (config: OpenAiConfig): LlmProvider => {
 
     return {
       text: content,
-      model: data.model ?? config.modelGenerate,
+      model: data.model ?? (input.model ?? config.modelGenerate),
       usage: toUsage(data.usage?.prompt_tokens, data.usage?.completion_tokens)
     };
   };

@@ -6,6 +6,7 @@ export const updateLlmSettingsSchema = z.object({
   baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
   modelSummarize: z.string().optional(),
   modelGenerate: z.string().optional(),
+  modelGrounds: z.string().optional(),
   isEnabled: z.boolean(),
   enableSummarize: z.boolean(),
   enableGenerate: z.boolean(),

@@ -20,6 +20,7 @@ async function initializeCore(): Promise<Core> {
           baseUrl: dbSettings.baseUrl || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
           modelSummarize: dbSettings.modelSummarize || process.env.OPENAI_MODEL_SUMMARIZE || "gpt-4o-mini",
           modelGenerate: dbSettings.modelGenerate || process.env.OPENAI_MODEL_GENERATE || "gpt-4o-mini",
+          modelGrounds: dbSettings.modelGrounds || process.env.OPENAI_MODEL_GROUNDS || "gpt-4o",
         },
         timeoutMs: dbSettings.timeoutMs || parseInt(process.env.LLM_TIMEOUT_MS || "30000", 10),
       };
@@ -28,6 +29,7 @@ async function initializeCore(): Promise<Core> {
         baseUrl: config.openai.baseUrl,
         modelSummarize: config.openai.modelSummarize,
         modelGenerate: config.openai.modelGenerate,
+        modelGrounds: config.openai.modelGrounds,
         hasApiKey: !!config.openai.apiKey,
       });
 
@@ -48,6 +50,7 @@ async function initializeCore(): Promise<Core> {
       baseUrl: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
       modelSummarize: process.env.OPENAI_MODEL_SUMMARIZE ?? "gpt-4o-mini",
       modelGenerate: process.env.OPENAI_MODEL_GENERATE ?? "gpt-4o-mini",
+      modelGrounds: process.env.OPENAI_MODEL_GROUNDS ?? "gpt-4o",
     },
     timeoutMs: parseInt(process.env.LLM_TIMEOUT_MS ?? "30000", 10),
   });
