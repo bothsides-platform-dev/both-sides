@@ -9,12 +9,14 @@ export interface Opinion {
   isAnonymous?: boolean;
   parentId?: string | null;
   createdAt: string;
+  visitorId?: string | null;
   user: {
     id: string;
     nickname?: string | null;
     name?: string | null;
     image?: string | null;
     isBlacklisted?: boolean;
+    selectedBadgeId?: string | null;
   } | null;
   reactions?: Array<{
     id: string;

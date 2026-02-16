@@ -1,10 +1,11 @@
 "use client";
 
-import { memo, useState, useEffect, useRef } from "react";
+import { memo, useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useTruncationDetection } from "@/hooks/useTruncationDetection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarWithSkin } from "@/components/ui/AvatarWithSkin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThumbsUp, Eye, EyeOff, User, UserRound, MoreVertical, Flag, MessageCircle, ChevronDown, ChevronUp, Loader2, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, getGuestLabel, getAnonymousLabel } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 import { ReportDialog } from "./ReportDialog";
 import { ReplyForm } from "./ReplyForm";
@@ -39,6 +40,7 @@ interface OpinionItemProps {
   loadingReplies?: boolean;
   hasReplies?: boolean;
   isHighlighted?: boolean;
+  allVisibleOpinions?: Opinion[];
 }
 
 export const OpinionItem = memo(function OpinionItem({
@@ -57,6 +59,7 @@ export const OpinionItem = memo(function OpinionItem({
   loadingReplies = false,
   hasReplies = false,
   isHighlighted = false,
+  allVisibleOpinions = [],
 }: OpinionItemProps) {
   const { data: session } = useSession();
   const { showToast } = useToast();
@@ -93,10 +96,21 @@ export const OpinionItem = memo(function OpinionItem({
   }, [isHighlighted]);
 
   const isGuest = !opinion.user;
+  
+  // Generate guest label using the utility function
+  const guestLabel = useMemo(() => {
+    return isGuest ? getGuestLabel(opinion.visitorId, allVisibleOpinions) : "";
+  }, [isGuest, opinion.visitorId, allVisibleOpinions]);
+
+  // Generate anonymous label for logged-in users who post anonymously
+  const anonymousLabel = useMemo(() => {
+    return (!isGuest && isAnonymous) ? getAnonymousLabel(opinion.user?.id, allVisibleOpinions) : "";
+  }, [isGuest, isAnonymous, opinion.user?.id, allVisibleOpinions]);
+  
   const authorName = isGuest
-    ? "손님"
+    ? guestLabel
     : isAnonymous 
-      ? "익명" 
+      ? anonymousLabel 
       : (opinion.user!.nickname || opinion.user!.name || "익명");
   const sideLabel = opinion.side === "A" ? optionA : optionB;
   const isOwner = !isGuest && currentUserId === opinion.user?.id;
@@ -201,12 +215,13 @@ export const OpinionItem = memo(function OpinionItem({
             </AvatarFallback>
           </Avatar>
         ) : (
-          <Link href={`/users/${opinion.user!.id}`}>
-            <Avatar className="h-8 w-8 shrink-0 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
-              <AvatarImage src={opinion.user!.image || undefined} />
-              <AvatarFallback className="text-xs">{authorName.charAt(0)}</AvatarFallback>
-            </Avatar>
-          </Link>
+          <AvatarWithSkin
+            src={opinion.user!.image}
+            fallback={authorName.charAt(0)}
+            selectedBadgeId={opinion.user!.selectedBadgeId}
+            size="sm"
+            linkHref={`/users/${opinion.user!.id}`}
+          />
         )}
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center gap-2 flex-wrap">

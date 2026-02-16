@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarWithSkin } from "@/components/ui/AvatarWithSkin";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
 import { getNextBadge } from "@/lib/badges";
 import { fetcher } from "@/lib/fetcher";
+import { useToast } from "@/components/ui/toast";
 import { Loader2, MessageSquare, Vote, Pencil, ListChecks, Heart } from "lucide-react";
 import Link from "next/link";
 import type { Category, Side } from "@prisma/client";
@@ -60,11 +61,13 @@ interface ProfileData {
   topicsCount: number;
   reactionsCount: number;
   joinOrder?: number | null;
+  selectedBadgeId?: string | null;
   votes: VoteItem[];
   opinions: OpinionItem[];
   topics: TopicItem[];
   badges: EarnedBadge[];
   badgeProgress: BadgeProgress[];
+  isAutoDefaultBadge?: boolean;
 }
 
 export default function ProfilePage() {
@@ -77,9 +80,34 @@ export default function ProfilePage() {
     fetcher
   );
 
+  const { showToast } = useToast();
+
   const handleEditSuccess = () => {
     setIsEditing(false);
     mutate(); // Refresh profile data
+  };
+
+  const handleSelectBadge = async (badgeId: string | null) => {
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selectedBadgeId: badgeId }),
+      });
+      if (!res.ok) {
+        const result = await res.json();
+        throw new Error(result.error || "배지 적용에 실패했습니다.");
+      }
+      mutate();
+      const message = badgeId === "none"
+        ? "배지 스킨이 해제되었습니다."
+        : badgeId === null
+          ? "자동 적용으로 설정되었습니다."
+          : "배지 스킨이 적용되었습니다.";
+      showToast(message, "success");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "배지 적용에 실패했습니다.", "error");
+    }
   };
 
   if (status === "loading" || isLoading) {
@@ -123,12 +151,12 @@ export default function ProfilePage() {
             <div className="space-y-4">
               {/* Profile Info */}
               <div className="flex items-center gap-4 sm:gap-6">
-                <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
-                  <AvatarImage src={user.image || undefined} />
-                  <AvatarFallback className="text-xl sm:text-2xl">
-                    {displayName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarWithSkin
+                  src={user.image}
+                  fallback={displayName.charAt(0)}
+                  selectedBadgeId={profile?.selectedBadgeId}
+                  size="xl"
+                />
                 <div className="flex-1 space-y-1">
                   <h1 className="text-xl sm:text-2xl font-bold">{displayName}</h1>
                   <p className="text-sm text-muted-foreground">{user.email}</p>
@@ -180,6 +208,9 @@ export default function ProfilePage() {
                           topicsCount: profile.topicsCount,
                           reactionsCount: profile.reactionsCount,
                         }}
+                        selectedBadgeId={profile.selectedBadgeId}
+                        onSelectBadge={handleSelectBadge}
+                        isAutoDefault={profile.isAutoDefaultBadge}
                       />
                     )}
                   </div>

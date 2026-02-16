@@ -14,7 +14,7 @@ import {
   Settings,
   ChevronsLeft,
   ChevronsRight,
-  ChevronRight,
+  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -136,19 +136,27 @@ export function DesktopSidebar() {
           {/* Category Filter */}
           <div className="pt-3 mt-3 border-t">
             {!collapsed && (
-              <Link
-                href="/explore"
-                className="flex items-center justify-between px-3 py-1 mb-2 rounded-md hover:bg-accent/50 transition-colors group"
-              >
+              <div className="px-3 py-1 mb-2">
                 <span className="text-xs font-semibold tracking-wide text-muted-foreground">
                   카테고리
                 </span>
-                <span className="flex items-center gap-0.5 text-xs text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
-                  전체
-                  <ChevronRight className="h-3 w-3" />
-                </span>
-              </Link>
+              </div>
             )}
+            <SidebarTooltip label="전체" collapsed={collapsed}>
+              <Link
+                href="/explore"
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                  collapsed && "justify-center px-0",
+                  pathname === "/explore" && !searchParams.get("category")
+                    ? "bg-accent font-medium"
+                    : "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <LayoutGrid className={cn("h-5 w-5 shrink-0", pathname === "/explore" && !searchParams.get("category") ? "text-primary" : "text-muted-foreground")} />
+                {!collapsed && <span className={cn("truncate", pathname === "/explore" && !searchParams.get("category") ? "text-foreground" : "text-muted-foreground")}>전체</span>}
+              </Link>
+            </SidebarTooltip>
             {categories.map(([value, meta]) => {
               const slug = CATEGORY_TO_SLUG[value];
               const href = `/explore?category=${slug}`;

@@ -2,7 +2,7 @@
 
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarWithSkin } from "@/components/ui/AvatarWithSkin";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -39,10 +39,12 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={user.image || undefined} alt={displayName} />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+          <AvatarWithSkin
+            src={user.image}
+            fallback={initials}
+            selectedBadgeId={user.selectedBadgeId}
+            size="md"
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>

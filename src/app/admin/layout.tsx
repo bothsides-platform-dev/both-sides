@@ -10,6 +10,7 @@ import {
   Flag,
   MessageSquareText,
   Users,
+  Star,
   Bot,
 } from "lucide-react";
 
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/admin/opinions", label: "의견 관리", icon: MessageCircle },
   { href: "/admin/reports", label: "신고 관리", icon: Flag },
   { href: "/admin/feedback", label: "의견 관리", icon: MessageSquareText },
+  { href: "/admin/site-reviews", label: "NPS 리뷰", icon: Star },
   { href: "/admin/users", label: "사용자 관리", icon: Users },
   { href: "/admin/llm", label: "AI 관리", icon: Bot },
 ];

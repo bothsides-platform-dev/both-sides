@@ -195,12 +195,18 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
   const bubbles = useMemo(() => {
     if (!topics.length || !containerWidth) return [];
 
+    const filteredTopics = highlightCategory
+      ? topics.filter((t) => t.category === highlightCategory)
+      : topics;
+
+    if (!filteredTopics.length) return [];
+
     const height = Math.min(containerWidth * 0.65, 500);
-    const maxVotes = Math.max(...topics.map((t) => t._count.votes), 1);
+    const maxVotes = Math.max(...filteredTopics.map((t) => t._count.votes), 1);
     const minR = 18;
     const maxR = Math.min(containerWidth / 8, 65);
 
-    const nodes: BubbleNode[] = topics.map((topic) => {
+    const nodes: BubbleNode[] = filteredTopics.map((topic) => {
       const ratio = topic._count.votes / maxVotes;
       const r = minR + ratio * (maxR - minR);
       return { r, topic };
@@ -223,7 +229,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
       r: leaf.r,
       topic: leaf.data.topic,
     }));
-  }, [topics, containerWidth]);
+  }, [topics, containerWidth, highlightCategory]);
 
   const svgHeight = useMemo(() => {
     if (!bubbles.length) return 300;
@@ -301,6 +307,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
               height={svgHeight}
               viewBox={`0 0 ${containerWidth} ${svgHeight}`}
               className="select-none"
+              style={{ transition: "height 0.3s ease" }}
             >
               <defs>
                 {bubbles.map((bubble) => {
@@ -342,8 +349,6 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
               </defs>
               {bubbles.map((bubble) => {
                 const fill = CATEGORY_CSS_VAR[bubble.topic.category];
-                const isHighlighted =
-                  !highlightCategory || highlightCategory === bubble.topic.category;
                 const isSelected = selectedBubbleId === bubble.topic.id;
                 const r = isSelected ? bubble.r + 2 : bubble.r;
                 const meta = CATEGORY_META[bubble.topic.category];
@@ -354,11 +359,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                   <g
                     key={bubble.topic.id}
                     data-bubble-id={bubble.topic.id}
-                    className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
-                    style={{
-                      opacity: isHighlighted ? 1 : 0.15,
-                      transition: "opacity 0.2s",
-                    }}
+                    className="cursor-pointer focus:outline-none"
                     role="button"
                     tabIndex={0}
                     aria-label={`${bubble.topic.title} - ${meta.label}`}

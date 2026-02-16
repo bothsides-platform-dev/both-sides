@@ -2,7 +2,7 @@
 
 import { notFound } from "next/navigation";
 import useSWR from "swr";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarWithSkin } from "@/components/ui/AvatarWithSkin";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -75,6 +75,7 @@ interface PublicProfileData {
     name?: string | null;
     image?: string | null;
     joinOrder?: number | null;
+    selectedBadgeId?: string | null;
   };
   votes: VoteItem[];
   opinions: OpinionItem[];
@@ -117,12 +118,12 @@ export function UserProfileClient({ userId }: { userId: string }) {
           <div className="space-y-4">
             {/* Profile Info */}
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6">
-              <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
-                <AvatarImage src={profile.user.image || undefined} />
-                <AvatarFallback className="text-xl sm:text-2xl">
-                  {displayName.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
+              <AvatarWithSkin
+                src={profile.user.image}
+                fallback={displayName.charAt(0)}
+                selectedBadgeId={profile.user.selectedBadgeId}
+                size="xl"
+              />
               <div className="flex-1 space-y-1 text-center sm:text-left">
                 <h1 className="text-xl sm:text-2xl font-bold">{displayName}</h1>
                 {profile.user.joinOrder && (

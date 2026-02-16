@@ -110,6 +110,7 @@ model User {
   blacklistedAt   DateTime?
   blacklistReason String?
   joinOrder       Int?
+  selectedBadgeId String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -121,6 +122,7 @@ model User {
   reactions             Reaction[]
   reports               Report[]
   feedbacks             Feedback[]
+  siteReviews SiteReview[]
   receivedNotifications Notification[] @relation("ReceivedNotifications")
   sentNotifications     Notification[] @relation("SentNotifications")
 
@@ -324,6 +326,21 @@ model Notification {
 
   @@index([userId, isRead])
   @@index([userId, createdAt])
+}
+
+model SiteReview {
+  id        String   @id @default(cuid())
+  score     Int      // 0-10 NPS score
+  comment   String?  @db.Text
+  userId    String?
+  visitorId String?
+  pathname  String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model TopicSummary {

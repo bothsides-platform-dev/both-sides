@@ -11,6 +11,7 @@ declare module "next-auth" {
       nickname?: string | null;
       role: Role;
       isNewUser?: boolean;
+      selectedBadgeId?: string | null;
     };
   }
 
@@ -21,6 +22,7 @@ declare module "next-auth" {
     image?: string | null;
     nickname?: string | null;
     role: Role;
+    selectedBadgeId?: string | null;
   }
 }
 

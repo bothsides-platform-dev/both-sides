@@ -33,6 +33,9 @@ function NewTopicForm() {
   const [referenceLinks, setReferenceLinks] = useState<ReferenceLink[]>([]);
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(initialCategory);
+  const [description, setDescription] = useState("");
+  const [optionA, setOptionA] = useState("");
+  const [optionB, setOptionB] = useState("");
 
   if (status === "loading") {
     return (
@@ -132,10 +135,13 @@ function NewTopicForm() {
                 id="description"
                 name="description"
                 placeholder="토론에 대한 추가 설명을 입력하세요"
-                maxLength={500}
+                maxLength={1000}
                 rows={8}
                 className="min-h-[200px]"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground text-right">{description.length}/1000</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -148,9 +154,12 @@ function NewTopicForm() {
                   name="optionA"
                   placeholder="예: 짜장면"
                   required
-                  maxLength={50}
+                  maxLength={30}
                   className="border-sideA/30 focus:border-sideA"
+                  value={optionA}
+                  onChange={(e) => setOptionA(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground text-right">{optionA.length}/30</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="optionB" className="text-sideB">
@@ -161,9 +170,12 @@ function NewTopicForm() {
                   name="optionB"
                   placeholder="예: 짬뽕"
                   required
-                  maxLength={50}
+                  maxLength={30}
                   className="border-sideB/30 focus:border-sideB"
+                  value={optionB}
+                  onChange={(e) => setOptionB(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground text-right">{optionB.length}/30</p>
               </div>
             </div>
 
