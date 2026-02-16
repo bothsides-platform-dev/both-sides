@@ -41,20 +41,41 @@ export async function updateLlmSettings(
   input: UpdateLlmSettingsInput,
   adminUserId: string
 ) {
-  // Encrypt API key before storing
-  const encryptedApiKey = encrypt(input.apiKey);
+  const { apiKey, ...rest } = input;
 
-  return prisma.llmSettings.upsert({
+  // If apiKey is provided, encrypt it for storage
+  if (apiKey) {
+    const encryptedApiKey = encrypt(apiKey);
+    return prisma.llmSettings.upsert({
+      where: { id: SETTINGS_ID },
+      create: {
+        id: SETTINGS_ID,
+        ...rest,
+        apiKey: encryptedApiKey,
+        updatedBy: adminUserId,
+      },
+      update: {
+        ...rest,
+        apiKey: encryptedApiKey,
+        updatedBy: adminUserId,
+      },
+    });
+  }
+
+  // apiKey not provided — check that settings already exist (key is required for first setup)
+  const existing = await prisma.llmSettings.findUnique({
     where: { id: SETTINGS_ID },
-    create: {
-      id: SETTINGS_ID,
-      ...input,
-      apiKey: encryptedApiKey,
-      updatedBy: adminUserId,
-    },
-    update: {
-      ...input,
-      apiKey: encryptedApiKey,
+  });
+
+  if (!existing) {
+    throw new Error("최초 설정 시 API 키는 필수입니다.");
+  }
+
+  // Update without touching the existing API key
+  return prisma.llmSettings.update({
+    where: { id: SETTINGS_ID },
+    data: {
+      ...rest,
       updatedBy: adminUserId,
     },
   });

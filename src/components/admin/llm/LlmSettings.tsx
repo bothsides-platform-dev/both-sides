@@ -36,6 +36,7 @@ export function LlmSettings() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [originalMaskedKey, setOriginalMaskedKey] = useState("");
 
   // Form state
   const [provider, setProvider] = useState("openai");
@@ -57,6 +58,7 @@ export function LlmSettings() {
       const s = settingsData.data;
       setProvider(s.provider);
       setApiKey(s.apiKey); // Masked
+      setOriginalMaskedKey(s.apiKey);
       setBaseUrl(s.baseUrl || "");
       setModelSummarize(s.modelSummarize || "");
       setModelGenerate(s.modelGenerate || "");
@@ -82,7 +84,8 @@ export function LlmSettings() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          apiKey,
+          // Only send apiKey if the admin actually changed it from the masked value
+          ...(apiKey !== originalMaskedKey ? { apiKey } : {}),
           baseUrl: baseUrl || undefined,
           modelSummarize: modelSummarize || undefined,
           modelGenerate: modelGenerate || undefined,
@@ -172,7 +175,6 @@ export function LlmSettings() {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="sk-..."
-                  required
                   className="pr-10"
                 />
                 <Button
@@ -190,7 +192,7 @@ export function LlmSettings() {
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                API 키는 암호화되어 저장됩니다.
+                API 키는 암호화되어 저장됩니다. 변경하지 않으면 기존 키가 유지됩니다.
               </p>
             </div>
 
