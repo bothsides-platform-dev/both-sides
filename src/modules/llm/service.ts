@@ -25,7 +25,8 @@ export async function triggerTopicSummary(topicId: string) {
       );
     }
 
-    const result = await getLlmCore().summarize({
+    const llmCore = await getLlmCore();
+    const result = await llmCore.summarize({
       title: topic.title,
       body: topic.description ?? "",
     });
@@ -103,7 +104,8 @@ export async function triggerGroundsSummary(topicId: string) {
 
       if (opinions.length < 3) continue;
 
-      const result = await getLlmCore().summarizeOpinions({
+      const llmCore = await getLlmCore();
+      const result = await llmCore.summarizeOpinions({
         topic: topicInput,
         targetSide: side,
         opinions: opinions.map((o) => ({ side: o.side, body: o.body })),
@@ -240,7 +242,8 @@ export async function triggerOpinionClassification(
       sideB: toSideSummary(sideBGrounds, topic.optionB),
     };
 
-    const result = await getLlmCore().addOpinion({
+    const llmCore = await getLlmCore();
+    const result = await llmCore.addOpinion({
       topic: {
         title: topic.title,
         body: topic.description ?? "",
@@ -343,7 +346,8 @@ export async function generateBotOpinions({
           update: { side },
         });
 
-        const result = await getLlmCore().generate({
+        const llmCore = await getLlmCore();
+        const result = await llmCore.generate({
           topic: topicInput,
           side,
           style,

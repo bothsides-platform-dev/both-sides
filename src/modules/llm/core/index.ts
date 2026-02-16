@@ -61,8 +61,20 @@ export const createCore = (input?: CoreConfigInput) => {
   const envConfig = loadEnvConfig();
   const config = mergeConfig(envConfig, input);
 
-  if (config.provider === "openai" && !config.openai.apiKey) {
-    throw new Error("OPENAI_API_KEY is required");
+  // Validate OpenAI configuration
+  if (config.provider === "openai") {
+    if (!config.openai.apiKey) {
+      throw new Error(
+        "OPENAI_API_KEY environment variable is required. " +
+        "Please set it in .env.local or configure it in the admin settings."
+      );
+    }
+
+    if (config.openai.apiKey.length < 20 || !config.openai.apiKey.startsWith("sk-")) {
+      throw new Error(
+        `Invalid OPENAI_API_KEY format. Expected key starting with 'sk-', got: ${config.openai.apiKey.substring(0, 10)}...`
+      );
+    }
   }
 
   let provider: LlmProvider;

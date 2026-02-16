@@ -9,8 +9,9 @@ import { Loader2 } from "lucide-react";
 import { LlmTopicList } from "@/components/admin/llm/LlmTopicList";
 import { LlmOpinionGeneration } from "@/components/admin/llm/LlmOpinionGeneration";
 import { LlmBotAccounts } from "@/components/admin/llm/LlmBotAccounts";
+import { LlmSettings } from "@/components/admin/llm/LlmSettings";
 
-type TabType = "topics" | "opinions" | "bots";
+type TabType = "topics" | "opinions" | "bots" | "settings";
 
 export default function AdminLlmPage() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export default function AdminLlmPage() {
     { value: "topics", label: "토론 AI 작업" },
     { value: "opinions", label: "의견 생성" },
     { value: "bots", label: "봇 계정 관리" },
+    { value: "settings", label: "설정" },
   ];
 
   return (
@@ -58,6 +60,7 @@ export default function AdminLlmPage() {
       {activeTab === "topics" && <LlmTopicList />}
       {activeTab === "opinions" && <LlmOpinionGeneration />}
       {activeTab === "bots" && <LlmBotAccounts />}
+      {activeTab === "settings" && <LlmSettings />}
     </div>
   );
 }

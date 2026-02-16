@@ -371,3 +371,33 @@ model OpinionGround {
 
   @@index([topicId, side])
 }
+
+model LlmSettings {
+  id        String   @id @default(cuid())
+
+  // Provider configuration
+  provider  String   @default("openai")  // "openai" | "google"
+  apiKey    String   @db.Text            // Encrypted API key
+  baseUrl   String?                      // Optional custom endpoint
+
+  // Model configuration
+  modelSummarize String? // Override for summarization model
+  modelGenerate  String? // Override for opinion generation model
+
+  // Feature flags
+  isEnabled         Boolean @default(true)
+  enableSummarize   Boolean @default(true)
+  enableGenerate    Boolean @default(true)
+  enableGrounds     Boolean @default(true)
+  enableClassify    Boolean @default(true)
+
+  // Timeout configuration
+  timeoutMs Int @default(30000)
+
+  // Audit trail
+  updatedBy String?  // Admin user ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("llm_settings")
+}

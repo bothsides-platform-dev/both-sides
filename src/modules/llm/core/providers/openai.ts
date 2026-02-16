@@ -44,14 +44,34 @@ export const createOpenAiProvider = (config: OpenAiConfig): LlmProvider => {
       });
 
       if (!res.ok) {
+        const errorBody = await res.json().catch(() => ({ error: "Unknown error" }));
+        const errorMessage = errorBody?.error?.message || JSON.stringify(errorBody);
+
         if (isTransientStatus(res.status)) {
-          throw new ApiError("upstream_unavailable", "LLM provider unavailable", res.status, {
-            status: res.status
-          });
+          throw new ApiError(
+            "upstream_unavailable",
+            `LLM provider unavailable: ${errorMessage}`,
+            res.status,
+            errorBody
+          );
         }
-        throw new ApiError("upstream_error", "LLM provider error", res.status, {
-          status: res.status
-        });
+
+        // Provide specific error message for 404
+        if (res.status === 404) {
+          throw new ApiError(
+            "upstream_error",
+            `OpenAI API endpoint not found (404). Check OPENAI_BASE_URL and API key validity. Error: ${errorMessage}`,
+            res.status,
+            errorBody
+          );
+        }
+
+        throw new ApiError(
+          "upstream_error",
+          `LLM provider error (${res.status}): ${errorMessage}`,
+          res.status,
+          errorBody
+        );
       }
 
       return (await res.json()) as OpenAiChatResponse;
