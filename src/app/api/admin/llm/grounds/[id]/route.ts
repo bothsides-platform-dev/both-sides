@@ -9,7 +9,7 @@ export async function POST(
   try {
     await requireAdmin();
     const { id: topicId } = await params;
-    await triggerGroundsSummary(topicId);
+    await triggerGroundsSummary(topicId, { force: true });
     return Response.json({ data: { success: true } });
   } catch (error) {
     return handleApiError(error);

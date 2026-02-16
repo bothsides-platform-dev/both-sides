@@ -55,7 +55,7 @@ export async function getTopicSummary(topicId: string) {
 
 // ─── Grounds Summary ─────────────────────────────────────────────────────────
 
-export async function triggerGroundsSummary(topicId: string) {
+export async function triggerGroundsSummary(topicId: string, options?: { force?: boolean }) {
   try {
     const opinionCount = await prisma.opinion.count({
       where: { topicId, parentId: null },
@@ -63,21 +63,23 @@ export async function triggerGroundsSummary(topicId: string) {
 
     if (opinionCount < 10) return;
 
-    // Check if existing grounds are still fresh enough
-    const existingA = await prisma.groundsSummary.findUnique({
-      where: { topicId_side: { topicId, side: "A" } },
-    });
-    const existingB = await prisma.groundsSummary.findUnique({
-      where: { topicId_side: { topicId, side: "B" } },
-    });
+    // Check if existing grounds are still fresh enough (skip when force=true)
+    if (!options?.force) {
+      const existingA = await prisma.groundsSummary.findUnique({
+        where: { topicId_side: { topicId, side: "A" } },
+      });
+      const existingB = await prisma.groundsSummary.findUnique({
+        where: { topicId_side: { topicId, side: "B" } },
+      });
 
-    // Skip if both exist and opinion count hasn't grown by 50%+
-    if (existingA && existingB) {
-      const prevCount = Math.max(
-        existingA.opinionCountAtGeneration,
-        existingB.opinionCountAtGeneration
-      );
-      if (opinionCount < prevCount * 1.5) return;
+      // Skip if both exist and opinion count hasn't grown by 50%+
+      if (existingA && existingB) {
+        const prevCount = Math.max(
+          existingA.opinionCountAtGeneration,
+          existingB.opinionCountAtGeneration
+        );
+        if (opinionCount < prevCount * 1.5) return;
+      }
     }
 
     const topic = await prisma.topic.findUnique({
