@@ -40,16 +40,16 @@ enum ReportStatus {
 }
 
 enum FeedbackCategory {
-  BUG          // 버그 신고
-  SUGGESTION   // 기능 제안
-  QUESTION     // 문의
-  OTHER        // 기타
+  BUG // 버그 신고
+  SUGGESTION // 기능 제안
+  QUESTION // 문의
+  OTHER // 기타
 }
 
 enum FeedbackStatus {
-  PENDING      // 대기 중
-  REVIEWED     // 검토 완료
-  RESOLVED     // 해결 완료
+  PENDING // 대기 중
+  REVIEWED // 검토 완료
+  RESOLVED // 해결 완료
 }
 
 enum NotificationType {
@@ -113,14 +113,14 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  accounts  Account[]
-  sessions  Session[]
-  topics    Topic[]
-  votes     Vote[]
-  opinions  Opinion[]
-  reactions Reaction[]
-  reports   Report[]
-  feedbacks Feedback[]
+  accounts              Account[]
+  sessions              Session[]
+  topics                Topic[]
+  votes                 Vote[]
+  opinions              Opinion[]
+  reactions             Reaction[]
+  reports               Report[]
+  feedbacks             Feedback[]
   receivedNotifications Notification[] @relation("ReceivedNotifications")
   sentNotifications     Notification[] @relation("SentNotifications")
 
@@ -146,12 +146,12 @@ model Topic {
   viewCount      Int       @default(0)
 
   // SEO 전용 필드
-  metaTitle       String?   @db.VarChar(60)   // 검색 결과 제목
-  metaDescription String?   @db.VarChar(160)  // 검색 결과 설명
-  ogImageUrl      String?                      // 커스텀 OG 이미지 URL
+  metaTitle       String? @db.VarChar(60) // 검색 결과 제목
+  metaDescription String? @db.VarChar(160) // 검색 결과 설명
+  ogImageUrl      String? // 커스텀 OG 이미지 URL
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   author           User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
   votes            Vote[]
@@ -197,7 +197,7 @@ model Vote {
   updatedAt   DateTime @updatedAt
 
   topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([topicId, userId], name: "vote_topic_user")
   @@unique([topicId, visitorId, ipAddress], name: "vote_topic_visitor")
@@ -222,13 +222,13 @@ model Opinion {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  topic     Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent    Opinion?   @relation("OpinionReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Opinion[]  @relation("OpinionReplies")
-  reactions     Reaction[]
-  reports       Report[]
-  opinionGround OpinionGround?
+  topic                   Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user                    User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent                  Opinion?       @relation("OpinionReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies                 Opinion[]      @relation("OpinionReplies")
+  reactions               Reaction[]
+  reports                 Report[]
+  opinionGround           OpinionGround?
   notificationsAsOriginal Notification[] @relation("NotifiedOpinion")
   notificationsAsReply    Notification[] @relation("NotifyingReply")
 
@@ -287,8 +287,8 @@ model Feedback {
   id        String           @id @default(cuid())
   category  FeedbackCategory
   content   String           @db.Text
-  email     String?          // 익명 사용자용 이메일
-  userId    String?          // nullable - 익명 제출 지원
+  email     String? // 익명 사용자용 이메일
+  userId    String? // nullable - 익명 제출 지원
   status    FeedbackStatus   @default(PENDING)
   adminNote String?          @db.Text
   createdAt DateTime         @default(now())
@@ -303,18 +303,18 @@ model Feedback {
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String           // 알림 수신자
-  type      NotificationType
-  isRead    Boolean          @default(false)
+  id     String           @id @default(cuid())
+  userId String // 알림 수신자
+  type   NotificationType
+  isRead Boolean          @default(false)
 
   // 관련 리소스
-  opinionId String?          // 원본 의견
-  replyId   String?          // 새 답글
-  topicId   String?          // 토론
-  actorId   String?          // 답글 작성자
+  opinionId String? // 원본 의견
+  replyId   String? // 새 답글
+  topicId   String? // 토론
+  actorId   String? // 답글 작성자
 
-  createdAt DateTime         @default(now())
+  createdAt DateTime @default(now())
 
   user    User     @relation("ReceivedNotifications", fields: [userId], references: [id], onDelete: Cascade)
   actor   User?    @relation("SentNotifications", fields: [actorId], references: [id], onDelete: SetNull)

@@ -352,3 +352,70 @@ export async function getAdminStats() {
     pendingReports,
   };
 }
+
+export async function getTopicsForLlmAdmin(input: {
+  page: number;
+  limit: number;
+  filter?: "all" | "needs_summary" | "needs_grounds" | "complete";
+  search?: string;
+}) {
+  const skip = (input.page - 1) * input.limit;
+
+  const topics = await prisma.topic.findMany({
+    where: {
+      ...(input.search && {
+        OR: [
+          { title: { contains: input.search, mode: "insensitive" } },
+          { description: { contains: input.search, mode: "insensitive" } },
+        ],
+      }),
+    },
+    select: {
+      id: true,
+      title: true,
+      category: true,
+      createdAt: true,
+      _count: { select: { votes: true, opinions: true } },
+      topicSummary: { select: { id: true } },
+      groundsSummaries: { select: { side: true } },
+    },
+    skip,
+    take: input.limit,
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Compute derived fields and apply filter
+  const enrichedTopics = topics.map((t) => ({
+    ...t,
+    hasSummary: !!t.topicSummary,
+    hasGroundsA: t.groundsSummaries.some((g) => g.side === "A"),
+    hasGroundsB: t.groundsSummaries.some((g) => g.side === "B"),
+    opinionCount: t._count.opinions,
+    meetsMinimumForSummary: t._count.opinions >= 3,
+    meetsMinimumForGrounds: t._count.opinions >= 10,
+  }));
+
+  // Apply filter
+  const filtered = enrichedTopics.filter((t) => {
+    if (!input.filter || input.filter === "all") return true;
+    if (input.filter === "needs_summary")
+      return !t.hasSummary && t.meetsMinimumForSummary;
+    if (input.filter === "needs_grounds")
+      return t.meetsMinimumForGrounds && (!t.hasGroundsA || !t.hasGroundsB);
+    if (input.filter === "complete")
+      return t.hasSummary && t.hasGroundsA && t.hasGroundsB;
+    return true;
+  });
+
+  const total = filtered.length; // Note: This is approximate for filtered results
+
+  return {
+    topics: filtered,
+    pagination: {
+      page: input.page,
+      limit: input.limit,
+      total,
+      totalPages: Math.ceil(total / input.limit),
+    },
+  };
+}

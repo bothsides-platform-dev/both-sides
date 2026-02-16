@@ -9,9 +9,21 @@ export async function triggerTopicSummary(topicId: string) {
   try {
     const topic = await prisma.topic.findUnique({
       where: { id: topicId },
-      select: { id: true, title: true, description: true },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        _count: { select: { opinions: true } },
+      },
     });
     if (!topic) return;
+
+    // Enforce minimum threshold
+    if (topic._count.opinions < 3) {
+      throw new Error(
+        `Topic needs at least 3 opinions for summary (current: ${topic._count.opinions})`
+      );
+    }
 
     const result = await getLlmCore().summarize({
       title: topic.title,
@@ -32,6 +44,7 @@ export async function triggerTopicSummary(topicId: string) {
     });
   } catch (err) {
     console.error("[LLM] triggerTopicSummary failed:", err);
+    throw err; // Re-throw to show error in UI
   }
 }
 
