@@ -16,7 +16,7 @@ async function fetchFromNamuWiki(): Promise<TrendItem[]> {
   const response = await fetch(NAMUWIKI_URL, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0",
       Accept: "application/json, text/plain, */*",
       "Accept-Language": "ko-KR,ko;q=0.8,en-US;q=0.5,en;q=0.3",
     },
