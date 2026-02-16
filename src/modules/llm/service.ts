@@ -290,8 +290,6 @@ export async function triggerOpinionClassification(
 
 // ─── Bot Opinion Generation (Admin) ──────────────────────────────────────────
 
-const BOT_STYLES = ["community", "polite", "emotional", "expert"] as const;
-
 export async function generateBotOpinions({
   topicId,
   countA,
@@ -333,7 +331,6 @@ export async function generateBotOpinions({
     for (let i = 0; i < count; i++) {
       try {
         const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
-        const style = BOT_STYLES[Math.floor(Math.random() * BOT_STYLES.length)];
 
         // Create or update vote for this bot user
         await prisma.vote.upsert({
@@ -352,7 +349,6 @@ export async function generateBotOpinions({
         const result = await llmCore.generate({
           topic: topicInput,
           side,
-          style,
         });
 
         // Use probabilistic anonymity based on configured percentage

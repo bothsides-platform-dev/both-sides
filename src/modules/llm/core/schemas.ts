@@ -20,7 +20,7 @@ export const SideSchema = z.enum(["A", "B"]);
 export const GenerateRequestSchema = z.object({
   topic: TopicSchema,
   side: SideSchema,
-  style: z.string().min(1).max(100),
+  // style field removed - no longer needed after prompt update
   temperature: z.number().min(0).max(2).optional().default(0.7),
   maxTokens: z.number().int().min(1).max(2048).optional().default(256)
 });
