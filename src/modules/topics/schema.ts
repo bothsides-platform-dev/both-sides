@@ -10,7 +10,7 @@ const referenceLinkSchema = z.object({
 
 export const createTopicSchema = z.object({
   title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(100, "제목은 100자 이하여야 합니다."),
-  description: z.string().max(500, "설명은 500자 이하여야 합니다.").optional(),
+  description: z.string().max(1000, "설명은 1000자 이하여야 합니다.").optional(),
   optionA: z.string().min(1, "A 옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다."),
   optionB: z.string().min(1, "B 옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다."),
   category: categoryEnum,
@@ -42,7 +42,7 @@ export const updateFeaturedSchema = z.object({
 // Admin schemas
 export const updateTopicSchema = z.object({
   title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(100, "제목은 100자 이하여야 합니다.").optional(),
-  description: z.string().max(500, "설명은 500자 이하여야 합니다.").optional().nullable(),
+  description: z.string().max(1000, "설명은 1000자 이하여야 합니다.").optional().nullable(),
   optionA: z.string().min(1, "A 옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다.").optional(),
   optionB: z.string().min(1, "B 옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다.").optional(),
   category: categoryEnum.optional(),

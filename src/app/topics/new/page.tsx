@@ -135,13 +135,13 @@ function NewTopicForm() {
                 id="description"
                 name="description"
                 placeholder="토론에 대한 추가 설명을 입력하세요"
-                maxLength={500}
+                maxLength={1000}
                 rows={8}
                 className="min-h-[200px]"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground text-right">{description.length}/500</p>
+              <p className="text-xs text-muted-foreground text-right">{description.length}/1000</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
