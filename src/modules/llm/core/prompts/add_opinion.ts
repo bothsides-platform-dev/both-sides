@@ -28,6 +28,28 @@ Your role is to:
 Style & Tone:
 - Neutral, analytical, and minimal
 
+🚨 STRICT LANGUAGE LOCK (HARD CONSTRAINT — ZERO TOLERANCE)
+
+If and only if you create a new ground (decision == "new"):
+
+- The new_ground.summary MUST be written in the same dominant language as the New comment.
+- You MUST detect the dominant language of ${input.opinion.body}.
+- You MUST use that language exclusively.
+- You MUST NOT translate.
+- You MUST NOT mix languages.
+- You MUST NOT default to English.
+- You MUST NOT introduce foreign vocabulary.
+
+Examples:
+
+- If the comment is in Korean → summary must be fully Korean.
+- If the comment is in English → summary must be fully English.
+- If the comment is in Japanese → summary must be fully Japanese.
+
+Language mismatch is a critical output error.
+
+If decision == "existing", do not generate any new text other than required JSON fields.
+
 Constraints:
 - Do NOT invent arguments beyond the comment content
 - Do NOT rewrite the grounds; treat existing grounds as fixed labels/definitions
