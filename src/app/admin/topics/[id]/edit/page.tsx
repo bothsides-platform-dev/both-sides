@@ -24,13 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ImageUpload } from "@/components/ui/ImageUpload";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { ReferenceLinkInput, type ReferenceLink } from "@/components/ui/ReferenceLinkInput";
+import { CATEGORY_META, CATEGORY_LABELS } from "@/lib/constants";
 import { fetcher } from "@/lib/fetcher";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { Category } from "@prisma/client";
 
-const categories = Object.entries(CATEGORY_LABELS) as [Category, string][];
+const categories = Object.entries(CATEGORY_META) as [Category, (typeof CATEGORY_META)[Category]][];
 
 interface Topic {
   id: string;
@@ -44,6 +45,7 @@ interface Topic {
   isHidden: boolean;
   isFeatured: boolean;
   isAnonymous?: boolean;
+  referenceLinks: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
   ogImageUrl: string | null;
@@ -65,6 +67,11 @@ export default function AdminTopicEditPage({ params }: PageParams) {
   const [metaDescription, setMetaDescription] = useState("");
   const [ogImageUrl, setOgImageUrl] = useState("");
   const [isImageUploading, setIsImageUploading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(undefined);
+  const [description, setDescription] = useState("");
+  const [optionA, setOptionA] = useState("");
+  const [optionB, setOptionB] = useState("");
+  const [referenceLinks, setReferenceLinks] = useState<ReferenceLink[]>([]);
 
   const { data, isLoading } = useSWR<{ data: Topic }>(
     session?.user?.role === "ADMIN" ? `/api/admin/topics/${id}` : null,
@@ -74,14 +81,25 @@ export default function AdminTopicEditPage({ params }: PageParams) {
   const topic = data?.data;
 
   useEffect(() => {
-    if (topic?.imageUrl) {
-      setImageUrl(topic.imageUrl);
-    }
-    if (topic?.isAnonymous !== undefined) {
-      setIsAnonymous(topic.isAnonymous);
-    }
-    // SEO 필드: 저장된 값이 있으면 사용, 없으면 자동 생성 기본값 사용
     if (topic) {
+      if (topic.imageUrl) setImageUrl(topic.imageUrl);
+      if (topic.isAnonymous !== undefined) setIsAnonymous(topic.isAnonymous);
+      setDescription(topic.description || "");
+      setOptionA(topic.optionA);
+      setOptionB(topic.optionB);
+      setSelectedCategory(topic.category);
+
+      // 참고링크 파싱
+      if (topic.referenceLinks) {
+        try {
+          const parsed = JSON.parse(topic.referenceLinks);
+          if (Array.isArray(parsed)) setReferenceLinks(parsed);
+        } catch {
+          // 파싱 실패 시 무시
+        }
+      }
+
+      // SEO 필드: 저장된 값이 있으면 사용, 없으면 자동 생성 기본값 사용
       const defaultMetaTitle = topic.title;
       const defaultMetaDescription = topic.description?.trim()
         ? `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · ${topic.description.trim()}`
@@ -121,6 +139,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
 
     const formData = new FormData(e.currentTarget);
     const deadlineValue = formData.get("deadline") as string;
+    const validReferenceLinks = referenceLinks.filter((link) => link.url.trim());
 
     const updateData = {
       title: formData.get("title"),
@@ -130,6 +149,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
       category: formData.get("category"),
       imageUrl: imageUrl || null,
       deadline: deadlineValue ? new Date(deadlineValue).toISOString() : null,
+      referenceLinks: validReferenceLinks.length > 0 ? validReferenceLinks : null,
       isAnonymous,
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
@@ -203,9 +223,13 @@ export default function AdminTopicEditPage({ params }: PageParams) {
               <Textarea
                 id="description"
                 name="description"
-                defaultValue={topic.description || ""}
                 maxLength={500}
+                rows={8}
+                className="min-h-[200px]"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground text-right">{description.length}/500</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -216,11 +240,13 @@ export default function AdminTopicEditPage({ params }: PageParams) {
                 <Input
                   id="optionA"
                   name="optionA"
-                  defaultValue={topic.optionA}
                   required
-                  maxLength={50}
+                  maxLength={30}
                   className="border-sideA/30 focus:border-sideA"
+                  value={optionA}
+                  onChange={(e) => setOptionA(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground text-right">{optionA.length}/30</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="optionB" className="text-sideB">
@@ -229,28 +255,46 @@ export default function AdminTopicEditPage({ params }: PageParams) {
                 <Input
                   id="optionB"
                   name="optionB"
-                  defaultValue={topic.optionB}
                   required
-                  maxLength={50}
+                  maxLength={30}
                   className="border-sideB/30 focus:border-sideB"
+                  value={optionB}
+                  onChange={(e) => setOptionB(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground text-right">{optionB.length}/30</p>
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="category">카테고리 *</Label>
-              <Select name="category" defaultValue={topic.category} required>
+              <Select
+                name="category"
+                required
+                value={selectedCategory}
+                onValueChange={(v) => setSelectedCategory(v as Category)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="카테고리를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
+                  {categories.map(([value, meta]) => {
+                    const Icon = meta.icon;
+                    return (
+                      <SelectItem key={value} value={value}>
+                        <span className="inline-flex items-center gap-2">
+                          <Icon className={`h-4 w-4 ${meta.color}`} />
+                          {meta.label}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
+              {selectedCategory && (
+                <p className="text-xs text-muted-foreground">
+                  {CATEGORY_META[selectedCategory].description}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -270,11 +314,18 @@ export default function AdminTopicEditPage({ params }: PageParams) {
                 name="deadline"
                 type="datetime-local"
                 defaultValue={formatDatetimeLocal(topic.deadline)}
+                min={new Date().toISOString().slice(0, 16)}
               />
               <p className="text-xs text-muted-foreground">
                 비워두면 무기한 토론이 됩니다
               </p>
             </div>
+
+            <ReferenceLinkInput
+              value={referenceLinks}
+              onChange={setReferenceLinks}
+              disabled={isSubmitting}
+            />
 
             <div className="flex items-center space-x-2">
               <Checkbox
