@@ -32,7 +32,15 @@ export const createOpenAiProvider = (config: OpenAiConfig): LlmProvider => {
     const timeout = setTimeout(() => controller.abort(), opts.timeoutMs);
 
     try {
-      const res = await fetch(buildChatUrl(config.baseUrl), {
+      const chatUrl = buildChatUrl(config.baseUrl);
+      console.log("[OpenAI] Calling API:", {
+        url: chatUrl,
+        baseUrl: config.baseUrl,
+        hasApiKey: !!config.apiKey,
+        keyPrefix: config.apiKey.substring(0, 10) + "...",
+      });
+
+      const res = await fetch(chatUrl, {
         method: "POST",
         headers: {
           Accept: "application/json",

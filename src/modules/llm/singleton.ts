@@ -14,7 +14,7 @@ async function initializeCore(): Promise<Core> {
     const dbSettings = await getLlmSettings().catch(() => null);
 
     if (dbSettings?.isEnabled) {
-      const core = createCore({
+      const config = {
         openai: {
           apiKey: dbSettings.apiKey,
           baseUrl: dbSettings.baseUrl || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
@@ -22,7 +22,16 @@ async function initializeCore(): Promise<Core> {
           modelGenerate: dbSettings.modelGenerate || process.env.OPENAI_MODEL_GENERATE || "gpt-4o-mini",
         },
         timeoutMs: dbSettings.timeoutMs || parseInt(process.env.LLM_TIMEOUT_MS || "30000", 10),
+      };
+
+      console.log("[LLM] Initializing with database configuration:", {
+        baseUrl: config.openai.baseUrl,
+        modelSummarize: config.openai.modelSummarize,
+        modelGenerate: config.openai.modelGenerate,
+        hasApiKey: !!config.openai.apiKey,
       });
+
+      const core = createCore(config);
       console.log("[LLM] Initialized with database configuration");
 
       if (process.env.NODE_ENV !== "production") globalForLlm.llmCore = core;
