@@ -4,6 +4,7 @@ import { AUTHOR_SELECT, OPINION_COUNT_SELECT, REACTION_SELECT } from "@/lib/pris
 import type { CreateOpinionInput, GetOpinionsInput, UpdateOpinionAnonymityInput, GetOpinionsAdminInput } from "./schema";
 import { createReplyNotification } from "@/modules/notifications/service";
 import { getVote } from "@/modules/votes/service";
+import { autoTriggerLlmTasks } from "@/modules/llm/auto-trigger";
 
 type OpinionAuthor =
   | { type: "user"; userId: string }
@@ -84,6 +85,17 @@ export async function createOpinion(
       });
     }
   }
+
+  // 의견 생성 후 자동 LLM 작업 트리거
+  // Auto-trigger LLM tasks after opinion creation
+  autoTriggerLlmTasks({
+    topicId: actualTopicId,
+    opinionId: opinion.id,
+    side: vote.side,
+  }).catch(err => {
+    // Fire-and-forget: log but don't throw
+    console.error("[LLM] Auto-trigger pipeline failed:", err);
+  });
 
   return opinion;
 }
