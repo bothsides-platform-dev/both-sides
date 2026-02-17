@@ -41,16 +41,16 @@ enum ReportStatus {
 }
 
 enum FeedbackCategory {
-  BUG          // 버그 신고
-  SUGGESTION   // 기능 제안
-  QUESTION     // 문의
-  OTHER        // 기타
+  BUG // 버그 신고
+  SUGGESTION // 기능 제안
+  QUESTION // 문의
+  OTHER // 기타
 }
 
 enum FeedbackStatus {
-  PENDING      // 대기 중
-  REVIEWED     // 검토 완료
-  RESOLVED     // 해결 완료
+  PENDING // 대기 중
+  REVIEWED // 검토 완료
+  RESOLVED // 해결 완료
 }
 
 enum NotificationType {
@@ -107,6 +107,7 @@ model User {
   nickname        String?   @unique
   role            Role      @default(USER)
   isBlacklisted   Boolean   @default(false)
+  isBot           Boolean   @default(false)
   blacklistedAt   DateTime?
   blacklistReason String?
   joinOrder       Int?
@@ -114,14 +115,14 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  accounts  Account[]
-  sessions  Session[]
-  topics    Topic[]
-  votes     Vote[]
-  opinions  Opinion[]
-  reactions Reaction[]
-  reports   Report[]
-  feedbacks Feedback[]
+  accounts              Account[]
+  sessions              Session[]
+  topics                Topic[]
+  votes                 Vote[]
+  opinions              Opinion[]
+  reactions             Reaction[]
+  reports               Report[]
+  feedbacks             Feedback[]
   siteReviews SiteReview[]
   receivedNotifications Notification[] @relation("ReceivedNotifications")
   sentNotifications     Notification[] @relation("SentNotifications")
@@ -148,19 +149,22 @@ model Topic {
   viewCount      Int       @default(0)
 
   // SEO 전용 필드
-  metaTitle       String?   @db.VarChar(60)   // 검색 결과 제목
-  metaDescription String?   @db.VarChar(160)  // 검색 결과 설명
-  ogImageUrl      String?                      // 커스텀 OG 이미지 URL
+  metaTitle       String? @db.VarChar(60) // 검색 결과 제목
+  metaDescription String? @db.VarChar(160) // 검색 결과 설명
+  ogImageUrl      String? // 커스텀 OG 이미지 URL
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  votes         Vote[]
-  opinions      Opinion[]
-  views         TopicView[]
-  reports       Report[]
-  notifications Notification[]
+  author           User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes            Vote[]
+  opinions         Opinion[]
+  views            TopicView[]
+  reports          Report[]
+  notifications    Notification[]
+  topicSummary     TopicSummary?
+  groundsSummaries GroundsSummary[]
+  opinionGrounds   OpinionGround[]
 
   @@index([authorId])
   @@index([category])
@@ -196,7 +200,7 @@ model Vote {
   updatedAt   DateTime @updatedAt
 
   topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([topicId, userId], name: "vote_topic_user")
   @@unique([topicId, visitorId, ipAddress], name: "vote_topic_visitor")
@@ -221,12 +225,13 @@ model Opinion {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  topic     Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent    Opinion?   @relation("OpinionReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Opinion[]  @relation("OpinionReplies")
-  reactions Reaction[]
-  reports   Report[]
+  topic                   Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user                    User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent                  Opinion?       @relation("OpinionReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies                 Opinion[]      @relation("OpinionReplies")
+  reactions               Reaction[]
+  reports                 Report[]
+  opinionGround           OpinionGround?
   notificationsAsOriginal Notification[] @relation("NotifiedOpinion")
   notificationsAsReply    Notification[] @relation("NotifyingReply")
 
@@ -285,8 +290,8 @@ model Feedback {
   id        String           @id @default(cuid())
   category  FeedbackCategory
   content   String           @db.Text
-  email     String?          // 익명 사용자용 이메일
-  userId    String?          // nullable - 익명 제출 지원
+  email     String? // 익명 사용자용 이메일
+  userId    String? // nullable - 익명 제출 지원
   status    FeedbackStatus   @default(PENDING)
   adminNote String?          @db.Text
   createdAt DateTime         @default(now())
@@ -301,18 +306,18 @@ model Feedback {
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String           // 알림 수신자
-  type      NotificationType
-  isRead    Boolean          @default(false)
+  id     String           @id @default(cuid())
+  userId String // 알림 수신자
+  type   NotificationType
+  isRead Boolean          @default(false)
 
   // 관련 리소스
-  opinionId String?          // 원본 의견
-  replyId   String?          // 새 답글
-  topicId   String?          // 토론
-  actorId   String?          // 답글 작성자
+  opinionId String? // 원본 의견
+  replyId   String? // 새 답글
+  topicId   String? // 토론
+  actorId   String? // 답글 작성자
 
-  createdAt DateTime         @default(now())
+  createdAt DateTime @default(now())
 
   user    User     @relation("ReceivedNotifications", fields: [userId], references: [id], onDelete: Cascade)
   actor   User?    @relation("SentNotifications", fields: [actorId], references: [id], onDelete: SetNull)
@@ -337,4 +342,84 @@ model SiteReview {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model TopicSummary {
+  id        String   @id @default(cuid())
+  topicId   String   @unique
+  summary   String   @db.Text
+  model     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+}
+
+model GroundsSummary {
+  id                       String   @id @default(cuid())
+  topicId                  String
+  side                     Side
+  groundsJson              Json
+  summaryText              String   @db.Text
+  opinionCountAtGeneration Int
+  isHidden                 Boolean  @default(false)
+  model                    String
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([topicId, side])
+  @@index([topicId])
+}
+
+model OpinionGround {
+  id          String   @id @default(cuid())
+  opinionId   String   @unique
+  topicId     String
+  side        Side
+  groundTitle String
+  groundId    Int
+  confidence  Float
+  model       String
+  createdAt   DateTime @default(now())
+
+  opinion Opinion @relation(fields: [opinionId], references: [id], onDelete: Cascade)
+  topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId, side])
+}
+
+model LlmSettings {
+  id        String   @id @default(cuid())
+
+  // Provider configuration
+  provider  String   @default("openai")  // "openai" | "google"
+  apiKey    String   @db.Text            // Encrypted API key
+  baseUrl   String?                      // Optional custom endpoint
+
+  // Model configuration
+  modelSummarize String? // Override for summarization model
+  modelGenerate  String? // Override for opinion generation model
+  modelGrounds   String? // Override for grounds summary + classification model
+
+  // Feature flags
+  isEnabled         Boolean @default(true)
+  enableSummarize   Boolean @default(true)
+  enableGenerate    Boolean @default(true)
+  enableGrounds     Boolean @default(true)
+  enableClassify    Boolean @default(true)
+
+  // Timeout configuration
+  timeoutMs Int @default(30000)
+
+  // Bot opinion generation
+  anonymousProbability Int @default(60) // 0-100 percentage for bot opinion anonymity
+
+  // Audit trail
+  updatedBy String?  // Admin user ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("llm_settings")
 }

@@ -153,6 +153,10 @@ export const CATEGORY_CSS_VAR: Record<Category, string> = {
 // 블라인드 처리 기준 (신고 누적 수)
 export const BLIND_THRESHOLD = 3;
 
+// LLM 자동 트리거 임계값
+export const LLM_MIN_OPINIONS_SUMMARY = 3;
+export const LLM_MIN_OPINIONS_GROUNDS = 10;
+
 // 페이지네이션 기본값
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;

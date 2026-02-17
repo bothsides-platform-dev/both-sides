@@ -11,6 +11,7 @@ import {
   MessageSquareText,
   Users,
   Star,
+  Bot,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ const navItems = [
   { href: "/admin/feedback", label: "의견 관리", icon: MessageSquareText },
   { href: "/admin/site-reviews", label: "NPS 리뷰", icon: Star },
   { href: "/admin/users", label: "사용자 관리", icon: Users },
+  { href: "/admin/llm", label: "AI 관리", icon: Bot },
 ];
 
 export default async function AdminLayout({

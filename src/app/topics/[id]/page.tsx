@@ -11,6 +11,8 @@ import { ViewCountTracker } from "@/components/topics/ViewCountTracker";
 import { InAppBrowserRedirect } from "@/components/InAppBrowserRedirect";
 import { CATEGORY_LABELS, CATEGORY_TO_SLUG } from "@/lib/constants";
 import { ReferenceLinksCollapsible } from "@/components/topics/ReferenceLinksCollapsible";
+import { TopicSummary } from "@/components/debate/TopicSummary";
+import { GroundsSection } from "@/components/debate/GroundsSection";
 import { RelatedTopics } from "@/components/topics/RelatedTopics";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
@@ -124,8 +126,8 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
     notFound();
   }
 
-  const authorName = topic.isAnonymous 
-    ? "익명" 
+  const authorName = topic.isAnonymous
+    ? "익명"
     : (topic.author.nickname || topic.author.name || "익명");
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bothsides.club";
   const canonicalUrl = new URL(`/topics/${topic.id}`, siteUrl).toString();
@@ -229,6 +231,9 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         {topic.description && (
           <p className="whitespace-pre-line text-base md:text-lg leading-relaxed text-foreground/80">{topic.description}</p>
         )}
+
+        {/* AI Summary */}
+        <TopicSummary topicId={topic.id} />
       </div>
 
       {/* Vote Section */}
@@ -245,6 +250,9 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
           links={topic.referenceLinks as unknown as ReferenceLink[]}
         />
       )}
+
+      {/* AI Grounds Analysis */}
+      <GroundsSection topicId={topic.id} optionA={topic.optionA} optionB={topic.optionB} />
 
       {/* Opinions Section */}
       <OpinionSection
