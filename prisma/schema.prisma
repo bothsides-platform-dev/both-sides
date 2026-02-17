@@ -26,6 +26,7 @@ enum Category {
   HISTORY
   GAME
   TECH
+  SPORTS
 }
 
 enum ReactionType {
