@@ -39,6 +39,7 @@
     --category-history: #78716c;
     --category-game: #a855f7;
     --category-tech: #06b6d4;
+    --category-sports: #ef4444;
     --category-foreground: #ffffff;
 
     /* Disabled state tokens (3:1+ contrast guaranteed) */
@@ -83,6 +84,7 @@
     --category-history: #a8a29e;
     --category-game: #c084fc;
     --category-tech: #22d3ee;
+    --category-sports: #f87171;
     --category-foreground: #ffffff;
 
     /* Disabled state tokens (dark) */
@@ -201,4 +203,3 @@
     background-color: hsl(var(--muted-foreground) / 0.5);
   }
 }
-
