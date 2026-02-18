@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,49 +24,20 @@ import {
 } from "@/components/ui/select";
 import { MultiImageUpload } from "@/components/ui/MultiImageUpload";
 import { ReferenceLinkInput, type ReferenceLink } from "@/components/ui/ReferenceLinkInput";
-import { CATEGORY_META, CATEGORY_LABELS } from "@/lib/constants";
-import { fetcher } from "@/lib/fetcher";
+import { CATEGORY_META } from "@/lib/constants";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { Category } from "@prisma/client";
 
 const categories = Object.entries(CATEGORY_META) as [Category, (typeof CATEGORY_META)[Category]][];
 
-interface Topic {
-  id: string;
-  title: string;
-  description: string | null;
-  optionA: string;
-  optionB: string;
-  category: Category;
-  imageUrl: string | null;
-  images: string[] | null;
-  deadline: string | null;
-  isHidden: boolean;
-  isFeatured: boolean;
-  isAnonymous?: boolean;
-  referenceLinks: string | null;
-  metaTitle: string | null;
-  metaDescription: string | null;
-  ogImageUrl: string | null;
-  scheduledAt: string | null;
-}
-
-interface PageParams {
-  params: Promise<{ id: string }>;
-}
-
-export default function AdminTopicEditPage({ params }: PageParams) {
-  const { id } = use(params);
+export default function AdminTopicNewPage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [metaTitle, setMetaTitle] = useState("");
-  const [metaDescription, setMetaDescription] = useState("");
-  const [ogImageUrl, setOgImageUrl] = useState("");
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(undefined);
   const [description, setDescription] = useState("");
@@ -76,50 +46,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
   const [referenceLinks, setReferenceLinks] = useState<ReferenceLink[]>([]);
   const [scheduledAt, setScheduledAt] = useState("");
 
-  const { data, isLoading } = useSWR<{ data: Topic }>(
-    session?.user?.role === "ADMIN" ? `/api/admin/topics/${id}` : null,
-    fetcher
-  );
-
-  const topic = data?.data;
-
-  useEffect(() => {
-    if (topic) {
-      if (topic.images && Array.isArray(topic.images)) {
-        setImages(topic.images as string[]);
-      } else if (topic.imageUrl) {
-        setImages([topic.imageUrl]);
-      }
-      if (topic.isAnonymous !== undefined) setIsAnonymous(topic.isAnonymous);
-      setDescription(topic.description || "");
-      setOptionA(topic.optionA);
-      setOptionB(topic.optionB);
-      setSelectedCategory(topic.category);
-
-      // 참고링크 파싱
-      if (topic.referenceLinks) {
-        try {
-          const parsed = JSON.parse(topic.referenceLinks);
-          if (Array.isArray(parsed)) setReferenceLinks(parsed);
-        } catch {
-          // 파싱 실패 시 무시
-        }
-      }
-
-      // SEO 필드: 저장된 값이 있으면 사용, 없으면 자동 생성 기본값 사용
-      const defaultMetaTitle = topic.title;
-      const defaultMetaDescription = topic.description?.trim()
-        ? `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · ${topic.description.trim()}`
-        : `${CATEGORY_LABELS[topic.category]} · ${topic.optionA} vs ${topic.optionB} · 당신의 선택은?`;
-
-      setMetaTitle(topic.metaTitle || defaultMetaTitle);
-      setMetaDescription(topic.metaDescription || defaultMetaDescription);
-      setOgImageUrl(topic.ogImageUrl || "");
-      setScheduledAt(formatDatetimeLocal(topic.scheduledAt));
-    }
-  }, [topic]);
-
-  if (sessionStatus === "loading" || isLoading) {
+  if (sessionStatus === "loading") {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -132,14 +59,6 @@ export default function AdminTopicEditPage({ params }: PageParams) {
     return null;
   }
 
-  if (!topic) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        토론을 찾을 수 없습니다.
-      </div>
-    );
-  }
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -149,33 +68,30 @@ export default function AdminTopicEditPage({ params }: PageParams) {
     const deadlineValue = formData.get("deadline") as string;
     const validReferenceLinks = referenceLinks.filter((link) => link.url.trim());
 
-    const updateData = {
+    const data = {
       title: formData.get("title"),
-      description: formData.get("description") || null,
+      description: formData.get("description") || undefined,
       optionA: formData.get("optionA"),
       optionB: formData.get("optionB"),
       category: formData.get("category"),
-      images: images.length > 0 ? images : null,
-      deadline: deadlineValue ? new Date(deadlineValue).toISOString() : null,
-      referenceLinks: validReferenceLinks.length > 0 ? validReferenceLinks : null,
+      images: images.length > 0 ? images : undefined,
+      deadline: deadlineValue ? new Date(deadlineValue).toISOString() : undefined,
+      referenceLinks: validReferenceLinks.length > 0 ? validReferenceLinks : undefined,
       isAnonymous,
-      metaTitle: metaTitle || null,
-      metaDescription: metaDescription || null,
-      ogImageUrl: ogImageUrl || null,
       scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
     };
 
     try {
-      const res = await fetch(`/api/admin/topics/${id}`, {
-        method: "PUT",
+      const res = await fetch("/api/topics", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateData),
+        body: JSON.stringify(data),
       });
 
       const result = await res.json();
 
       if (!res.ok) {
-        throw new Error(result.error || "토론 수정에 실패했습니다.");
+        throw new Error(result.error || "토론 생성에 실패했습니다.");
       }
 
       router.push("/admin/topics");
@@ -184,12 +100,6 @@ export default function AdminTopicEditPage({ params }: PageParams) {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const formatDatetimeLocal = (dateString: string | null) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toISOString().slice(0, 16);
   };
 
   return (
@@ -204,8 +114,8 @@ export default function AdminTopicEditPage({ params }: PageParams) {
 
       <Card>
         <CardHeader>
-          <CardTitle>토론 수정</CardTitle>
-          <CardDescription>토론 정보를 수정합니다.</CardDescription>
+          <CardTitle>새 토론 만들기</CardTitle>
+          <CardDescription>새 토론을 만들고 예약 발행 시각을 설정할 수 있습니다.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -220,10 +130,10 @@ export default function AdminTopicEditPage({ params }: PageParams) {
               <Input
                 id="title"
                 name="title"
-                defaultValue={topic.title}
                 required
                 minLength={5}
                 maxLength={100}
+                placeholder="예: 짜장면 vs 짬뽕, 당신의 선택은?"
               />
             </div>
 
@@ -322,7 +232,6 @@ export default function AdminTopicEditPage({ params }: PageParams) {
                 id="deadline"
                 name="deadline"
                 type="datetime-local"
-                defaultValue={formatDatetimeLocal(topic.deadline)}
                 min={new Date().toISOString().slice(0, 16)}
               />
               <p className="text-xs text-muted-foreground">
@@ -364,74 +273,6 @@ export default function AdminTopicEditPage({ params }: PageParams) {
               </Label>
             </div>
 
-            {/* SEO 설정 섹션 */}
-            <div className="space-y-4 rounded-lg border p-4">
-              <h3 className="font-medium">SEO 설정</h3>
-              <p className="text-xs text-muted-foreground">
-                검색엔진 최적화를 위한 메타 정보를 설정합니다. 비워두면 자동으로 생성됩니다.
-              </p>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="metaTitle">메타 타이틀</Label>
-                  <span className={`text-xs ${metaTitle.length > 60 ? "text-destructive" : "text-muted-foreground"}`}>
-                    {metaTitle.length}/60
-                  </span>
-                </div>
-                <Input
-                  id="metaTitle"
-                  value={metaTitle}
-                  onChange={(e) => setMetaTitle(e.target.value)}
-                  maxLength={60}
-                  placeholder="검색 결과에 표시될 제목"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="metaDescription">메타 설명</Label>
-                  <span className={`text-xs ${metaDescription.length > 160 ? "text-destructive" : "text-muted-foreground"}`}>
-                    {metaDescription.length}/160
-                  </span>
-                </div>
-                <Textarea
-                  id="metaDescription"
-                  value={metaDescription}
-                  onChange={(e) => setMetaDescription(e.target.value)}
-                  maxLength={160}
-                  placeholder="검색 결과에 표시될 설명"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ogImageUrl">OG 이미지 URL</Label>
-                <Input
-                  id="ogImageUrl"
-                  type="url"
-                  value={ogImageUrl}
-                  onChange={(e) => setOgImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                />
-                {ogImageUrl && (
-                  <div className="mt-2 overflow-hidden rounded-lg border">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={ogImageUrl}
-                      alt="OG 이미지 미리보기"
-                      className="h-auto w-full max-h-48 object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  소셜 미디어 공유 시 표시되는 이미지입니다. 비워두면 자동 생성됩니다.
-                </p>
-              </div>
-            </div>
-
             <div className="flex gap-4">
               <Button
                 type="button"
@@ -445,10 +286,10 @@ export default function AdminTopicEditPage({ params }: PageParams) {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    저장 중...
+                    생성 중...
                   </>
                 ) : (
-                  "저장"
+                  "토론 만들기"
                 )}
               </Button>
             </div>

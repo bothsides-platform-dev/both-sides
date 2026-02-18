@@ -24,7 +24,7 @@ import type {
 } from "./schema";
 
 export async function createTopic(authorId: string, input: CreateTopicInput) {
-  const { deadline, images, ...rest } = input;
+  const { deadline, images, scheduledAt, ...rest } = input;
   const imageUrl = images?.[0] ?? rest.imageUrl;
   return prisma.topic.create({
     data: {
@@ -32,6 +32,7 @@ export async function createTopic(authorId: string, input: CreateTopicInput) {
       imageUrl,
       images: images ? (images as Prisma.InputJsonValue) : undefined,
       deadline: deadline ? new Date(deadline) : null,
+      scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       authorId,
     },
     include: {
@@ -47,6 +48,10 @@ export async function getTopics(input: GetTopicsInput) {
 
   const where: Record<string, unknown> = {
     isHidden: false, // 공개된 토픽만 조회
+    OR: [
+      { scheduledAt: null },
+      { scheduledAt: { lte: new Date() } },
+    ],
   };
   if (category) where.category = category;
   if (featured !== undefined) where.isFeatured = featured;
@@ -101,8 +106,16 @@ export async function getTopics(input: GetTopicsInput) {
 }
 
 export async function getFeaturedTopics(limit: number = 2) {
+  const now = new Date();
   return prisma.topic.findMany({
-    where: { isFeatured: true, isHidden: false },
+    where: {
+      isFeatured: true,
+      isHidden: false,
+      OR: [
+        { scheduledAt: null },
+        { scheduledAt: { lte: now } },
+      ],
+    },
     orderBy: { featuredAt: "desc" },
     take: limit,
     select: {
@@ -131,13 +144,24 @@ export async function getFeaturedTopics(limit: number = 2) {
 }
 
 export async function getRecommendedTopics(limit: number = 6) {
+  const now = new Date();
   return prisma.topic.findMany({
     where: {
       isFeatured: false,
       isHidden: false,
-      OR: [
-        { deadline: null },
-        { deadline: { gt: new Date() } },
+      AND: [
+        {
+          OR: [
+            { deadline: null },
+            { deadline: { gt: now } },
+          ],
+        },
+        {
+          OR: [
+            { scheduledAt: null },
+            { scheduledAt: { lte: now } },
+          ],
+        },
       ],
     },
     orderBy: { votes: { _count: "desc" } },
@@ -222,6 +246,8 @@ export async function getTopicsForAdmin(input: GetTopicsAdminInput) {
     where.isHidden = true;
   } else if (status === "visible") {
     where.isHidden = false;
+  } else if (status === "scheduled") {
+    where.scheduledAt = { gt: new Date() };
   }
 
   if (search) {
@@ -257,7 +283,7 @@ export async function getTopicsForAdmin(input: GetTopicsAdminInput) {
 }
 
 export async function updateTopic(id: string, input: UpdateTopicInput) {
-  const { deadline, referenceLinks, images, metaTitle, metaDescription, ogImageUrl, ...rest } = input;
+  const { deadline, referenceLinks, images, metaTitle, metaDescription, ogImageUrl, scheduledAt, ...rest } = input;
 
   // images → imageUrl 자동 동기화
   let imageUrl = rest.imageUrl;
@@ -286,6 +312,8 @@ export async function updateTopic(id: string, input: UpdateTopicInput) {
         metaTitle: metaTitle === "" ? null : metaTitle,
         metaDescription: metaDescription === "" ? null : metaDescription,
         ogImageUrl: ogImageUrl === "" ? null : ogImageUrl,
+        // 예약 발행
+        scheduledAt: scheduledAt === null ? null : scheduledAt ? new Date(scheduledAt) : undefined,
       },
       include: {
         author: { select: AUTHOR_SELECT },
@@ -435,5 +463,33 @@ export async function getTopicsForLlmAdmin(input: {
       total,
       totalPages: Math.ceil(total / input.limit),
     },
+  };
+}
+
+/** 예약 발행: scheduledAt이 현재 시각 이전인 토픽의 scheduledAt을 null로 초기화합니다. */
+export async function publishScheduledTopics() {
+  const now = new Date();
+
+  const topics = await prisma.topic.findMany({
+    where: {
+      scheduledAt: { lte: now },
+    },
+    select: { id: true, title: true, scheduledAt: true },
+  });
+
+  if (topics.length === 0) {
+    return { published: 0, topics: [] };
+  }
+
+  await prisma.topic.updateMany({
+    where: {
+      scheduledAt: { lte: now },
+    },
+    data: { scheduledAt: null },
+  });
+
+  return {
+    published: topics.length,
+    topics: topics.map((t) => ({ id: t.id, title: t.title })),
   };
 }
