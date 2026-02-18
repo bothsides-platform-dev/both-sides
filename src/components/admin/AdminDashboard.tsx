@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { StatsCard } from "@/components/admin/StatsCard";
-import { Loader2, MessageSquare, Users, Vote, MessageCircle, Star, EyeOff, Flag } from "lucide-react";
+import { Loader2, MessageSquare, Users, Vote, MessageCircle, Star, EyeOff, Flag, Clock } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 
 interface Stats {
@@ -10,6 +10,7 @@ interface Stats {
   hiddenTopics: number;
   visibleTopics: number;
   featuredTopics: number;
+  scheduledTopics: number;
   totalVotes: number;
   totalOpinions: number;
   totalUsers: number;
@@ -40,7 +41,7 @@ export function AdminDashboard({ isAdmin }: AdminDashboardProps) {
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">대시보드</h2>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <StatsCard
           title="전체 토론"
           value={stats?.totalTopics ?? 0}
@@ -62,6 +63,11 @@ export function AdminDashboard({ isAdmin }: AdminDashboardProps) {
           title="추천 토론"
           value={stats?.featuredTopics ?? 0}
           icon={Star}
+        />
+        <StatsCard
+          title="예약 토론"
+          value={stats?.scheduledTopics ?? 0}
+          icon={Clock}
         />
       </div>
 

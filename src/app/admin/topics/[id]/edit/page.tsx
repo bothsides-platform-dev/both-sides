@@ -45,6 +45,7 @@ interface Topic {
   isHidden: boolean;
   isFeatured: boolean;
   isAnonymous?: boolean;
+  scheduledAt: string | null;
   referenceLinks: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
@@ -63,6 +64,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState("");
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [ogImageUrl, setOgImageUrl] = useState("");
@@ -88,6 +90,11 @@ export default function AdminTopicEditPage({ params }: PageParams) {
       setOptionA(topic.optionA);
       setOptionB(topic.optionB);
       setSelectedCategory(topic.category);
+
+      // 예약 발행
+      if (topic.scheduledAt) {
+        setScheduledAt(new Date(topic.scheduledAt).toISOString().slice(0, 16));
+      }
 
       // 참고링크 파싱
       if (topic.referenceLinks) {
@@ -151,6 +158,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
       deadline: deadlineValue ? new Date(deadlineValue).toISOString() : null,
       referenceLinks: validReferenceLinks.length > 0 ? validReferenceLinks : null,
       isAnonymous,
+      scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
       ogImageUrl: ogImageUrl || null,
@@ -319,6 +327,31 @@ export default function AdminTopicEditPage({ params }: PageParams) {
               <p className="text-xs text-muted-foreground">
                 비워두면 무기한 토론이 됩니다
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="scheduledAt">예약 발행</Label>
+              <Input
+                id="scheduledAt"
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+              <p className="text-xs text-muted-foreground">
+                설정하면 해당 시각까지 비공개 상태로 유지되다가 자동으로 공개됩니다. 비워두면 즉시 공개됩니다.
+              </p>
+              {scheduledAt && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setScheduledAt("")}
+                  className="text-xs text-muted-foreground"
+                >
+                  예약 취소
+                </Button>
+              )}
             </div>
 
             <ReferenceLinkInput

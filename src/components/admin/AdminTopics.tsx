@@ -17,6 +17,7 @@ interface Topic {
   category: Category;
   isHidden: boolean;
   isFeatured: boolean;
+  scheduledAt?: string | null;
   viewCount: number;
   createdAt: string;
   author: {
@@ -47,7 +48,7 @@ interface AdminTopicsProps {
 }
 
 export function AdminTopics({ isAdmin }: AdminTopicsProps) {
-  const [status, setStatus] = useState<"all" | "visible" | "hidden">("all");
+  const [status, setStatus] = useState<"all" | "visible" | "hidden" | "scheduled">("all");
   const [searchInput, setSearchInput] = useState("");      // 입력창 제어용
   const [submittedSearch, setSubmittedSearch] = useState(""); // SWR 쿼리용
   const [page, setPage] = useState(1);
@@ -91,7 +92,7 @@ export function AdminTopics({ isAdmin }: AdminTopicsProps) {
             <Tabs
               value={status}
               onValueChange={(v) => {
-                setStatus(v as "all" | "visible" | "hidden");
+                setStatus(v as "all" | "visible" | "hidden" | "scheduled");
                 setPage(1);
               }}
             >
@@ -99,6 +100,7 @@ export function AdminTopics({ isAdmin }: AdminTopicsProps) {
                 <TabsTrigger value="all">전체</TabsTrigger>
                 <TabsTrigger value="visible">공개</TabsTrigger>
                 <TabsTrigger value="hidden">비공개</TabsTrigger>
+                <TabsTrigger value="scheduled">예약</TabsTrigger>
               </TabsList>
             </Tabs>
 

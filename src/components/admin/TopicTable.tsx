@@ -27,6 +27,7 @@ import {
   ExternalLink,
   UserX,
   User,
+  Clock,
 } from "lucide-react";
 import type { Category } from "@prisma/client";
 
@@ -37,6 +38,7 @@ interface Topic {
   isHidden: boolean;
   isFeatured: boolean;
   isAnonymous?: boolean;
+  scheduledAt?: string | null;
   viewCount: number;
   createdAt: string;
   author: {
@@ -164,6 +166,17 @@ export function TopicTable({ topics }: TopicTableProps) {
                   )}
                   {topic.isAnonymous && (
                     <Badge variant="outline">익명</Badge>
+                  )}
+                  {topic.scheduledAt && new Date(topic.scheduledAt) > new Date() && (
+                    <Badge variant="outline" className="gap-1 text-blue-600 border-blue-300">
+                      <Clock className="h-3 w-3" />
+                      {new Date(topic.scheduledAt).toLocaleString("ko-KR", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </Badge>
                   )}
                   <Badge variant="outline">
                     {CATEGORY_LABELS[topic.category]}

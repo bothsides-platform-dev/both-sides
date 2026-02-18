@@ -61,6 +61,8 @@ export const updateTopicSchema = z.object({
   metaDescription: z.string().max(160, "메타 설명은 160자 이하여야 합니다.").optional().nullable(),
   ogImageUrl: z.string().url("올바른 URL 형식이 아닙니다.").optional().nullable()
     .or(z.literal("")),  // 빈 문자열도 허용
+  // 예약 발행
+  scheduledAt: z.string().datetime().optional().nullable(),
 });
 
 export const updateHiddenSchema = z.object({
@@ -74,7 +76,7 @@ export const updateTopicAnonymitySchema = z.object({
 export const getTopicsAdminSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  status: z.enum(["hidden", "visible", "all"]).default("all"),
+  status: z.enum(["hidden", "visible", "scheduled", "all"]).default("all"),
   search: z.string().optional(),
 });
 

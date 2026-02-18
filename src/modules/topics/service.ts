@@ -214,8 +214,11 @@ export async function getTopicsForAdmin(input: GetTopicsAdminInput) {
 
   if (status === "hidden") {
     where.isHidden = true;
+    where.scheduledAt = null;
   } else if (status === "visible") {
     where.isHidden = false;
+  } else if (status === "scheduled") {
+    where.scheduledAt = { not: null, gt: new Date() };
   }
 
   if (search) {
@@ -251,7 +254,11 @@ export async function getTopicsForAdmin(input: GetTopicsAdminInput) {
 }
 
 export async function updateTopic(id: string, input: UpdateTopicInput) {
-  const { deadline, referenceLinks, metaTitle, metaDescription, ogImageUrl, ...rest } = input;
+  const { deadline, referenceLinks, metaTitle, metaDescription, ogImageUrl, scheduledAt, ...rest } = input;
+
+  // scheduledAt 처리: 미래 시각이면 isHidden=true 자동 설정
+  const scheduledDate = scheduledAt === null ? null : scheduledAt ? new Date(scheduledAt) : undefined;
+  const isScheduledForFuture = scheduledDate && scheduledDate > new Date();
 
   try {
     return await prisma.topic.update({
@@ -268,6 +275,9 @@ export async function updateTopic(id: string, input: UpdateTopicInput) {
         metaTitle: metaTitle === "" ? null : metaTitle,
         metaDescription: metaDescription === "" ? null : metaDescription,
         ogImageUrl: ogImageUrl === "" ? null : ogImageUrl,
+        // 예약 발행
+        scheduledAt: scheduledDate === undefined ? undefined : scheduledDate,
+        ...(isScheduledForFuture ? { isHidden: true, hiddenAt: new Date() } : {}),
       },
       include: {
         author: { select: AUTHOR_SELECT },
@@ -327,6 +337,7 @@ export async function getAdminStats() {
     totalTopics,
     hiddenTopics,
     featuredTopics,
+    scheduledTopics,
     totalVotes,
     totalOpinions,
     totalUsers,
@@ -335,6 +346,7 @@ export async function getAdminStats() {
     prisma.topic.count(),
     prisma.topic.count({ where: { isHidden: true } }),
     prisma.topic.count({ where: { isFeatured: true } }),
+    prisma.topic.count({ where: { scheduledAt: { not: null, gt: new Date() } } }),
     prisma.vote.count(),
     prisma.opinion.count(),
     prisma.user.count(),
@@ -346,6 +358,7 @@ export async function getAdminStats() {
     hiddenTopics,
     visibleTopics: totalTopics - hiddenTopics,
     featuredTopics,
+    scheduledTopics,
     totalVotes,
     totalOpinions,
     totalUsers,
@@ -418,4 +431,23 @@ export async function getTopicsForLlmAdmin(input: {
       totalPages: Math.ceil(total / input.limit),
     },
   };
+}
+
+/** 예약 시각이 지난 토픽을 자동 공개 처리 */
+export async function publishScheduledTopics() {
+  const now = new Date();
+
+  const result = await prisma.topic.updateMany({
+    where: {
+      scheduledAt: { lte: now },
+      isHidden: true,
+    },
+    data: {
+      isHidden: false,
+      hiddenAt: null,
+      scheduledAt: null,
+    },
+  });
+
+  return { published: result.count };
 }

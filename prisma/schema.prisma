@@ -147,6 +147,7 @@ model Topic {
   hiddenAt       DateTime?
   isAnonymous    Boolean   @default(false)
   viewCount      Int       @default(0)
+  scheduledAt    DateTime? // 예약 발행 시각
 
   // SEO 전용 필드
   metaTitle       String? @db.VarChar(60) // 검색 결과 제목
@@ -174,6 +175,7 @@ model Topic {
   @@index([deadline])
   @@index([isFeatured, featuredAt]) // Featured 토픽 정렬 쿼리 최적화
   @@index([isHidden, createdAt]) // 관리자 페이지 필터링 최적화
+  @@index([scheduledAt]) // 예약 발행 크론 조회 최적화
 }
 
 model TopicView {
