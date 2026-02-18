@@ -340,52 +340,52 @@ export const OpinionItem = memo(function OpinionItem({
                 )}
               </>
             )}
+            {currentUserId && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="ml-auto min-h-[44px] min-w-[44px] md:h-8 md:w-8 p-0 text-muted-foreground hover:text-foreground"
+                    aria-label="의견 메뉴 열기"
+                  >
+                    <MoreVertical className="h-5 w-5 md:h-4 md:w-4" />
+                    <span className="sr-only">더보기</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {isOwner ? (
+                    <DropdownMenuItem
+                      onClick={handleToggleAnonymity}
+                      disabled={isUpdating}
+                      className="cursor-pointer"
+                    >
+                      {isAnonymous ? (
+                        <>
+                          <Eye className="h-4 w-4 mr-2" />
+                          공개로 전환
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="h-4 w-4 mr-2" />
+                          익명으로 전환
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() => setIsReportDialogOpen(true)}
+                      className="text-red-600 focus:text-red-600 cursor-pointer"
+                    >
+                      <Flag className="h-4 w-4 mr-2" />
+                      신고하기
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
-        {currentUserId && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="min-h-[44px] min-w-[44px] md:h-8 md:w-8 p-0 text-muted-foreground hover:text-foreground"
-                aria-label="의견 메뉴 열기"
-              >
-                <MoreVertical className="h-5 w-5 md:h-4 md:w-4" />
-                <span className="sr-only">더보기</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {isOwner ? (
-                <DropdownMenuItem
-                  onClick={handleToggleAnonymity}
-                  disabled={isUpdating}
-                  className="cursor-pointer"
-                >
-                  {isAnonymous ? (
-                    <>
-                      <Eye className="h-4 w-4 mr-2" />
-                      공개로 전환
-                    </>
-                  ) : (
-                    <>
-                      <EyeOff className="h-4 w-4 mr-2" />
-                      익명으로 전환
-                    </>
-                  )}
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={() => setIsReportDialogOpen(true)}
-                  className="text-red-600 focus:text-red-600 cursor-pointer"
-                >
-                  <Flag className="h-4 w-4 mr-2" />
-                  신고하기
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
       </div>
       
       {/* Reply Form */}
