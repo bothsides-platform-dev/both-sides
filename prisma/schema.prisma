@@ -139,6 +139,7 @@ model Topic {
   category       Category
   authorId       String
   imageUrl       String?
+  images         Json?      // string[] - 최대 5개 이미지 URL
   deadline       DateTime?
   referenceLinks Json?     @default("[]")
   isFeatured     Boolean   @default(false)

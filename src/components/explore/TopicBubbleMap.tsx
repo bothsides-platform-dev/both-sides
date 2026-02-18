@@ -4,10 +4,13 @@ import { useMemo, useRef, useEffect, useCallback, memo, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { hierarchy, pack } from "d3-hierarchy";
+import { zoom as d3Zoom, zoomIdentity, ZoomTransform } from "d3-zoom";
+import { select } from "d3-selection";
+import "d3-transition";
 import { useTheme } from "next-themes";
 import { fetcher } from "@/lib/fetcher";
 import { CATEGORY_META, CATEGORY_CSS_VAR } from "@/lib/constants";
-import { Eye, Info, MessageSquare, Users } from "lucide-react";
+import { Eye, Info, MessageSquare, RotateCcw, Users, ZoomIn, ZoomOut } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import type { Category } from "@prisma/client";
 
@@ -134,7 +137,10 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const zoomRef = useRef<ReturnType<typeof d3Zoom<SVGSVGElement, unknown>> | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [transform, setTransform] = useState<ZoomTransform>(zoomIdentity);
 
   const containerCallbackRef = useCallback((node: HTMLDivElement | null) => {
     if (observerRef.current) {
@@ -190,6 +196,65 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedBubbleId]);
+
+  // Setup d3-zoom (mouse wheel + touch pinch)
+  useEffect(() => {
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
+
+    const zoomBehavior = d3Zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.5, 5])
+      .on("zoom", (event) => {
+        setTransform(event.transform);
+      });
+
+    zoomRef.current = zoomBehavior;
+    select(svgEl).call(zoomBehavior);
+
+    // Prevent page scroll when zooming inside the bubble map
+    const svgSelection = select(svgEl);
+    svgSelection.on("wheel.zoom", function (event: WheelEvent) {
+      event.preventDefault();
+      const direction = event.deltaY < 0 ? 1.1 : 0.9;
+      svgSelection.transition().duration(150).call(
+        zoomBehavior.scaleBy, direction, [event.offsetX, event.offsetY]
+      );
+    });
+
+    return () => {
+      select(svgEl).on(".zoom", null);
+      zoomRef.current = null;
+    };
+  }, [containerWidth]);
+
+  // Reset zoom when category filter changes
+  useEffect(() => {
+    const svgEl = svgRef.current;
+    if (svgEl && zoomRef.current) {
+      select(svgEl).call(zoomRef.current.transform, zoomIdentity);
+    }
+  }, [highlightCategory]);
+
+  const handleZoomIn = useCallback(() => {
+    const svgEl = svgRef.current;
+    if (svgEl && zoomRef.current) {
+      select(svgEl).transition().duration(200).call(zoomRef.current.scaleBy, 1.3);
+    }
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    const svgEl = svgRef.current;
+    if (svgEl && zoomRef.current) {
+      select(svgEl).transition().duration(200).call(zoomRef.current.scaleBy, 0.7);
+    }
+  }, []);
+
+  const handleZoomReset = useCallback(() => {
+    const svgEl = svgRef.current;
+    if (svgEl && zoomRef.current) {
+      select(svgEl).transition().duration(300).call(zoomRef.current.transform, zoomIdentity);
+    }
+  }, []);
 
 
   const bubbles = useMemo(() => {
@@ -299,174 +364,232 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
           </Tooltip.Root>
         </Tooltip.Provider>
       </div>
-      <div ref={containerCallbackRef} className="relative w-full overflow-visible min-h-[200px]">
+      <div ref={containerCallbackRef} className="relative w-full overflow-hidden min-h-[200px] touch-none">
         {containerWidth > 0 && (
           <>
             <svg
+              ref={svgRef}
               width={containerWidth}
               height={svgHeight}
               viewBox={`0 0 ${containerWidth} ${svgHeight}`}
               className="select-none"
-              style={{ transition: "height 0.3s ease" }}
+              style={{ transition: "height 0.3s ease", cursor: "grab" }}
             >
-              <defs>
+              <style>{`
+                .bubble-label-enter {
+                  animation: bubbleLabelFadeIn 0.25s ease-out;
+                }
+                @keyframes bubbleLabelFadeIn {
+                  from { opacity: 0; }
+                  to { opacity: 1; }
+                }
+              `}</style>
+              <g transform={`translate(${transform.x},${transform.y}) scale(${transform.k})`}>
+                <defs>
+                  {bubbles.map((bubble) => {
+                    if (!bubble.topic.imageUrl) return null;
+                    const patternSelGrow = 2 / transform.k;
+                    const r = selectedBubbleId === bubble.topic.id ? bubble.r + patternSelGrow : bubble.r;
+                    return (
+                      <pattern
+                        key={`img-${bubble.topic.id}`}
+                        id={`img-${bubble.topic.id}`}
+                        patternUnits="objectBoundingBox"
+                        width="1"
+                        height="1"
+                      >
+                        <image
+                          href={bubble.topic.imageUrl}
+                          width={r * 2}
+                          height={r * 2}
+                          preserveAspectRatio="xMidYMid slice"
+                        />
+                      </pattern>
+                    );
+                  })}
+                  {bubbles.map((bubble) => {
+                    if (!bubble.topic.imageUrl) return null;
+                    const gradEffectiveR = bubble.r * transform.k;
+                    return (
+                      <linearGradient
+                        key={`grad-${bubble.topic.id}`}
+                        id={`grad-${bubble.topic.id}`}
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop offset="0%" stopColor="black" stopOpacity="0" />
+                        <stop offset={gradEffectiveR > 25 ? "55%" : "100%"} stopColor="black" stopOpacity={gradEffectiveR > 25 ? "0.55" : "0.3"} />
+                      </linearGradient>
+                    );
+                  })}
+                </defs>
                 {bubbles.map((bubble) => {
-                  if (!bubble.topic.imageUrl) return null;
-                  const r = selectedBubbleId === bubble.topic.id ? bubble.r + 2 : bubble.r;
-                  return (
-                    <pattern
-                      key={`img-${bubble.topic.id}`}
-                      id={`img-${bubble.topic.id}`}
-                      patternUnits="objectBoundingBox"
-                      width="1"
-                      height="1"
-                    >
-                      <image
-                        href={bubble.topic.imageUrl}
-                        width={r * 2}
-                        height={r * 2}
-                        preserveAspectRatio="xMidYMid slice"
-                      />
-                    </pattern>
-                  );
-                })}
-                {bubbles.map((bubble) => {
-                  if (!bubble.topic.imageUrl) return null;
-                  return (
-                    <linearGradient
-                      key={`grad-${bubble.topic.id}`}
-                      id={`grad-${bubble.topic.id}`}
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="black" stopOpacity="0" />
-                      <stop offset={bubble.r > 25 ? "55%" : "100%"} stopColor="black" stopOpacity={bubble.r > 25 ? "0.55" : "0.3"} />
-                    </linearGradient>
-                  );
-                })}
-              </defs>
-              {bubbles.map((bubble) => {
-                const fill = CATEGORY_CSS_VAR[bubble.topic.category];
-                const isSelected = selectedBubbleId === bubble.topic.id;
-                const r = isSelected ? bubble.r + 2 : bubble.r;
-                const meta = CATEGORY_META[bubble.topic.category];
-                const Icon = meta.icon;
-                const hasImage = !!bubble.topic.imageUrl;
+                  const fill = CATEGORY_CSS_VAR[bubble.topic.category];
+                  const isSelected = selectedBubbleId === bubble.topic.id;
+                  const effectiveR = bubble.r * transform.k;
+                  const invScale = 1 / transform.k;
+                  const selectionGrow = 2 * invScale;
+                  const r = isSelected ? bubble.r + selectionGrow : bubble.r;
+                  const meta = CATEGORY_META[bubble.topic.category];
+                  const Icon = meta.icon;
+                  const hasImage = !!bubble.topic.imageUrl;
+                  const strokeW = (isSelected ? 2.5 : 2) * invScale;
+                  const fontLg = 12 * invScale;
+                  const fontSm = 10 * invScale;
+                  const iconDim = 14 * invScale;
+                  const maxCharsLg = Math.floor(effectiveR / 6);
+                  const maxCharsSm = Math.floor(effectiveR / 5);
 
-                return (
-                  <g
-                    key={bubble.topic.id}
-                    data-bubble-id={bubble.topic.id}
-                    className="cursor-pointer focus:outline-none"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`${bubble.topic.title} - ${meta.label}`}
-                    onClick={() => handleBubbleClick(bubble.topic.id)}
-                    onKeyDown={(e) => handleBubbleKeyDown(e, bubble.topic.id)}
-                  >
-                    {hasImage ? (
-                      <>
-                        {/* Thumbnail image circle */}
-                        <circle
-                          cx={bubble.x}
-                          cy={bubble.y}
-                          r={r}
-                          fill={`url(#img-${bubble.topic.id})`}
-                          style={{ stroke: fill }}
-                          strokeWidth={isSelected ? 2.5 : 2}
-                        />
-                        {/* Gradient overlay for text readability */}
-                        <circle
-                          cx={bubble.x}
-                          cy={bubble.y}
-                          r={r}
-                          fill={`url(#grad-${bubble.topic.id})`}
-                          className="pointer-events-none"
-                        />
-                        {/* Text on image bubbles */}
-                        {bubble.r > 40 ? (
-                          <text
-                            x={bubble.x}
-                            y={bubble.y + r * 0.3}
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            className="text-xs font-semibold pointer-events-none"
-                            fill="var(--category-foreground)"
-                            style={{ textShadow: "0 1px 3px hsl(0 0% 0% / 0.8)" }}
-                          >
-                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
-                          </text>
-                        ) : bubble.r > 25 ? (
-                          <text
-                            x={bubble.x}
-                            y={bubble.y + r * 0.35}
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            className="text-2xs font-semibold pointer-events-none"
-                            fill="var(--category-foreground)"
-                            style={{ textShadow: "0 1px 2px hsl(0 0% 0% / 0.8)" }}
-                          >
-                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
-                          </text>
-                        ) : null}
-                      </>
-                    ) : (
-                      <>
-                        <circle
-                          cx={bubble.x}
-                          cy={bubble.y}
-                          r={r}
-                          style={{ fill, stroke: fill }}
-                          fillOpacity={isDark ? 0.35 : 0.3}
-                          strokeWidth={isSelected ? 2.5 : 2}
-                        />
-                        {bubble.r > 40 ? (
-                          <text
-                            x={bubble.x}
-                            y={bubble.y}
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            className="fill-foreground text-xs font-medium pointer-events-none"
-                          >
-                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
-                          </text>
-                        ) : bubble.r > 25 ? (
-                          <text
-                            x={bubble.x}
-                            y={bubble.y}
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            className="fill-foreground text-2xs pointer-events-none"
-                          >
-                            {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
-                          </text>
-                        ) : (
-                          <foreignObject
-                            x={bubble.x - 7}
-                            y={bubble.y - 7}
-                            width={14}
-                            height={14}
+                  return (
+                    <g
+                      key={bubble.topic.id}
+                      data-bubble-id={bubble.topic.id}
+                      className="cursor-pointer focus:outline-none"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${bubble.topic.title} - ${meta.label}`}
+                      onClick={() => handleBubbleClick(bubble.topic.id)}
+                      onKeyDown={(e) => handleBubbleKeyDown(e, bubble.topic.id)}
+                    >
+                      {hasImage ? (
+                        <>
+                          {/* Thumbnail image circle */}
+                          <circle
+                            cx={bubble.x}
+                            cy={bubble.y}
+                            r={r}
+                            fill={`url(#img-${bubble.topic.id})`}
+                            style={{ stroke: fill }}
+                            strokeWidth={strokeW}
+                          />
+                          {/* Gradient overlay for text readability */}
+                          <circle
+                            cx={bubble.x}
+                            cy={bubble.y}
+                            r={r}
+                            fill={`url(#grad-${bubble.topic.id})`}
                             className="pointer-events-none"
-                          >
-                            <Icon
-                              className="h-3.5 w-3.5"
-                              style={{ color: fill } as React.CSSProperties}
-                            />
-                          </foreignObject>
-                        )}
-                      </>
-                    )}
-                  </g>
-                );
-              })}
+                          />
+                          {/* Text on image bubbles */}
+                          {effectiveR > 40 ? (
+                            <text
+                              x={bubble.x}
+                              y={bubble.y + r * 0.3}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              className="font-semibold pointer-events-none bubble-label-enter"
+                              fill="var(--category-foreground)"
+                              style={{ fontSize: fontLg, textShadow: "0 1px 3px hsl(0 0% 0% / 0.8)" }}
+                            >
+                              {truncateText(bubble.topic.title, maxCharsLg)}
+                            </text>
+                          ) : effectiveR > 25 ? (
+                            <text
+                              x={bubble.x}
+                              y={bubble.y + r * 0.35}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              className="font-semibold pointer-events-none bubble-label-enter"
+                              fill="var(--category-foreground)"
+                              style={{ fontSize: fontSm, textShadow: "0 1px 2px hsl(0 0% 0% / 0.8)" }}
+                            >
+                              {truncateText(bubble.topic.title, maxCharsSm)}
+                            </text>
+                          ) : null}
+                        </>
+                      ) : (
+                        <>
+                          <circle
+                            cx={bubble.x}
+                            cy={bubble.y}
+                            r={r}
+                            style={{ fill, stroke: fill }}
+                            fillOpacity={isDark ? 0.35 : 0.3}
+                            strokeWidth={strokeW}
+                          />
+                          {effectiveR > 40 ? (
+                            <text
+                              x={bubble.x}
+                              y={bubble.y}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              className="fill-foreground font-medium pointer-events-none bubble-label-enter"
+                              style={{ fontSize: fontLg }}
+                            >
+                              {truncateText(bubble.topic.title, maxCharsLg)}
+                            </text>
+                          ) : effectiveR > 25 ? (
+                            <text
+                              x={bubble.x}
+                              y={bubble.y}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              className="fill-foreground pointer-events-none bubble-label-enter"
+                              style={{ fontSize: fontSm }}
+                            >
+                              {truncateText(bubble.topic.title, maxCharsSm)}
+                            </text>
+                          ) : (
+                            <foreignObject
+                              x={bubble.x - iconDim / 2}
+                              y={bubble.y - iconDim / 2}
+                              width={iconDim}
+                              height={iconDim}
+                              className="pointer-events-none bubble-label-enter"
+                            >
+                              <Icon
+                                style={{ width: iconDim, height: iconDim, color: fill } as React.CSSProperties}
+                              />
+                            </foreignObject>
+                          )}
+                        </>
+                      )}
+                    </g>
+                  );
+                })}
+              </g>
             </svg>
+
+            {/* Zoom controls */}
+            <div className="absolute bottom-2 right-2 flex flex-col gap-1">
+              <button
+                type="button"
+                onClick={handleZoomIn}
+                className="flex h-7 w-7 items-center justify-center rounded-md border bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
+                aria-label="확대"
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleZoomOut}
+                className="flex h-7 w-7 items-center justify-center rounded-md border bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
+                aria-label="축소"
+              >
+                <ZoomOut className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleZoomReset}
+                className="flex h-7 w-7 items-center justify-center rounded-md border bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
+                aria-label="초기화"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+              </button>
+            </div>
 
             {/* HTML popover overlay */}
             {selectedBubble && (() => {
+              const transformedBubble = {
+                ...selectedBubble,
+                x: selectedBubble.x * transform.k + transform.x,
+                y: selectedBubble.y * transform.k + transform.y,
+                r: selectedBubble.r * transform.k,
+              };
               const pos = getPopoverPosition(
-                selectedBubble,
+                transformedBubble,
                 containerWidth,
                 popoverWidth,
                 popoverHeight

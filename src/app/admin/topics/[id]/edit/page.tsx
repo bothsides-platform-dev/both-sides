@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ImageUpload } from "@/components/ui/ImageUpload";
+import { MultiImageUpload } from "@/components/ui/MultiImageUpload";
 import { ReferenceLinkInput, type ReferenceLink } from "@/components/ui/ReferenceLinkInput";
 import { CATEGORY_META, CATEGORY_LABELS } from "@/lib/constants";
 import { fetcher } from "@/lib/fetcher";
@@ -41,6 +41,7 @@ interface Topic {
   optionB: string;
   category: Category;
   imageUrl: string | null;
+  images: string[] | null;
   deadline: string | null;
   isHidden: boolean;
   isFeatured: boolean;
@@ -61,7 +62,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
   const { data: session, status: sessionStatus } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [images, setImages] = useState<string[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
@@ -82,7 +83,11 @@ export default function AdminTopicEditPage({ params }: PageParams) {
 
   useEffect(() => {
     if (topic) {
-      if (topic.imageUrl) setImageUrl(topic.imageUrl);
+      if (topic.images && Array.isArray(topic.images)) {
+        setImages(topic.images as string[]);
+      } else if (topic.imageUrl) {
+        setImages([topic.imageUrl]);
+      }
       if (topic.isAnonymous !== undefined) setIsAnonymous(topic.isAnonymous);
       setDescription(topic.description || "");
       setOptionA(topic.optionA);
@@ -147,7 +152,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
       optionA: formData.get("optionA"),
       optionB: formData.get("optionB"),
       category: formData.get("category"),
-      imageUrl: imageUrl || null,
+      images: images.length > 0 ? images : null,
       deadline: deadlineValue ? new Date(deadlineValue).toISOString() : null,
       referenceLinks: validReferenceLinks.length > 0 ? validReferenceLinks : null,
       isAnonymous,
@@ -298,10 +303,10 @@ export default function AdminTopicEditPage({ params }: PageParams) {
             </div>
 
             <div className="space-y-2">
-              <Label>썸네일 이미지</Label>
-              <ImageUpload
-                value={imageUrl}
-                onChange={setImageUrl}
+              <Label>이미지 (최대 5개)</Label>
+              <MultiImageUpload
+                value={images}
+                onChange={setImages}
                 disabled={isSubmitting}
                 onUploadingChange={setIsImageUploading}
               />

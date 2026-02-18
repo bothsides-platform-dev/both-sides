@@ -24,10 +24,13 @@ import type {
 } from "./schema";
 
 export async function createTopic(authorId: string, input: CreateTopicInput) {
-  const { deadline, ...rest } = input;
+  const { deadline, images, ...rest } = input;
+  const imageUrl = images?.[0] ?? rest.imageUrl;
   return prisma.topic.create({
     data: {
       ...rest,
+      imageUrl,
+      images: images ? (images as Prisma.InputJsonValue) : undefined,
       deadline: deadline ? new Date(deadline) : null,
       authorId,
     },
@@ -69,6 +72,7 @@ export async function getTopics(input: GetTopicsInput) {
         category: true,
         authorId: true,
         imageUrl: true,
+        images: true,
         deadline: true,
         isFeatured: true,
         featuredAt: true,
@@ -110,6 +114,7 @@ export async function getFeaturedTopics(limit: number = 2) {
       category: true,
       authorId: true,
       imageUrl: true,
+      images: true,
       deadline: true,
       isFeatured: true,
       featuredAt: true,
@@ -146,6 +151,7 @@ export async function getRecommendedTopics(limit: number = 6) {
       category: true,
       authorId: true,
       imageUrl: true,
+      images: true,
       deadline: true,
       isFeatured: true,
       featuredAt: true,
@@ -251,13 +257,25 @@ export async function getTopicsForAdmin(input: GetTopicsAdminInput) {
 }
 
 export async function updateTopic(id: string, input: UpdateTopicInput) {
-  const { deadline, referenceLinks, metaTitle, metaDescription, ogImageUrl, ...rest } = input;
+  const { deadline, referenceLinks, images, metaTitle, metaDescription, ogImageUrl, ...rest } = input;
+
+  // images → imageUrl 자동 동기화
+  let imageUrl = rest.imageUrl;
+  if (images !== undefined) {
+    imageUrl = images === null ? null : (images[0] ?? null);
+  }
 
   try {
     return await prisma.topic.update({
       where: { id },
       data: {
         ...rest,
+        imageUrl,
+        images: images === null
+          ? Prisma.JsonNull
+          : images !== undefined
+            ? (images as Prisma.InputJsonValue)
+            : undefined,
         deadline: deadline === null ? null : deadline ? new Date(deadline) : undefined,
         referenceLinks: referenceLinks === null
           ? Prisma.JsonNull

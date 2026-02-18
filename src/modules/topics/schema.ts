@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TOPIC_MAX_IMAGES } from "@/lib/constants";
 
 const categoryEnum = z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH", "SPORTS"]);
 
@@ -8,19 +9,19 @@ const referenceLinkSchema = z.object({
   title: z.string().max(100, "제목은 100자 이하여야 합니다.").optional(),
 });
 
+const imageUrlItem = z.string().refine(
+  (val) => val.startsWith("/") || (z.string().url().safeParse(val).success && /^https?:\/\//i.test(val)),
+  { message: "올바른 URL 형식이 아닙니다. (http/https 또는 내부 경로만 허용)" }
+);
+
 export const createTopicSchema = z.object({
   title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(100, "제목은 100자 이하여야 합니다."),
   description: z.string().max(1000, "설명은 1000자 이하여야 합니다.").optional(),
   optionA: z.string().min(1, "A 옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다."),
   optionB: z.string().min(1, "B 옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다."),
   category: categoryEnum,
-  imageUrl: z
-    .string()
-    .refine(
-      (val) => val.startsWith("/") || (z.string().url().safeParse(val).success && /^https?:\/\//i.test(val)),
-      { message: "올바른 URL 형식이 아닙니다. (http/https 또는 내부 경로만 허용)" }
-    )
-    .optional(),
+  imageUrl: imageUrlItem.optional(),
+  images: z.array(imageUrlItem).max(TOPIC_MAX_IMAGES).optional(),
   deadline: z.string().datetime().optional(),
   referenceLinks: z.array(referenceLinkSchema).optional().default([]),
   isAnonymous: z.boolean().default(false),
@@ -46,14 +47,8 @@ export const updateTopicSchema = z.object({
   optionA: z.string().min(1, "A 옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다.").optional(),
   optionB: z.string().min(1, "B 옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다.").optional(),
   category: categoryEnum.optional(),
-  imageUrl: z
-    .string()
-    .refine(
-      (val) => val.startsWith("/") || (z.string().url().safeParse(val).success && /^https?:\/\//i.test(val)),
-      { message: "올바른 URL 형식이 아닙니다. (http/https 또는 내부 경로만 허용)" }
-    )
-    .optional()
-    .nullable(),
+  imageUrl: imageUrlItem.optional().nullable(),
+  images: z.array(imageUrlItem).max(TOPIC_MAX_IMAGES).optional().nullable(),
   deadline: z.string().datetime().optional().nullable(),
   referenceLinks: z.array(referenceLinkSchema).optional().nullable(),
   // SEO 필드
