@@ -176,9 +176,9 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
     setSelectedBubbleId(null);
   }, [highlightCategory]);
 
-  // Close popover on outside click
+  // Close popover on outside click (desktop only — mobile Dialog handles its own closing)
   useEffect(() => {
-    if (!selectedBubbleId) return;
+    if (!selectedBubbleId || isMobile) return;
 
     function handleClick(e: MouseEvent) {
       if (popoverRef.current && popoverRef.current.contains(e.target as Node)) return;
@@ -198,7 +198,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
       document.removeEventListener("mousedown", handleClick);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedBubbleId]);
+  }, [selectedBubbleId, isMobile]);
 
   // Setup d3-zoom (mouse wheel + touch pinch)
   useEffect(() => {
