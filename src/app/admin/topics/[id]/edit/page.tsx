@@ -91,9 +91,9 @@ export default function AdminTopicEditPage({ params }: PageParams) {
       setOptionB(topic.optionB);
       setSelectedCategory(topic.category);
 
-      // 예약 발행
+      // 예약 발행 (날짜만 사용 — 크론이 매일 자정 UTC에 실행)
       if (topic.scheduledAt) {
-        setScheduledAt(new Date(topic.scheduledAt).toISOString().slice(0, 16));
+        setScheduledAt(new Date(topic.scheduledAt).toISOString().slice(0, 10));
       }
 
       // 참고링크 파싱
@@ -158,7 +158,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
       deadline: deadlineValue ? new Date(deadlineValue).toISOString() : null,
       referenceLinks: validReferenceLinks.length > 0 ? validReferenceLinks : null,
       isAnonymous,
-      scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+      scheduledAt: scheduledAt ? `${scheduledAt}T00:00:00.000Z` : null,
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
       ogImageUrl: ogImageUrl || null,
@@ -333,13 +333,13 @@ export default function AdminTopicEditPage({ params }: PageParams) {
               <Label htmlFor="scheduledAt">예약 발행</Label>
               <Input
                 id="scheduledAt"
-                type="datetime-local"
+                type="date"
                 value={scheduledAt}
                 onChange={(e) => setScheduledAt(e.target.value)}
-                min={new Date().toISOString().slice(0, 16)}
+                min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
               />
               <p className="text-xs text-muted-foreground">
-                설정하면 해당 시각까지 비공개 상태로 유지되다가 자동으로 공개됩니다. 비워두면 즉시 공개됩니다.
+                선택한 날짜의 자정(UTC)에 자동으로 공개됩니다. 비워두면 즉시 공개됩니다.
               </p>
               {scheduledAt && (
                 <Button
