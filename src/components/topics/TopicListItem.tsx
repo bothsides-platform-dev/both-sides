@@ -84,8 +84,8 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
             </h4>
           </div>
           <span className="shrink-0 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
+            <span className="flex items-center gap-0.5"><Eye className="h-3 w-3" aria-hidden="true" /><span className="sr-only">조회</span>{topic.viewCount}</span>
             <span className="flex items-center gap-0.5"><Users className="h-3 w-3" aria-hidden="true" /><span className="sr-only">투표</span>{topic._count.votes}</span>
-            <span className="flex items-center gap-0.5"><MessageSquare className="h-3 w-3" aria-hidden="true" /><span className="sr-only">의견</span>{topic._count.opinions}</span>
           </span>
         </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">
@@ -96,6 +96,11 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
       </div>
       <div className="hidden shrink-0 items-center gap-4 text-sm text-muted-foreground md:flex">
         <span className="flex items-center gap-1">
+          <Eye className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">조회</span>
+          {topic.viewCount}
+        </span>
+        <span className="flex items-center gap-1">
           <Users className="h-4 w-4" aria-hidden="true" />
           <span className="sr-only">투표</span>
           {topic._count.votes}
@@ -104,11 +109,6 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
           <MessageSquare className="h-4 w-4" aria-hidden="true" />
           <span className="sr-only">의견</span>
           {topic._count.opinions}
-        </span>
-        <span className="flex items-center gap-1">
-          <Eye className="h-4 w-4" aria-hidden="true" />
-          <span className="sr-only">조회</span>
-          {topic.viewCount}
         </span>
         <span className="hidden md:block md:w-16 md:text-right" suppressHydrationWarning>
           {formatRelativeTime(topic.createdAt)}
