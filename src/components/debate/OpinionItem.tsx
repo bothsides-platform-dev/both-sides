@@ -190,6 +190,25 @@ export const OpinionItem = memo(function OpinionItem({
     ? "border-l-2 border-muted-foreground/20 pl-2 md:border-l-0 md:pl-0"
     : "";
 
+  const renderLikeButton = (variant: "mobile" | "desktop") => (
+    <button
+      onClick={() => onReaction(opinion.id, "LIKE")}
+      className={cn(
+        "flex items-center gap-1.5 text-xs transition-all",
+        variant === "desktop"
+          ? "min-h-[44px] min-w-[44px] px-2 py-2 rounded-lg md:min-h-[36px] md:min-w-[36px] md:px-1.5 md:py-0.5 md:rounded"
+          : "min-h-[36px] min-w-[36px] px-2.5 py-1.5 rounded-full bg-background/60 dark:bg-muted/40",
+        userReaction?.type === "LIKE"
+          ? "text-blue-600 bg-blue-50 dark:bg-blue-950/30"
+          : "text-muted-foreground hover:text-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-950/20"
+      )}
+      aria-label={`좋아요 ${opinion.reactionSummary.likes}개`}
+    >
+      <ThumbsUp className={cn("h-4 w-4", variant === "desktop" && "md:h-3 md:w-3")} />
+      <span className="font-medium">{opinion.reactionSummary.likes}</span>
+    </button>
+  );
+
   return (
     <div
       ref={itemRef}
@@ -267,46 +286,92 @@ export const OpinionItem = memo(function OpinionItem({
               </button>
             )}
           </div>
-          <div className="flex items-center gap-0.5">
-            <button
-              onClick={() => onReaction(opinion.id, "LIKE")}
-              className={cn(
-                "flex items-center gap-1.5 text-xs min-h-[44px] min-w-[44px] px-2 py-2 rounded-lg transition-all",
-                "md:min-h-[36px] md:min-w-[36px] md:px-1.5 md:py-0.5 md:rounded",
-                userReaction?.type === "LIKE"
-                  ? "text-blue-600 bg-blue-50 dark:bg-blue-950/30"
-                  : "text-muted-foreground hover:text-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-950/20"
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 md:hidden">
+              {renderLikeButton("mobile")}
+              {(session?.user || userVoteSide) && (
+                <button
+                  onClick={handleReplyClick}
+                  className={cn(
+                    "flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full transition-colors",
+                    showReplyForm
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                  )}
+                  aria-label="답글 작성"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="font-medium">답글</span>
+                </button>
               )}
-              aria-label={`좋아요 ${opinion.reactionSummary.likes}개`}
-            >
-              <ThumbsUp className="h-4 w-4 md:h-3 md:w-3" />
-              <span className="font-medium">{opinion.reactionSummary.likes}</span>
-            </button>
-            {(session?.user || userVoteSide) && (
-              <>
-                {hasReplies && onToggleReplies ? (
-                  <>
-                    <button
-                      onClick={handleReplyCountClick}
-                      disabled={loadingReplies}
-                      className={cn(
-                        "flex items-center gap-1.5 text-xs min-h-[44px] min-w-[44px] px-2 py-2 rounded-lg transition-all",
-                        "md:min-h-[36px] md:min-w-[36px] md:px-1.5 md:py-0.5 md:rounded",
-                        showRepliesExpanded
-                          ? "text-primary bg-primary/10"
-                          : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                      )}
-                      aria-label={`답글 ${repliesCount}개 ${showRepliesExpanded ? "접기" : "펼치기"}`}
-                    >
-                      {loadingReplies ? (
-                        <Loader2 className="h-4 w-4 md:h-3 md:w-3 animate-spin" />
-                      ) : showRepliesExpanded ? (
-                        <ChevronUp className="h-4 w-4 md:h-3 md:w-3" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 md:h-3 md:w-3" />
-                      )}
-                      <span className="font-medium">답글 {repliesCount}</span>
-                    </button>
+            </div>
+
+            {(session?.user || userVoteSide) && hasReplies && onToggleReplies && (
+              <button
+                onClick={handleReplyCountClick}
+                disabled={loadingReplies}
+                className={cn(
+                  "md:hidden inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors",
+                  showRepliesExpanded
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted/70 text-foreground/80 hover:bg-muted"
+                )}
+                aria-label={`답글 ${repliesCount}개 ${showRepliesExpanded ? "접기" : "펼치기"}`}
+              >
+                {loadingReplies ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : showRepliesExpanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+                <span>답글 {repliesCount}개</span>
+              </button>
+            )}
+
+            <div className="hidden md:flex items-center gap-0.5">
+              {renderLikeButton("desktop")}
+              {(session?.user || userVoteSide) && (
+                <>
+                  {hasReplies && onToggleReplies ? (
+                    <>
+                      <button
+                        onClick={handleReplyCountClick}
+                        disabled={loadingReplies}
+                        className={cn(
+                          "flex items-center gap-1.5 text-xs min-h-[44px] min-w-[44px] px-2 py-2 rounded-lg transition-all",
+                          "md:min-h-[36px] md:min-w-[36px] md:px-1.5 md:py-0.5 md:rounded",
+                          showRepliesExpanded
+                            ? "text-primary bg-primary/10"
+                            : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                        )}
+                        aria-label={`답글 ${repliesCount}개 ${showRepliesExpanded ? "접기" : "펼치기"}`}
+                      >
+                        {loadingReplies ? (
+                          <Loader2 className="h-4 w-4 md:h-3 md:w-3 animate-spin" />
+                        ) : showRepliesExpanded ? (
+                          <ChevronUp className="h-4 w-4 md:h-3 md:w-3" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 md:h-3 md:w-3" />
+                        )}
+                        <span className="font-medium">답글 {repliesCount}</span>
+                      </button>
+                      <button
+                        onClick={handleReplyClick}
+                        className={cn(
+                          "flex items-center gap-1.5 text-xs min-h-[44px] min-w-[44px] px-2 py-2 rounded-lg transition-all",
+                          "md:min-h-[36px] md:min-w-[36px] md:px-1.5 md:py-0.5 md:rounded",
+                          showReplyForm
+                            ? "text-primary bg-primary/10"
+                            : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                        )}
+                        aria-label="답글 작성"
+                      >
+                        <MessageCircle className="h-4 w-4 md:h-3 md:w-3" />
+                        <span className="font-medium">답글 작성</span>
+                      </button>
+                    </>
+                  ) : (
                     <button
                       onClick={handleReplyClick}
                       className={cn(
@@ -316,30 +381,15 @@ export const OpinionItem = memo(function OpinionItem({
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                       )}
-                      aria-label="답글 작성"
+                      aria-label={`답글${showRepliesCount && repliesCount > 0 ? ` ${repliesCount}개` : ""}`}
                     >
                       <MessageCircle className="h-4 w-4 md:h-3 md:w-3" />
-                      <span className="font-medium">답글 작성</span>
+                      <span className="font-medium">답글{showRepliesCount && repliesCount > 0 ? ` ${repliesCount}` : ""}</span>
                     </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={handleReplyClick}
-                    className={cn(
-                      "flex items-center gap-1.5 text-xs min-h-[44px] min-w-[44px] px-2 py-2 rounded-lg transition-all",
-                      "md:min-h-[36px] md:min-w-[36px] md:px-1.5 md:py-0.5 md:rounded",
-                      showReplyForm
-                        ? "text-primary bg-primary/10"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    )}
-                    aria-label={`답글${showRepliesCount && repliesCount > 0 ? ` ${repliesCount}개` : ""}`}
-                  >
-                    <MessageCircle className="h-4 w-4 md:h-3 md:w-3" />
-                    <span className="font-medium">답글{showRepliesCount && repliesCount > 0 ? ` ${repliesCount}` : ""}</span>
-                  </button>
-                )}
-              </>
-            )}
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
         {currentUserId && (
