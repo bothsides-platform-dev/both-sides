@@ -293,7 +293,7 @@ export const OpinionItem = memo(function OpinionItem({
                 <button
                   onClick={handleReplyClick}
                   className={cn(
-                    "flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full transition-colors",
+                    "flex items-center gap-1 text-xs px-1.5 py-1.5 rounded-md transition-colors",
                     showReplyForm
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:text-primary hover:bg-primary/5"
@@ -310,12 +310,7 @@ export const OpinionItem = memo(function OpinionItem({
               <button
                 onClick={handleReplyCountClick}
                 disabled={loadingReplies}
-                className={cn(
-                  "md:hidden inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors",
-                  showRepliesExpanded
-                    ? "bg-primary/10 text-primary"
-                    : "bg-muted/70 text-foreground/80 hover:bg-muted"
-                )}
+                className="md:hidden inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                 aria-label={`답글 ${repliesCount}개 ${showRepliesExpanded ? "접기" : "펼치기"}`}
               >
                 {loadingReplies ? (
