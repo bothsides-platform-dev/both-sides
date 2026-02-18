@@ -211,16 +211,6 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
     zoomRef.current = zoomBehavior;
     select(svgEl).call(zoomBehavior);
 
-    // Prevent page scroll when zooming inside the bubble map
-    const svgSelection = select(svgEl);
-    svgSelection.on("wheel.zoom", function (event: WheelEvent) {
-      event.preventDefault();
-      const direction = event.deltaY < 0 ? 1.1 : 0.9;
-      svgSelection.transition().duration(150).call(
-        zoomBehavior.scaleBy, direction, [event.offsetX, event.offsetY]
-      );
-    });
-
     return () => {
       select(svgEl).on(".zoom", null);
       zoomRef.current = null;
