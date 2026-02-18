@@ -316,23 +316,52 @@ export async function generateBotOpinions({
     optionB: topic.optionB,
   };
 
-  const botUsers = await prisma.user.findMany({
+  // 1. Find bot users already used in this topic
+  const usedBotOpinions = await prisma.opinion.findMany({
+    where: {
+      topicId,
+      user: { isBot: true },
+    },
+    select: { userId: true },
+    distinct: ["userId"],
+  });
+  const usedBotIds = new Set(usedBotOpinions.map((o) => o.userId));
+
+  // 2. Get available bot users (exclude already used ones)
+  const allBots = await prisma.user.findMany({
     where: { isBot: true },
     select: { id: true },
   });
 
-  if (botUsers.length === 0) {
-    throw new Error("No bot accounts available. Seed bot accounts first.");
+  let availableBots = allBots.filter((b) => !usedBotIds.has(b.id));
+
+  // Auto-create bot accounts if not enough available
+  const totalNeeded = countA + countB;
+  if (availableBots.length < totalNeeded) {
+    const deficit = totalNeeded - availableBots.length;
+    const newBotIds = await ensureBotAccounts(deficit);
+    const newBots = newBotIds.map((id) => ({ id }));
+    availableBots = [...availableBots, ...newBots];
   }
+
+  // 3. Fisher-Yates shuffle for random distribution
+  for (let i = availableBots.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [availableBots[i], availableBots[j]] = [availableBots[j], availableBots[i]];
+  }
+
+  const botsForA = availableBots.slice(0, countA);
+  const botsForB = availableBots.slice(countA, countA + countB);
 
   const errors: string[] = [];
   let generatedA = 0;
   let generatedB = 0;
 
-  const generateForSide = async (side: Side, count: number) => {
-    for (let i = 0; i < count; i++) {
+  // 4. Generate opinions with pre-assigned unique bot users
+  const generateForSide = async (side: Side, assignedBots: { id: string }[]) => {
+    for (let i = 0; i < assignedBots.length; i++) {
       try {
-        const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
+        const botUser = assignedBots[i];
 
         // Create or update vote for this bot user
         await prisma.vote.upsert({
@@ -375,8 +404,8 @@ export async function generateBotOpinions({
     }
   };
 
-  await generateForSide("A", countA);
-  await generateForSide("B", countB);
+  await generateForSide("A", botsForA);
+  await generateForSide("B", botsForB);
 
   return { generatedA, generatedB, errors };
 }
