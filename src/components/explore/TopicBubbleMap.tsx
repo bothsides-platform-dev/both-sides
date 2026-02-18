@@ -216,7 +216,9 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
     svgSelection.on("wheel.zoom", function (event: WheelEvent) {
       event.preventDefault();
       const direction = event.deltaY < 0 ? 1.1 : 0.9;
-      zoomBehavior.scaleBy(svgSelection, direction, [event.offsetX, event.offsetY]);
+      svgSelection.transition().duration(150).call(
+        zoomBehavior.scaleBy, direction, [event.offsetX, event.offsetY]
+      );
     });
 
     return () => {
@@ -373,11 +375,21 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
               className="select-none"
               style={{ transition: "height 0.3s ease", cursor: "grab" }}
             >
+              <style>{`
+                .bubble-label-enter {
+                  animation: bubbleLabelFadeIn 0.25s ease-out;
+                }
+                @keyframes bubbleLabelFadeIn {
+                  from { opacity: 0; }
+                  to { opacity: 1; }
+                }
+              `}</style>
               <g transform={`translate(${transform.x},${transform.y}) scale(${transform.k})`}>
                 <defs>
                   {bubbles.map((bubble) => {
                     if (!bubble.topic.imageUrl) return null;
-                    const r = selectedBubbleId === bubble.topic.id ? bubble.r + 2 : bubble.r;
+                    const patternSelGrow = 2 / transform.k;
+                    const r = selectedBubbleId === bubble.topic.id ? bubble.r + patternSelGrow : bubble.r;
                     return (
                       <pattern
                         key={`img-${bubble.topic.id}`}
@@ -397,6 +409,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                   })}
                   {bubbles.map((bubble) => {
                     if (!bubble.topic.imageUrl) return null;
+                    const gradEffectiveR = bubble.r * transform.k;
                     return (
                       <linearGradient
                         key={`grad-${bubble.topic.id}`}
@@ -407,7 +420,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                         y2="1"
                       >
                         <stop offset="0%" stopColor="black" stopOpacity="0" />
-                        <stop offset={bubble.r > 25 ? "55%" : "100%"} stopColor="black" stopOpacity={bubble.r > 25 ? "0.55" : "0.3"} />
+                        <stop offset={gradEffectiveR > 25 ? "55%" : "100%"} stopColor="black" stopOpacity={gradEffectiveR > 25 ? "0.55" : "0.3"} />
                       </linearGradient>
                     );
                   })}
@@ -415,10 +428,19 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                 {bubbles.map((bubble) => {
                   const fill = CATEGORY_CSS_VAR[bubble.topic.category];
                   const isSelected = selectedBubbleId === bubble.topic.id;
-                  const r = isSelected ? bubble.r + 2 : bubble.r;
+                  const effectiveR = bubble.r * transform.k;
+                  const invScale = 1 / transform.k;
+                  const selectionGrow = 2 * invScale;
+                  const r = isSelected ? bubble.r + selectionGrow : bubble.r;
                   const meta = CATEGORY_META[bubble.topic.category];
                   const Icon = meta.icon;
                   const hasImage = !!bubble.topic.imageUrl;
+                  const strokeW = (isSelected ? 2.5 : 2) * invScale;
+                  const fontLg = 12 * invScale;
+                  const fontSm = 10 * invScale;
+                  const iconDim = 14 * invScale;
+                  const maxCharsLg = Math.floor(effectiveR / 6);
+                  const maxCharsSm = Math.floor(effectiveR / 5);
 
                   return (
                     <g
@@ -440,7 +462,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                             r={r}
                             fill={`url(#img-${bubble.topic.id})`}
                             style={{ stroke: fill }}
-                            strokeWidth={isSelected ? 2.5 : 2}
+                            strokeWidth={strokeW}
                           />
                           {/* Gradient overlay for text readability */}
                           <circle
@@ -451,29 +473,29 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                             className="pointer-events-none"
                           />
                           {/* Text on image bubbles */}
-                          {bubble.r > 40 ? (
+                          {effectiveR > 40 ? (
                             <text
                               x={bubble.x}
                               y={bubble.y + r * 0.3}
                               textAnchor="middle"
                               dominantBaseline="central"
-                              className="text-xs font-semibold pointer-events-none"
+                              className="font-semibold pointer-events-none bubble-label-enter"
                               fill="var(--category-foreground)"
-                              style={{ textShadow: "0 1px 3px hsl(0 0% 0% / 0.8)" }}
+                              style={{ fontSize: fontLg, textShadow: "0 1px 3px hsl(0 0% 0% / 0.8)" }}
                             >
-                              {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
+                              {truncateText(bubble.topic.title, maxCharsLg)}
                             </text>
-                          ) : bubble.r > 25 ? (
+                          ) : effectiveR > 25 ? (
                             <text
                               x={bubble.x}
                               y={bubble.y + r * 0.35}
                               textAnchor="middle"
                               dominantBaseline="central"
-                              className="text-2xs font-semibold pointer-events-none"
+                              className="font-semibold pointer-events-none bubble-label-enter"
                               fill="var(--category-foreground)"
-                              style={{ textShadow: "0 1px 2px hsl(0 0% 0% / 0.8)" }}
+                              style={{ fontSize: fontSm, textShadow: "0 1px 2px hsl(0 0% 0% / 0.8)" }}
                             >
-                              {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
+                              {truncateText(bubble.topic.title, maxCharsSm)}
                             </text>
                           ) : null}
                         </>
@@ -485,39 +507,40 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                             r={r}
                             style={{ fill, stroke: fill }}
                             fillOpacity={isDark ? 0.35 : 0.3}
-                            strokeWidth={isSelected ? 2.5 : 2}
+                            strokeWidth={strokeW}
                           />
-                          {bubble.r > 40 ? (
+                          {effectiveR > 40 ? (
                             <text
                               x={bubble.x}
                               y={bubble.y}
                               textAnchor="middle"
                               dominantBaseline="central"
-                              className="fill-foreground text-xs font-medium pointer-events-none"
+                              className="fill-foreground font-medium pointer-events-none bubble-label-enter"
+                              style={{ fontSize: fontLg }}
                             >
-                              {truncateText(bubble.topic.title, Math.floor(bubble.r / 6))}
+                              {truncateText(bubble.topic.title, maxCharsLg)}
                             </text>
-                          ) : bubble.r > 25 ? (
+                          ) : effectiveR > 25 ? (
                             <text
                               x={bubble.x}
                               y={bubble.y}
                               textAnchor="middle"
                               dominantBaseline="central"
-                              className="fill-foreground text-2xs pointer-events-none"
+                              className="fill-foreground pointer-events-none bubble-label-enter"
+                              style={{ fontSize: fontSm }}
                             >
-                              {truncateText(bubble.topic.title, Math.floor(bubble.r / 5))}
+                              {truncateText(bubble.topic.title, maxCharsSm)}
                             </text>
                           ) : (
                             <foreignObject
-                              x={bubble.x - 7}
-                              y={bubble.y - 7}
-                              width={14}
-                              height={14}
-                              className="pointer-events-none"
+                              x={bubble.x - iconDim / 2}
+                              y={bubble.y - iconDim / 2}
+                              width={iconDim}
+                              height={iconDim}
+                              className="pointer-events-none bubble-label-enter"
                             >
                               <Icon
-                                className="h-3.5 w-3.5"
-                                style={{ color: fill } as React.CSSProperties}
+                                style={{ width: iconDim, height: iconDim, color: fill } as React.CSSProperties}
                               />
                             </foreignObject>
                           )}
