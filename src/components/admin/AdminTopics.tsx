@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { TopicTable } from "@/components/admin/TopicTable";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
+import Link from "next/link";
 import type { Category } from "@prisma/client";
 
 interface Topic {
@@ -19,6 +20,7 @@ interface Topic {
   isFeatured: boolean;
   viewCount: number;
   createdAt: string;
+  scheduledAt?: string | null;
   author: {
     id: string;
     nickname?: string | null;
@@ -47,7 +49,7 @@ interface AdminTopicsProps {
 }
 
 export function AdminTopics({ isAdmin }: AdminTopicsProps) {
-  const [status, setStatus] = useState<"all" | "visible" | "hidden">("all");
+  const [status, setStatus] = useState<"all" | "visible" | "hidden" | "scheduled">("all");
   const [searchInput, setSearchInput] = useState("");      // 입력창 제어용
   const [submittedSearch, setSubmittedSearch] = useState(""); // SWR 쿼리용
   const [page, setPage] = useState(1);
@@ -83,15 +85,21 @@ export function AdminTopics({ isAdmin }: AdminTopicsProps) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>토론 관리</CardTitle>
+          <Button asChild size="sm">
+            <Link href="/admin/topics/new">
+              <Plus className="h-4 w-4 mr-1" />
+              새 토론 만들기
+            </Link>
+          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <Tabs
               value={status}
               onValueChange={(v) => {
-                setStatus(v as "all" | "visible" | "hidden");
+                setStatus(v as "all" | "visible" | "hidden" | "scheduled");
                 setPage(1);
               }}
             >
@@ -99,6 +107,7 @@ export function AdminTopics({ isAdmin }: AdminTopicsProps) {
                 <TabsTrigger value="all">전체</TabsTrigger>
                 <TabsTrigger value="visible">공개</TabsTrigger>
                 <TabsTrigger value="hidden">비공개</TabsTrigger>
+                <TabsTrigger value="scheduled">예약</TabsTrigger>
               </TabsList>
             </Tabs>
 
