@@ -12,6 +12,8 @@ import { fetcher } from "@/lib/fetcher";
 import { CATEGORY_META, CATEGORY_CSS_VAR } from "@/lib/constants";
 import { Eye, Info, MessageSquare, RotateCcw, Users, ZoomIn, ZoomOut } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 import type { Category } from "@prisma/client";
 
 interface BubbleTopic {
@@ -134,6 +136,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
 }: TopicBubbleMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const isMobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -570,33 +573,51 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
               </button>
             </div>
 
-            {/* HTML popover overlay */}
-            {selectedBubble && (() => {
-              const transformedBubble = {
-                ...selectedBubble,
-                x: selectedBubble.x * transform.k + transform.x,
-                y: selectedBubble.y * transform.k + transform.y,
-                r: selectedBubble.r * transform.k,
-              };
-              const pos = getPopoverPosition(
-                transformedBubble,
-                containerWidth,
-                popoverWidth,
-                popoverHeight
-              );
-              return (
-                <div
-                  ref={popoverRef}
-                  className="absolute z-50 w-72 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
-                  style={{
-                    left: pos.left,
-                    top: pos.top,
-                  }}
-                >
-                  <BubblePopoverContent topic={selectedBubble.topic} />
-                </div>
-              );
-            })()}
+            {/* Mobile: Modal dialog / Desktop: Positioned popover */}
+            {isMobile ? (
+              <Dialog
+                open={!!selectedBubble}
+                onOpenChange={(open) => {
+                  if (!open) setSelectedBubbleId(null);
+                }}
+              >
+                <DialogContent className="max-w-[calc(100vw-2rem)] rounded-lg">
+                  <DialogTitle className="sr-only">
+                    {selectedBubble?.topic.title ?? "토픽 상세"}
+                  </DialogTitle>
+                  {selectedBubble && (
+                    <BubblePopoverContent topic={selectedBubble.topic} />
+                  )}
+                </DialogContent>
+              </Dialog>
+            ) : (
+              selectedBubble && (() => {
+                const transformedBubble = {
+                  ...selectedBubble,
+                  x: selectedBubble.x * transform.k + transform.x,
+                  y: selectedBubble.y * transform.k + transform.y,
+                  r: selectedBubble.r * transform.k,
+                };
+                const pos = getPopoverPosition(
+                  transformedBubble,
+                  containerWidth,
+                  popoverWidth,
+                  popoverHeight
+                );
+                return (
+                  <div
+                    ref={popoverRef}
+                    className="absolute z-50 w-72 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
+                    style={{
+                      left: pos.left,
+                      top: pos.top,
+                    }}
+                  >
+                    <BubblePopoverContent topic={selectedBubble.topic} />
+                  </div>
+                );
+              })()
+            )}
           </>
         )}
       </div>
