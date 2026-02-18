@@ -12,6 +12,8 @@ import { fetcher } from "@/lib/fetcher";
 import { CATEGORY_META, CATEGORY_CSS_VAR } from "@/lib/constants";
 import { Eye, Info, MessageSquare, RotateCcw, Users, ZoomIn, ZoomOut } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 import type { Category } from "@prisma/client";
 
 interface BubbleTopic {
@@ -134,6 +136,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
 }: TopicBubbleMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const isMobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -256,9 +259,10 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
 
     if (!filteredTopics.length) return [];
 
+    const isMobile = containerWidth < 640;
     const height = Math.min(containerWidth * 0.65, 500);
     const maxVotes = Math.max(...filteredTopics.map((t) => t._count.votes), 1);
-    const minR = 18;
+    const minR = isMobile ? 24 : 18;
     const maxR = Math.min(containerWidth / 8, 65);
 
     const nodes: BubbleNode[] = filteredTopics.map((topic) => {
@@ -274,7 +278,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
 
     const packer = pack<BubbleNode>()
       .size([containerWidth, height])
-      .padding(3);
+      .padding(isMobile ? 6 : 3);
 
     const packed = packer(root);
 
@@ -431,6 +435,9 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                   const iconDim = 14 * invScale;
                   const maxCharsLg = Math.floor(effectiveR / 6);
                   const maxCharsSm = Math.floor(effectiveR / 5);
+                  // Minimum touch target: 22px radius (44px diameter)
+                  const minTouchR = 22 * invScale;
+                  const needsTouchTarget = r < minTouchR;
 
                   return (
                     <g
@@ -443,6 +450,15 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
                       onClick={() => handleBubbleClick(bubble.topic.id)}
                       onKeyDown={(e) => handleBubbleKeyDown(e, bubble.topic.id)}
                     >
+                      {/* Invisible expanded touch target for small bubbles */}
+                      {needsTouchTarget && (
+                        <circle
+                          cx={bubble.x}
+                          cy={bubble.y}
+                          r={minTouchR}
+                          fill="transparent"
+                        />
+                      )}
                       {hasImage ? (
                         <>
                           {/* Thumbnail image circle */}
@@ -543,60 +559,78 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
             </svg>
 
             {/* Zoom controls */}
-            <div className="absolute bottom-2 right-2 flex flex-col gap-1">
+            <div className="absolute bottom-2 right-2 flex flex-col gap-1 sm:gap-1">
               <button
                 type="button"
                 onClick={handleZoomIn}
-                className="flex h-7 w-7 items-center justify-center rounded-md border bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
+                className="flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-md border bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
                 aria-label="확대"
               >
-                <ZoomIn className="h-3.5 w-3.5" />
+                <ZoomIn className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
               </button>
               <button
                 type="button"
                 onClick={handleZoomOut}
-                className="flex h-7 w-7 items-center justify-center rounded-md border bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
+                className="flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-md border bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
                 aria-label="축소"
               >
-                <ZoomOut className="h-3.5 w-3.5" />
+                <ZoomOut className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
               </button>
               <button
                 type="button"
                 onClick={handleZoomReset}
-                className="flex h-7 w-7 items-center justify-center rounded-md border bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
+                className="flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-md border bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
                 aria-label="초기화"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
+                <RotateCcw className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
               </button>
             </div>
 
-            {/* HTML popover overlay */}
-            {selectedBubble && (() => {
-              const transformedBubble = {
-                ...selectedBubble,
-                x: selectedBubble.x * transform.k + transform.x,
-                y: selectedBubble.y * transform.k + transform.y,
-                r: selectedBubble.r * transform.k,
-              };
-              const pos = getPopoverPosition(
-                transformedBubble,
-                containerWidth,
-                popoverWidth,
-                popoverHeight
-              );
-              return (
-                <div
-                  ref={popoverRef}
-                  className="absolute z-50 w-72 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
-                  style={{
-                    left: pos.left,
-                    top: pos.top,
-                  }}
-                >
-                  <BubblePopoverContent topic={selectedBubble.topic} />
-                </div>
-              );
-            })()}
+            {/* Mobile: Modal dialog / Desktop: Positioned popover */}
+            {isMobile ? (
+              <Dialog
+                open={!!selectedBubble}
+                onOpenChange={(open) => {
+                  if (!open) setSelectedBubbleId(null);
+                }}
+              >
+                <DialogContent className="max-w-[calc(100vw-2rem)] rounded-lg">
+                  <DialogTitle className="sr-only">
+                    {selectedBubble?.topic.title ?? "토픽 상세"}
+                  </DialogTitle>
+                  {selectedBubble && (
+                    <BubblePopoverContent topic={selectedBubble.topic} />
+                  )}
+                </DialogContent>
+              </Dialog>
+            ) : (
+              selectedBubble && (() => {
+                const transformedBubble = {
+                  ...selectedBubble,
+                  x: selectedBubble.x * transform.k + transform.x,
+                  y: selectedBubble.y * transform.k + transform.y,
+                  r: selectedBubble.r * transform.k,
+                };
+                const pos = getPopoverPosition(
+                  transformedBubble,
+                  containerWidth,
+                  popoverWidth,
+                  popoverHeight
+                );
+                return (
+                  <div
+                    ref={popoverRef}
+                    className="absolute z-50 w-72 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
+                    style={{
+                      left: pos.left,
+                      top: pos.top,
+                    }}
+                  >
+                    <BubblePopoverContent topic={selectedBubble.topic} />
+                  </div>
+                );
+              })()
+            )}
           </>
         )}
       </div>
