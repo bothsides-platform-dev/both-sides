@@ -25,6 +25,7 @@ export const createTopicSchema = z.object({
   deadline: z.string().datetime().optional(),
   referenceLinks: z.array(referenceLinkSchema).optional().default([]),
   isAnonymous: z.boolean().default(false),
+  scheduledAt: z.string().datetime().optional().nullable(),
 });
 
 export const getTopicsSchema = z.object({

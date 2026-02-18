@@ -24,7 +24,7 @@ import type {
 } from "./schema";
 
 export async function createTopic(authorId: string, input: CreateTopicInput) {
-  const { deadline, images, ...rest } = input;
+  const { deadline, images, scheduledAt, ...rest } = input;
   const imageUrl = images?.[0] ?? rest.imageUrl;
   return prisma.topic.create({
     data: {
@@ -32,6 +32,7 @@ export async function createTopic(authorId: string, input: CreateTopicInput) {
       imageUrl,
       images: images ? (images as Prisma.InputJsonValue) : undefined,
       deadline: deadline ? new Date(deadline) : null,
+      scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       authorId,
     },
     include: {

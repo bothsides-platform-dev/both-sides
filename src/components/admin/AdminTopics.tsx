@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { TopicTable } from "@/components/admin/TopicTable";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
+import Link from "next/link";
 import type { Category } from "@prisma/client";
 
 interface Topic {
@@ -84,8 +85,14 @@ export function AdminTopics({ isAdmin }: AdminTopicsProps) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>토론 관리</CardTitle>
+          <Button asChild size="sm">
+            <Link href="/admin/topics/new">
+              <Plus className="h-4 w-4 mr-1" />
+              새 토론 만들기
+            </Link>
+          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
