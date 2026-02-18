@@ -7,6 +7,7 @@ import {
   BookOpen,
   Gamepad2,
   Cpu,
+  Trophy,
   type LucideIcon,
 } from "lucide-react";
 
@@ -18,6 +19,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   HISTORY: "역사",
   GAME: "게임",
   TECH: "기술",
+  SPORTS: "스포츠",
 };
 
 export interface CategoryMeta {
@@ -86,6 +88,14 @@ export const CATEGORY_META: Record<Category, CategoryMeta> = {
     bgColor: "bg-cyan-100 dark:bg-cyan-900/30",
     gradient: "from-cyan-500 to-teal-500",
   },
+  SPORTS: {
+    icon: Trophy,
+    label: "스포츠",
+    description: "스포츠 경기와 선수, 규칙에 대한 토론",
+    color: "text-red-600 dark:text-red-400",
+    bgColor: "bg-red-100 dark:bg-red-900/30",
+    gradient: "from-red-500 to-orange-500",
+  },
 };
 
 export const CATEGORY_SLUG_MAP: Record<string, Category> = {
@@ -96,6 +106,7 @@ export const CATEGORY_SLUG_MAP: Record<string, Category> = {
   history: "HISTORY",
   game: "GAME",
   tech: "TECH",
+  sports: "SPORTS",
 };
 
 export const CATEGORY_TO_SLUG: Record<Category, string> = {
@@ -106,6 +117,7 @@ export const CATEGORY_TO_SLUG: Record<Category, string> = {
   HISTORY: "history",
   GAME: "game",
   TECH: "tech",
+  SPORTS: "sports",
 };
 
 export const SIDE_LABELS: Record<Side, string> = {
@@ -135,6 +147,7 @@ export const CATEGORY_CSS_VAR: Record<Category, string> = {
   HISTORY: "var(--category-history)",
   GAME: "var(--category-game)",
   TECH: "var(--category-tech)",
+  SPORTS: "var(--category-sports)",
 };
 
 // 블라인드 처리 기준 (신고 누적 수)
