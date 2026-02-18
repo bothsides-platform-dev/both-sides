@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ImageUpload } from "@/components/ui/ImageUpload";
+import { MultiImageUpload } from "@/components/ui/MultiImageUpload";
 import { ReferenceLinkInput, type ReferenceLink } from "@/components/ui/ReferenceLinkInput";
 import { CATEGORY_META, CATEGORY_SLUG_MAP } from "@/lib/constants";
 import { trackTopicCreate } from "@/lib/analytics";
@@ -28,7 +28,7 @@ function NewTopicForm() {
   const { data: session, status } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [images, setImages] = useState<string[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [referenceLinks, setReferenceLinks] = useState<ReferenceLink[]>([]);
   const [isImageUploading, setIsImageUploading] = useState(false);
@@ -66,7 +66,7 @@ function NewTopicForm() {
       optionA: formData.get("optionA"),
       optionB: formData.get("optionB"),
       category: formData.get("category"),
-      imageUrl: imageUrl || undefined,
+      images: images.length > 0 ? images : undefined,
       deadline: deadlineValue ? new Date(deadlineValue).toISOString() : undefined,
       referenceLinks: validReferenceLinks.length > 0 ? validReferenceLinks : undefined,
       isAnonymous,
@@ -212,10 +212,10 @@ function NewTopicForm() {
             </div>
 
             <div className="space-y-2">
-              <Label>썸네일 이미지 (선택)</Label>
-              <ImageUpload
-                value={imageUrl}
-                onChange={setImageUrl}
+              <Label>이미지 (선택, 최대 5개)</Label>
+              <MultiImageUpload
+                value={images}
+                onChange={setImages}
                 disabled={isSubmitting}
                 onUploadingChange={setIsImageUploading}
               />

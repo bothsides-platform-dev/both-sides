@@ -161,6 +161,9 @@ export const LLM_MIN_OPINIONS_GROUNDS = 10;
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;
 
+// 토픽 이미지 설정
+export const TOPIC_MAX_IMAGES = 5;
+
 // 업로드 설정
 export const UPLOAD_MAX_SIZE = 5 * 1024 * 1024; // 5MB
 export const UPLOAD_MIME_TYPES: Record<string, string[]> = {

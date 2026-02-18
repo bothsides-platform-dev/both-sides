@@ -1,5 +1,4 @@
 import { cache } from "react";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +13,7 @@ import { ReferenceLinksCollapsible } from "@/components/topics/ReferenceLinksCol
 import { TopicSummary } from "@/components/debate/TopicSummary";
 import { GroundsSection } from "@/components/debate/GroundsSection";
 import { RelatedTopics } from "@/components/topics/RelatedTopics";
+import { TopicImageGallery } from "@/components/topics/TopicImageGallery";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 interface ReferenceLink {
@@ -212,20 +212,17 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
           shareImageUrl={topic.imageUrl || `/topics/${topic.id}/opengraph-image`}
         />
 
-        {/* Hero Image */}
-        {topic.imageUrl && (
-          <div className="w-full overflow-hidden rounded-xl">
-            <Image
-              src={topic.imageUrl}
-              alt={topic.title}
-              width={1920}
-              height={1080}
-              className="h-auto w-full rounded-xl"
-              priority
-              sizes="(max-width: 768px) 100vw, 720px"
-            />
-          </div>
-        )}
+        {/* Hero Image / Gallery */}
+        {(() => {
+          const galleryImages = (Array.isArray(topic.images) && topic.images.length > 0)
+            ? (topic.images as string[])
+            : topic.imageUrl
+              ? [topic.imageUrl]
+              : [];
+          return galleryImages.length > 0 ? (
+            <TopicImageGallery images={galleryImages} title={topic.title} />
+          ) : null;
+        })()}
 
         {/* Description - 줄바꿈 유지 */}
         {topic.description && (
