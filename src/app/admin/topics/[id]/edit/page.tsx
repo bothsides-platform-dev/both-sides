@@ -50,6 +50,7 @@ interface Topic {
   metaTitle: string | null;
   metaDescription: string | null;
   ogImageUrl: string | null;
+  scheduledAt: string | null;
 }
 
 interface PageParams {
@@ -73,6 +74,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
   const [optionA, setOptionA] = useState("");
   const [optionB, setOptionB] = useState("");
   const [referenceLinks, setReferenceLinks] = useState<ReferenceLink[]>([]);
+  const [scheduledAt, setScheduledAt] = useState("");
 
   const { data, isLoading } = useSWR<{ data: Topic }>(
     session?.user?.role === "ADMIN" ? `/api/admin/topics/${id}` : null,
@@ -113,6 +115,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
       setMetaTitle(topic.metaTitle || defaultMetaTitle);
       setMetaDescription(topic.metaDescription || defaultMetaDescription);
       setOgImageUrl(topic.ogImageUrl || "");
+      setScheduledAt(formatDatetimeLocal(topic.scheduledAt));
     }
   }, [topic]);
 
@@ -159,6 +162,7 @@ export default function AdminTopicEditPage({ params }: PageParams) {
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
       ogImageUrl: ogImageUrl || null,
+      scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
     };
 
     try {
@@ -323,6 +327,20 @@ export default function AdminTopicEditPage({ params }: PageParams) {
               />
               <p className="text-xs text-muted-foreground">
                 비워두면 무기한 토론이 됩니다
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="scheduledAt">예약 발행 시각</Label>
+              <Input
+                id="scheduledAt"
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+              <p className="text-xs text-muted-foreground">
+                설정하면 해당 시각이 될 때 자동으로 공개됩니다. 비워두면 즉시 공개 상태입니다.
               </p>
             </div>
 
