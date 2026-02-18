@@ -86,6 +86,7 @@ export const TopicListItem = memo(function TopicListItem({ topic }: TopicListIte
           <span className="shrink-0 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
             <span className="flex items-center gap-0.5"><Users className="h-3 w-3" aria-hidden="true" /><span className="sr-only">투표</span>{topic._count.votes}</span>
             <span className="flex items-center gap-0.5"><MessageSquare className="h-3 w-3" aria-hidden="true" /><span className="sr-only">의견</span>{topic._count.opinions}</span>
+            <span suppressHydrationWarning>{formatRelativeTime(topic.createdAt)}</span>
           </span>
         </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">

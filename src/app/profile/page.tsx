@@ -245,9 +245,9 @@ export default function ProfilePage() {
             profile?.votes?.map((vote: VoteItem) => (
               <Link key={vote.id} href={`/topics/${vote.topic.id}`} className="block mb-2">
                 <Card className="transition-shadow hover:shadow-md">
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="space-y-1">
-                      <h3 className="font-medium">{vote.topic.title}</h3>
+                  <CardContent className="flex items-center justify-between gap-3 p-4">
+                    <div className="min-w-0 space-y-1">
+                      <h3 className="font-medium truncate">{vote.topic.title}</h3>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Badge variant="secondary">
                           {CATEGORY_LABELS[vote.topic.category as keyof typeof CATEGORY_LABELS]}
@@ -255,7 +255,7 @@ export default function ProfilePage() {
                         <span suppressHydrationWarning>{formatRelativeTime(vote.createdAt)}</span>
                       </div>
                     </div>
-                    <Badge variant={vote.side === "A" ? "sideA" : "sideB"}>
+                    <Badge className="shrink-0" variant={vote.side === "A" ? "sideA" : "sideB"}>
                       {vote.side === "A" ? vote.topic.optionA : vote.topic.optionB}
                     </Badge>
                   </CardContent>
@@ -307,15 +307,15 @@ export default function ProfilePage() {
             profile?.topics?.map((topic: TopicItem) => (
               <Link key={topic.id} href={`/topics/${topic.id}`} className="block mb-2">
                 <Card className="transition-shadow hover:shadow-md">
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="space-y-1">
-                      <h3 className="font-medium">{topic.title}</h3>
+                  <CardContent className="flex items-center justify-between gap-3 p-4">
+                    <div className="min-w-0 space-y-1">
+                      <h3 className="font-medium truncate">{topic.title}</h3>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{topic.optionA} vs {topic.optionB}</span>
-                        <span suppressHydrationWarning>{formatRelativeTime(topic.createdAt)}</span>
+                        <span className="truncate">{topic.optionA} vs {topic.optionB}</span>
+                        <span className="shrink-0" suppressHydrationWarning>{formatRelativeTime(topic.createdAt)}</span>
                       </div>
                     </div>
-                    <Badge variant="secondary">
+                    <Badge className="shrink-0" variant="secondary">
                       {CATEGORY_LABELS[topic.category as keyof typeof CATEGORY_LABELS]}
                     </Badge>
                   </CardContent>

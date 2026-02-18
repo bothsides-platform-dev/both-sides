@@ -21,27 +21,33 @@ export function Footer() {
     // Hidden on mobile (bottom nav replaces footer), visible on desktop
     // On lg+ with sidebar, theme toggle is in sidebar, so footer is simpler
     <footer className="border-t py-4 md:py-6">
-      <div className="w-full px-4 sm:px-6 flex flex-col items-center justify-between gap-4 md:flex-row">
-        <div className="flex items-center gap-4">
+      <div className="w-full px-4 sm:px-6 flex flex-col items-center justify-between gap-3 md:gap-4 md:flex-row">
+        <div className="flex flex-col items-center gap-2 md:flex-row md:gap-4">
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} BothSides. All rights reserved.
+          </p>
           {/* Theme toggle: hidden on lg+ (sidebar has it) */}
           {mounted && (
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={toggleTheme}
               aria-label={resolvedTheme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
-              className="h-8 w-8 lg:hidden"
+              className="h-8 gap-1.5 text-xs text-muted-foreground lg:hidden"
             >
               {resolvedTheme === "dark" ? (
-                <Sun className="h-4 w-4" />
+                <>
+                  <Sun className="h-3.5 w-3.5" />
+                  라이트 모드
+                </>
               ) : (
-                <Moon className="h-4 w-4" />
+                <>
+                  <Moon className="h-3.5 w-3.5" />
+                  다크 모드
+                </>
               )}
             </Button>
           )}
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} BothSides. All rights reserved.
-          </p>
         </div>
         <p className="text-sm text-muted-foreground">
           A vs B, 당신의 선택은?

@@ -352,7 +352,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                 {myVote === "A" ? optionA : optionB}
               </Badge>
               <span className="hidden sm:inline">측으로 의견을 작성합니다</span>
-              <span className="sm:hidden">측</span>
+              <span className="sm:hidden">측 의견 작성</span>
               {!isLoggedIn && (
                 <span className="text-xs text-muted-foreground/80">(손님)</span>
               )}

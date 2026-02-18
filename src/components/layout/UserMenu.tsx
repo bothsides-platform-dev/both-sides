@@ -25,7 +25,7 @@ export function UserMenu() {
 
   if (!session?.user) {
     return (
-      <Button asChild variant="outline">
+      <Button asChild variant="outline" size="sm">
         <Link href="/auth/signin">로그인</Link>
       </Button>
     );
