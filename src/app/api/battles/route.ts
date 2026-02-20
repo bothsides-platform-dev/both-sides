@@ -2,10 +2,11 @@ import { NextRequest } from "next/server";
 import { handleApiError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { getBattlesSchema } from "@/modules/battles/schema";
-import { getBattles } from "@/modules/battles/service";
+import { getBattles, runLazyCleanup } from "@/modules/battles/service";
 
 export async function GET(request: NextRequest) {
   try {
+    runLazyCleanup();
     const searchParams = request.nextUrl.searchParams;
     const input = await validateRequest(getBattlesSchema, {
       topicId: searchParams.get("topicId") || undefined,

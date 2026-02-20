@@ -713,6 +713,14 @@ export async function getUserBattleStats(userId: string): Promise<BattleStats> {
   };
 }
 
+// ── Lazy Cleanup ──
+
+export function runLazyCleanup() {
+  Promise.all([expirePendingChallenges(), checkAbandonedBattles()]).catch(
+    (err) => console.error("[Battle] Lazy cleanup failed:", err)
+  );
+}
+
 // ── Cron Tasks ──
 
 export async function expirePendingChallenges() {
