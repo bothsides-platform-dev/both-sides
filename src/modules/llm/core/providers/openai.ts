@@ -43,16 +43,20 @@ export const createOpenAiProvider = (config: OpenAiConfig): LlmProvider => {
         keyPrefix: config.apiKey.substring(0, 10) + "...",
       });
 
-      const res = await fetch(chatUrl, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${config.apiKey}`
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
+      const makeRequest = async (currentPayload: Record<string, unknown>) => {
+        return fetch(chatUrl, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${config.apiKey}`
+          },
+          body: JSON.stringify(currentPayload),
+          signal: controller.signal
+        });
+      };
+
+      let res = await makeRequest(payload);
 
       if (!res.ok) {
         const errorBody = await res.json().catch(() => ({ error: "Unknown error" }));
@@ -75,6 +79,34 @@ export const createOpenAiProvider = (config: OpenAiConfig): LlmProvider => {
             res.status,
             errorBody
           );
+        }
+
+        // Handle unsupported temperature parameter
+        if (res.status === 400) {
+          const isTemperatureError =
+            errorBody?.error?.param === "temperature" ||
+            (typeof errorMessage === "string" &&
+              (errorMessage.includes("temperature") ||
+               errorMessage.includes("default")));
+
+          if (isTemperatureError && "temperature" in payload) {
+            console.warn("[OpenAI] Temperature not supported by model, retrying without it");
+            const { temperature, ...payloadWithoutTemp } = payload;
+            res = await makeRequest(payloadWithoutTemp);
+
+            if (!res.ok) {
+              const retryErrorBody = await res.json().catch(() => ({ error: "Unknown error" }));
+              const retryErrorMessage = retryErrorBody?.error?.message || JSON.stringify(retryErrorBody);
+              throw new ApiError(
+                "upstream_error",
+                `LLM provider error (${res.status}): ${retryErrorMessage}`,
+                res.status,
+                retryErrorBody
+              );
+            }
+
+            return (await res.json()) as OpenAiChatResponse;
+          }
         }
 
         throw new ApiError(

@@ -54,20 +54,48 @@ async function callLlm(prompt: string): Promise<{ text: string }> {
   const model = settings.modelGrounds || "gpt-4o";
   const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
 
-  const res = await fetch(`${normalizedBase}chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${settings.apiKey}`,
-    },
-    body: JSON.stringify({
+  const makeRequest = async (includeTemperature: boolean) => {
+    const payload: Record<string, unknown> = {
       model,
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
       max_completion_tokens: 500,
-    }),
-    signal: AbortSignal.timeout(30000),
-  });
+    };
+    if (includeTemperature) {
+      payload.temperature = 0.2;
+    }
+
+    return fetch(`${normalizedBase}chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${settings.apiKey}`,
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(30000),
+    });
+  };
+
+  let res = await makeRequest(true);
+
+  if (!res.ok && res.status === 400) {
+    const body = await res.text().catch(() => "");
+    let errorData: { error?: { param?: string; message?: string } } = {};
+    try {
+      errorData = JSON.parse(body);
+    } catch {
+      // Not JSON, proceed to regular error handling
+    }
+
+    const isTemperatureError =
+      errorData.error?.param === "temperature" ||
+      errorData.error?.message?.includes("temperature") ||
+      errorData.error?.message?.includes("default");
+
+    if (isTemperatureError) {
+      console.warn("[Battle LLM] Temperature not supported, retrying without it");
+      res = await makeRequest(false);
+    }
+  }
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
