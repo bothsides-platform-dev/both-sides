@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   });
 
-  if (!battle) return { title: "맞짱을 찾을 수 없습니다" };
+  if (!battle || battle.isHidden) return { title: "맞짱을 찾을 수 없습니다" };
 
   const challengerName = battle.challenger.nickname || battle.challenger.name || "도전자";
   const challengedName = battle.challenged.nickname || battle.challenged.name || "상대";
@@ -34,10 +34,10 @@ export default async function BattlePage({ params }: Props) {
 
   const battle = await prisma.battle.findUnique({
     where: { id },
-    select: { id: true },
+    select: { id: true, isHidden: true },
   });
 
-  if (!battle) notFound();
+  if (!battle || battle.isHidden) notFound();
 
   return <BattleClient battleId={id} />;
 }

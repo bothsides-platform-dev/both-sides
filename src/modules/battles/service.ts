@@ -11,7 +11,14 @@ import {
 import { calculateElapsedDrain, calculatePenalty } from "./timer";
 import { evaluateGround, generateOpeningMessage, generateVictoryMessage } from "./host";
 import { broadcastToBattle } from "./sse";
-import type { CreateChallengeInput, GetBattlesInput, BattleCommentInput } from "./schema";
+import type {
+  CreateChallengeInput,
+  GetBattlesInput,
+  BattleCommentInput,
+  GetBattlesAdminInput,
+  HideBattleInput,
+  ForceEndBattleInput,
+} from "./schema";
 import type { BattleStats } from "./types";
 
 const BATTLE_INCLUDE = {
@@ -55,6 +62,17 @@ export async function createChallenge(challengerId: string, input: CreateChallen
   });
   if (activeBattles >= MAX_ACTIVE_BATTLES_PER_USER) {
     throw new ConflictError("이미 진행 중인 맞짱이 있습니다.");
+  }
+
+  // Check max active battles for challenged user
+  const challengedActiveBattles = await prisma.battle.count({
+    where: {
+      OR: [{ challengerId: challengedId }, { challengedId: challengedId }],
+      status: { in: ["PENDING", "SETUP", "ACTIVE"] },
+    },
+  });
+  if (challengedActiveBattles >= MAX_ACTIVE_BATTLES_PER_USER) {
+    throw new ConflictError("상대방이 이미 진행 중인 맞짱이 있습니다.");
   }
 
   // Verify topic exists
@@ -577,7 +595,7 @@ export async function getBattles(input: GetBattlesInput) {
   const { topicId, status, page, limit } = input;
   const skip = (page - 1) * limit;
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { isHidden: false };
   if (topicId) where.topicId = topicId;
   if (status) where.status = status;
 
@@ -608,6 +626,7 @@ export async function getActiveBattlesForTopic(topicId: string) {
     where: {
       topicId,
       status: { in: ["ACTIVE", "SETUP"] },
+      isHidden: false,
     },
     include: BATTLE_INCLUDE,
     orderBy: { startedAt: "desc" },
@@ -711,6 +730,173 @@ export async function getUserBattleStats(userId: string): Promise<BattleStats> {
     losses: total - wins,
     total,
   };
+}
+
+// ── Admin Functions ──
+
+export async function getBattlesForAdmin(input: GetBattlesAdminInput) {
+  const { page, limit, status, search } = input;
+  const skip = (page - 1) * limit;
+
+  const where: Record<string, unknown> = {};
+
+  if (status === "active") {
+    where.status = { in: ["PENDING", "SETUP", "ACTIVE"] };
+  } else if (status === "completed") {
+    where.status = { in: ["COMPLETED", "RESIGNED", "ABANDONED", "DECLINED", "EXPIRED"] };
+  } else if (status === "hidden") {
+    where.isHidden = true;
+  }
+
+  if (search) {
+    where.OR = [
+      { topic: { title: { contains: search, mode: "insensitive" } } },
+      { challenger: { nickname: { contains: search, mode: "insensitive" } } },
+      { challenger: { name: { contains: search, mode: "insensitive" } } },
+      { challenged: { nickname: { contains: search, mode: "insensitive" } } },
+      { challenged: { name: { contains: search, mode: "insensitive" } } },
+    ];
+  }
+
+  const [battles, total] = await Promise.all([
+    prisma.battle.findMany({
+      where,
+      include: {
+        ...BATTLE_INCLUDE,
+        _count: { select: { messages: true, comments: true } },
+      },
+      orderBy: { challengedAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.battle.count({ where }),
+  ]);
+
+  return {
+    battles,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+export async function getBattleForAdmin(battleId: string) {
+  const battle = await prisma.battle.findUnique({
+    where: { id: battleId },
+    include: {
+      ...BATTLE_INCLUDE,
+      _count: { select: { messages: true, comments: true } },
+    },
+  });
+
+  if (!battle) throw new NotFoundError("맞짱을 찾을 수 없습니다.");
+  return battle;
+}
+
+export async function hideBattle(battleId: string, input: HideBattleInput) {
+  const battle = await prisma.battle.findUnique({
+    where: { id: battleId },
+    select: { id: true },
+  });
+  if (!battle) throw new NotFoundError("맞짱을 찾을 수 없습니다.");
+
+  return prisma.battle.update({
+    where: { id: battleId },
+    data: {
+      isHidden: input.isHidden,
+      hiddenAt: input.isHidden ? new Date() : null,
+      hiddenReason: input.isHidden ? (input.reason ?? null) : null,
+    },
+    include: BATTLE_INCLUDE,
+  });
+}
+
+export async function forceEndBattle(battleId: string, input: ForceEndBattleInput) {
+  const battle = await prisma.battle.findUnique({
+    where: { id: battleId },
+    include: BATTLE_INCLUDE,
+  });
+
+  if (!battle) throw new NotFoundError("맞짱을 찾을 수 없습니다.");
+  if (!["PENDING", "SETUP", "ACTIVE"].includes(battle.status)) {
+    throw new ConflictError("진행 중인 맞짱만 강제 종료할 수 있습니다.");
+  }
+
+  const reasonText = input.reason
+    ? `관리자에 의해 맞짱이 종료되었습니다. (사유: ${input.reason})`
+    : "관리자에 의해 맞짱이 종료되었습니다.";
+
+  const updated = await prisma.battle.update({
+    where: { id: battleId },
+    data: {
+      status: "COMPLETED",
+      winnerId: null,
+      endReason: "admin_force_ended",
+      endedAt: new Date(),
+      currentTurn: null,
+      turnStartedAt: null,
+      lastActivityAt: new Date(),
+    },
+    include: BATTLE_INCLUDE,
+  });
+
+  // Create host message
+  await prisma.battleMessage.create({
+    data: {
+      battleId,
+      role: "HOST",
+      content: reasonText,
+    },
+  });
+
+  // Notify both participants
+  await Promise.all([
+    prisma.notification.create({
+      data: {
+        userId: battle.challengerId,
+        type: "BATTLE_ENDED",
+        topicId: battle.topicId,
+        battleId: battle.id,
+      },
+    }),
+    prisma.notification.create({
+      data: {
+        userId: battle.challengedId,
+        type: "BATTLE_ENDED",
+        topicId: battle.topicId,
+        battleId: battle.id,
+      },
+    }),
+  ]);
+
+  broadcastToBattle(battleId, { type: "battle:end", data: updated });
+
+  return updated;
+}
+
+export async function deleteBattle(battleId: string) {
+  const battle = await prisma.battle.findUnique({
+    where: { id: battleId },
+    select: { id: true },
+  });
+  if (!battle) throw new NotFoundError("맞짱을 찾을 수 없습니다.");
+
+  await prisma.battle.delete({ where: { id: battleId } });
+}
+
+export async function getAdminBattleStats() {
+  const [total, active, pending, completed, hidden] = await Promise.all([
+    prisma.battle.count(),
+    prisma.battle.count({ where: { status: "ACTIVE" } }),
+    prisma.battle.count({ where: { status: "PENDING" } }),
+    prisma.battle.count({ where: { status: { in: ["COMPLETED", "RESIGNED", "ABANDONED"] } } }),
+    prisma.battle.count({ where: { isHidden: true } }),
+  ]);
+
+  return { total, active, pending, completed, hidden };
 }
 
 // ── Lazy Cleanup ──

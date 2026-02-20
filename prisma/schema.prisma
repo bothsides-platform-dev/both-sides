@@ -463,6 +463,10 @@ model Battle {
   winner            User?          @relation("WonBattles", fields: [winnerId], references: [id], onDelete: SetNull)
   challengerOpinion Opinion?       @relation("ChallengerOpinion", fields: [challengerOpinionId], references: [id], onDelete: SetNull)
   challengedOpinion Opinion?       @relation("ChallengedOpinion", fields: [challengedOpinionId], references: [id], onDelete: SetNull)
+  isHidden          Boolean        @default(false)
+  hiddenAt          DateTime?
+  hiddenReason      String?        @db.VarChar(500)
+
   messages          BattleMessage[]
   comments          BattleComment[]
   notifications     Notification[]
@@ -473,6 +477,7 @@ model Battle {
   @@index([status])
   @@index([topicId, status])
   @@index([lastActivityAt])
+  @@index([isHidden])
 }
 
 model BattleMessage {

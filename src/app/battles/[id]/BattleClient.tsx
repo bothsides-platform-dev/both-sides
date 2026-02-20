@@ -15,6 +15,7 @@ import { BattleSetupDialog } from "@/components/battle/BattleSetupDialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Swords, Flag, Wifi, WifiOff } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -26,6 +27,7 @@ interface BattleClientProps {
 export function BattleClient({ battleId }: BattleClientProps) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id;
+  const { showToast } = useToast();
 
   const { data: battleData, mutate: mutateBattle } = useSWR(
     `/api/battles/${battleId}`,
@@ -106,14 +108,19 @@ export function BattleClient({ battleId }: BattleClientProps) {
 
   const handleRespond = async (accept: boolean) => {
     try {
-      await fetch(`/api/battles/${battleId}/respond`, {
+      const res = await fetch(`/api/battles/${battleId}/respond`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accept }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || "응답에 실패했습니다.", "error");
+        return;
+      }
       mutateBattle();
     } catch {
-      // Error handled by SWR revalidation
+      showToast("응답에 실패했습니다.", "error");
     }
   };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Trophy, Flag, Clock } from "lucide-react";
+import { Trophy, Flag, Clock, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BattleResultBannerProps {
@@ -16,19 +16,39 @@ export function BattleResultBanner({
   winnerName,
   endReason,
 }: BattleResultBannerProps) {
+  const isAdminForceEnded = endReason === "admin_force_ended";
   const isWinner = winnerId === currentUserId;
   const isParticipant = !!currentUserId;
 
   const reasonLabel =
-    endReason === "hp_zero"
-      ? "HP 소진"
-      : endReason === "resigned"
-        ? "기권"
-        : endReason === "abandoned"
-          ? "시간 초과"
-          : "배틀 종료";
+    endReason === "admin_force_ended"
+      ? "관리자 종료"
+      : endReason === "hp_zero"
+        ? "HP 소진"
+        : endReason === "resigned"
+          ? "기권"
+          : endReason === "abandoned"
+            ? "시간 초과"
+            : "배틀 종료";
 
-  const Icon = endReason === "resigned" ? Flag : endReason === "abandoned" ? Clock : Trophy;
+  const Icon =
+    endReason === "admin_force_ended"
+      ? ShieldAlert
+      : endReason === "resigned"
+        ? Flag
+        : endReason === "abandoned"
+          ? Clock
+          : Trophy;
+
+  if (isAdminForceEnded) {
+    return (
+      <div className="rounded-lg p-4 text-center bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
+        <ShieldAlert className="h-8 w-8 mx-auto mb-2 text-red-500" />
+        <h3 className="font-bold text-lg">관리자에 의해 종료되었습니다</h3>
+        <p className="text-sm text-muted-foreground mt-1">{reasonLabel}</p>
+      </div>
+    );
+  }
 
   return (
     <div

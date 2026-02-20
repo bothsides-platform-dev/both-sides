@@ -46,3 +46,23 @@ export const getBattlesSchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(10),
 });
 export type GetBattlesInput = z.infer<typeof getBattlesSchema>;
+
+// Admin schemas
+export const getBattlesAdminSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+  status: z.enum(["all", "active", "completed", "hidden"]).default("all"),
+  search: z.string().optional(),
+});
+export type GetBattlesAdminInput = z.infer<typeof getBattlesAdminSchema>;
+
+export const hideBattleSchema = z.object({
+  isHidden: z.boolean(),
+  reason: z.string().max(500, "사유는 500자 이내여야 합니다.").optional(),
+});
+export type HideBattleInput = z.infer<typeof hideBattleSchema>;
+
+export const forceEndBattleSchema = z.object({
+  reason: z.string().max(500, "사유는 500자 이내여야 합니다.").optional(),
+});
+export type ForceEndBattleInput = z.infer<typeof forceEndBattleSchema>;
