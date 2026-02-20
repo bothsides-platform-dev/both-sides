@@ -129,7 +129,7 @@ export const createOpenAiProvider = (config: OpenAiConfig): LlmProvider => {
       model: config.modelGenerate,
       messages,
       temperature: input.temperature,
-      max_tokens: input.maxTokens
+      max_completion_tokens: input.maxTokens
     };
 
     const data = await callWithRetry(payload, opts);
@@ -150,7 +150,7 @@ export const createOpenAiProvider = (config: OpenAiConfig): LlmProvider => {
       model: input.model ?? config.modelGenerate,
       messages: [{ role: "user", content: input.prompt }],
       temperature: input.temperature ?? 0.7,
-      max_tokens: input.maxTokens ?? 256
+      max_completion_tokens: input.maxTokens ?? 256
     };
 
     const data = await callWithRetry(payload, opts);
