@@ -70,6 +70,8 @@ async function callLlm(prompt: string): Promise<{ text: string }> {
   });
 
   if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error(`[Battle LLM] API error ${res.status}: ${body}`);
     throw new Error(`LLM API error: ${res.status}`);
   }
 
