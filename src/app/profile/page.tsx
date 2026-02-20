@@ -17,7 +17,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import { getNextBadge } from "@/lib/badges";
 import { fetcher } from "@/lib/fetcher";
 import { useToast } from "@/components/ui/toast";
-import { Loader2, MessageSquare, Vote, Pencil, ListChecks, Heart } from "lucide-react";
+import { Loader2, MessageSquare, Vote, Pencil, ListChecks, Heart, Swords } from "lucide-react";
 import Link from "next/link";
 import type { Category, Side } from "@prisma/client";
 import type { EarnedBadge, BadgeProgress, UserActivityStats } from "@/lib/badges";
@@ -68,6 +68,7 @@ interface ProfileData {
   badges: EarnedBadge[];
   badgeProgress: BadgeProgress[];
   isAutoDefaultBadge?: boolean;
+  battleStats?: { wins: number; losses: number; total: number };
 }
 
 export default function ProfilePage() {
@@ -182,6 +183,12 @@ export default function ProfilePage() {
                       <Heart className="h-4 w-4" />
                       {profile?.reactionsCount ?? 0}개 반응
                     </span>
+                    {profile?.battleStats && profile.battleStats.total > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Swords className="h-4 w-4 text-orange-500" />
+                        {profile.battleStats.wins}승 {profile.battleStats.losses}패
+                      </span>
+                    )}
                   </div>
                 </div>
                 <Button

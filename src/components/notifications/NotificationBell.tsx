@@ -31,6 +31,7 @@ interface Notification {
     id: string;
     title: string;
   } | null;
+  battleId: string | null;
 }
 
 export function NotificationBell() {
