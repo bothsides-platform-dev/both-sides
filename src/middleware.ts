@@ -103,6 +103,30 @@ const uploadLimiter = redis
     })
   : null;
 
+const battleChallengeLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(3, "60 s"),
+      prefix: "ratelimit:battle:challenge",
+    })
+  : null;
+
+const battleGroundLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(5, "10 s"),
+      prefix: "ratelimit:battle:ground",
+    })
+  : null;
+
+const battleCommentLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(5, "10 s"),
+      prefix: "ratelimit:battle:comment",
+    })
+  : null;
+
 const RATE_LIMITED_ROUTES: Array<{
   pattern: RegExp;
   limiter: Ratelimit | null;
@@ -136,6 +160,21 @@ const RATE_LIMITED_ROUTES: Array<{
   {
     pattern: /^\/api\/upload$/,
     limiter: uploadLimiter,
+    methods: ["POST"],
+  },
+  {
+    pattern: /^\/api\/battles\/challenge$/,
+    limiter: battleChallengeLimiter,
+    methods: ["POST"],
+  },
+  {
+    pattern: /^\/api\/battles\/[^/]+\/grounds$/,
+    limiter: battleGroundLimiter,
+    methods: ["POST"],
+  },
+  {
+    pattern: /^\/api\/battles\/[^/]+\/comments$/,
+    limiter: battleCommentLimiter,
     methods: ["POST"],
   },
 ];

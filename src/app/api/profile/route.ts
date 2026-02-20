@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { validateRequest, nicknameSchema } from "@/lib/validation";
 import { containsProfanity } from "@/lib/profanity";
 import { computeBadges, computeBadgeProgress, getDefaultBadgeId } from "@/lib/badges";
+import { getUserBattleStats } from "@/modules/battles/service";
 import { z } from "zod";
 
 const updateProfileSchema = z.object({
@@ -16,7 +17,7 @@ export async function GET() {
   try {
     const user = await requireAuth();
 
-    const [votes, opinions, topics, votesCount, opinionsCount, topicsCount, reactionsCount, userInfo] = await Promise.all([
+    const [votes, opinions, topics, votesCount, opinionsCount, topicsCount, reactionsCount, userInfo, battleStats] = await Promise.all([
       prisma.vote.findMany({
         where: { userId: user.id },
         orderBy: { createdAt: "desc" },
@@ -56,6 +57,7 @@ export async function GET() {
       prisma.topic.count({ where: { authorId: user.id } }),
       prisma.reaction.count({ where: { userId: user.id } }),
       prisma.user.findUnique({ where: { id: user.id }, select: { joinOrder: true, selectedBadgeId: true } }),
+      getUserBattleStats(user.id),
     ]);
 
     // Compute badges
@@ -88,6 +90,7 @@ export async function GET() {
         isAutoDefaultBadge: !rawSelectedBadgeId,
         badges,
         badgeProgress,
+        battleStats,
       },
     });
   } catch (error) {

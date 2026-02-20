@@ -62,6 +62,11 @@ export async function getNotifications(userId: string, input: GetNotificationsIn
             title: true,
           },
         },
+        battle: {
+          select: {
+            id: true,
+          },
+        },
       },
     }),
     prisma.notification.count({ where: { userId } }),
