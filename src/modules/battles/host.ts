@@ -51,7 +51,7 @@ async function callLlm(prompt: string): Promise<{ text: string }> {
   }
 
   const baseUrl = settings.baseUrl || "https://api.openai.com/v1";
-  const model = settings.modelGrounds || "gpt-4o";
+  const model = settings.modelGrounds || "gpt-5";
   const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
 
   const makeRequest = async (includeTemperature: boolean) => {
