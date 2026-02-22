@@ -59,7 +59,7 @@ export async function getTopics(input: GetTopicsInput) {
 
   const orderBy =
     sort === "popular"
-      ? { votes: { _count: "desc" as const } }
+      ? { viewCount: "desc" as const }
       : { createdAt: "desc" as const };
 
   const [topics, total] = await Promise.all([
