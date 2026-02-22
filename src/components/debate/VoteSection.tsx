@@ -42,6 +42,61 @@ function getVoteStatusText(aPercentage: number, optionA: string, optionB: string
   else return `${optionB}이(가) 앞서고 있습니다`;
 }
 
+const voteButtonConfig = {
+  A: {
+    selectedVariant: "sideA",
+    unselectedVariant: "sideAOutline",
+    ringClass: "ring-2 ring-sideA ring-offset-2 shadow-lg",
+  },
+  B: {
+    selectedVariant: "sideB",
+    unselectedVariant: "sideBOutline",
+    ringClass: "ring-2 ring-sideB ring-offset-2 shadow-lg",
+  },
+} as const;
+
+interface VoteButtonProps {
+  side: Side;
+  optionText: string;
+  selected: boolean;
+  isVoting: boolean;
+  isVotingClosed: boolean;
+  onVote: (side: Side) => Promise<void> | void;
+}
+
+function VoteButton({ side, optionText, selected, isVoting, isVotingClosed, onVote }: VoteButtonProps) {
+  const { selectedVariant, unselectedVariant, ringClass } = voteButtonConfig[side];
+  const showSpinner = isVoting && !selected;
+  const optionLabel = side;
+
+  return (
+    <Button
+      variant={selected ? selectedVariant : unselectedVariant}
+      className={cn(
+        "flex-1 min-w-0 whitespace-normal min-h-14 py-3 flex-col gap-0.5 sm:min-h-20 sm:py-4 sm:gap-1.5 relative transition-all duration-200",
+        "active:scale-[0.98]",
+        selected && ringClass
+      )}
+      onClick={() => onVote(side)}
+      disabled={isVoting || isVotingClosed}
+      aria-pressed={selected}
+      aria-label={`${optionText}에 투표`}
+    >
+      {showSpinner && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+      )}
+      <span className={cn("text-xs sm:text-sm font-medium opacity-70", showSpinner && "invisible")}>
+        {optionLabel}
+      </span>
+      <span className={cn("text-sm sm:text-base md:text-lg font-bold", showSpinner && "invisible")}>
+        {optionText}
+      </span>
+    </Button>
+  );
+}
+
 export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSectionProps) {
   const [isVoting, setIsVoting] = useState(false);
   const { showRateLimitError, showToast } = useToast();
@@ -107,9 +162,6 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
     }
   };
 
-  const showSpinnerA = isVoting && myVote !== "A";
-  const showSpinnerB = isVoting && myVote !== "B";
-
   return (
     <div className="rounded-2xl bg-muted/30 p-6 space-y-5">
       <div className="flex items-center justify-between">
@@ -146,63 +198,23 @@ export function VoteSection({ topicId, optionA, optionB, deadline }: VoteSection
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-        <Button
-          variant={myVote === "A" ? "sideA" : "sideAOutline"}
-          className={cn(
-            "flex-1 min-w-0 whitespace-normal min-h-14 py-3 flex-col gap-0.5 sm:min-h-20 sm:py-4 sm:gap-1.5 relative transition-all duration-200",
-            "active:scale-[0.98]",
-            myVote === "A" && "ring-2 ring-sideA ring-offset-2 shadow-lg"
-          )}
-          onClick={() => handleVote("A")}
-          disabled={isVoting || isVotingClosed}
-          aria-pressed={myVote === "A"}
-          aria-label={`${optionA}에 투표`}
-        >
-          {showSpinnerA && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          )}
-          <span
-            className={cn("text-xs sm:text-sm font-medium opacity-70", showSpinnerA && "invisible")}
-          >
-            A
-          </span>
-          <span
-            className={cn("text-sm sm:text-base md:text-lg font-bold", showSpinnerA && "invisible")}
-          >
-            {optionA}
-          </span>
-        </Button>
+        <VoteButton
+          side="A"
+          optionText={optionA}
+          selected={myVote === "A"}
+          isVoting={isVoting}
+          isVotingClosed={isVotingClosed}
+          onVote={handleVote}
+        />
 
-        <Button
-          variant={myVote === "B" ? "sideB" : "sideBOutline"}
-          className={cn(
-            "flex-1 min-w-0 whitespace-normal min-h-14 py-3 flex-col gap-0.5 sm:min-h-20 sm:py-4 sm:gap-1.5 relative transition-all duration-200",
-            "active:scale-[0.98]",
-            myVote === "B" && "ring-2 ring-sideB ring-offset-2 shadow-lg"
-          )}
-          onClick={() => handleVote("B")}
-          disabled={isVoting || isVotingClosed}
-          aria-pressed={myVote === "B"}
-          aria-label={`${optionB}에 투표`}
-        >
-          {showSpinnerB && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          )}
-          <span
-            className={cn("text-xs sm:text-sm font-medium opacity-70", showSpinnerB && "invisible")}
-          >
-            B
-          </span>
-          <span
-            className={cn("text-sm sm:text-base md:text-lg font-bold", showSpinnerB && "invisible")}
-          >
-            {optionB}
-          </span>
-        </Button>
+        <VoteButton
+          side="B"
+          optionText={optionB}
+          selected={myVote === "B"}
+          isVoting={isVoting}
+          isVotingClosed={isVotingClosed}
+          onVote={handleVote}
+        />
       </div>
 
       {/* Vote Stats Bar */}

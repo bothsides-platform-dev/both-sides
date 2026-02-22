@@ -20,6 +20,7 @@ import { formatRelativeTime, getGuestLabel, getAnonymousLabel } from "@/lib/util
 import { useToast } from "@/components/ui/toast";
 import { ReportDialog } from "./ReportDialog";
 import { ReplyForm } from "./ReplyForm";
+import { BattleChallengeButton } from "@/components/battle/BattleChallengeButton";
 import type { Opinion } from "./types";
 import type { ReactionType, Side } from "@prisma/client";
 
@@ -282,6 +283,14 @@ export const OpinionItem = memo(function OpinionItem({
               <ThumbsUp className="h-4 w-4 md:h-3 md:w-3" />
               <span className="font-medium">{opinion.reactionSummary.likes}</span>
             </button>
+            {opinion.user?.id && session?.user && (
+              <BattleChallengeButton
+                opinionId={opinion.id}
+                opinionUserId={opinion.user.id}
+                topicId={opinion.topicId || ""}
+                currentUserId={currentUserId}
+              />
+            )}
             {(session?.user || userVoteSide) && (
               <>
                 {hasReplies && onToggleReplies ? (

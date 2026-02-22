@@ -12,6 +12,7 @@ import { CATEGORY_LABELS, CATEGORY_TO_SLUG } from "@/lib/constants";
 import { ReferenceLinksCollapsible } from "@/components/topics/ReferenceLinksCollapsible";
 import { TopicSummary } from "@/components/debate/TopicSummary";
 import { GroundsSection } from "@/components/debate/GroundsSection";
+import { ActiveBattlesSection } from "@/components/battle/ActiveBattlesSection";
 import { RelatedTopics } from "@/components/topics/RelatedTopics";
 import { TopicImageGallery } from "@/components/topics/TopicImageGallery";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
@@ -250,6 +251,9 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
 
       {/* AI Grounds Analysis */}
       <GroundsSection topicId={topic.id} optionA={topic.optionA} optionB={topic.optionB} />
+
+      {/* Active Battles */}
+      <ActiveBattlesSection topicId={topic.id} />
 
       {/* Opinions Section */}
       <OpinionSection

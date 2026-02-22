@@ -32,6 +32,7 @@ interface Notification {
     id: string;
     title: string;
   } | null;
+  battleId: string | null;
 }
 
 interface NotificationsResponse {

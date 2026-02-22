@@ -55,6 +55,36 @@ enum FeedbackStatus {
 
 enum NotificationType {
   REPLY
+  BATTLE_CHALLENGE
+  BATTLE_ACCEPTED
+  BATTLE_DECLINED
+  BATTLE_STARTED
+  BATTLE_YOUR_TURN
+  BATTLE_ENDED
+}
+
+enum BattleStatus {
+  PENDING
+  SETUP
+  ACTIVE
+  COMPLETED
+  RESIGNED
+  ABANDONED
+  DECLINED
+  EXPIRED
+}
+
+enum BattleMessageRole {
+  HOST
+  CHALLENGER
+  CHALLENGED
+  SYSTEM
+}
+
+enum BattleResult {
+  WIN
+  LOSS
+  DRAW
 }
 
 // NextAuth required models
@@ -126,6 +156,11 @@ model User {
   siteReviews SiteReview[]
   receivedNotifications Notification[] @relation("ReceivedNotifications")
   sentNotifications     Notification[] @relation("SentNotifications")
+  challengerBattles     Battle[]        @relation("ChallengerBattles")
+  challengedBattles     Battle[]        @relation("ChallengedBattles")
+  wonBattles            Battle[]        @relation("WonBattles")
+  battleMessages        BattleMessage[]
+  battleComments        BattleComment[]
 
   @@index([isBlacklisted])
 }
@@ -167,6 +202,7 @@ model Topic {
   topicSummary     TopicSummary?
   groundsSummaries GroundsSummary[]
   opinionGrounds   OpinionGround[]
+  battles          Battle[]
 
   @@index([authorId])
   @@index([category])
@@ -237,6 +273,8 @@ model Opinion {
   opinionGround           OpinionGround?
   notificationsAsOriginal Notification[] @relation("NotifiedOpinion")
   notificationsAsReply    Notification[] @relation("NotifyingReply")
+  challengerBattles       Battle[]       @relation("ChallengerOpinion")
+  challengedBattles       Battle[]       @relation("ChallengedOpinion")
 
   @@index([topicId])
   @@index([userId])
@@ -319,6 +357,7 @@ model Notification {
   replyId   String? // 새 답글
   topicId   String? // 토론
   actorId   String? // 답글 작성자
+  battleId  String? // 맞짱 배틀
 
   createdAt DateTime @default(now())
 
@@ -327,6 +366,7 @@ model Notification {
   opinion Opinion? @relation("NotifiedOpinion", fields: [opinionId], references: [id], onDelete: Cascade)
   reply   Opinion? @relation("NotifyingReply", fields: [replyId], references: [id], onDelete: Cascade)
   topic   Topic?   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  battle  Battle?  @relation(fields: [battleId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
   @@index([userId, createdAt])
@@ -391,6 +431,85 @@ model OpinionGround {
   topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@index([topicId, side])
+}
+
+model Battle {
+  id                  String       @id @default(cuid())
+  topicId             String
+  challengerId        String
+  challengedId        String
+  challengerSide      Side
+  challengedSide      Side
+  challengerOpinionId String?
+  challengedOpinionId String?
+  status              BattleStatus @default(PENDING)
+  durationSeconds     Int?
+  challengerHp        Int?
+  challengedHp        Int?
+  currentTurn         String?
+  turnStartedAt       DateTime?
+  challengeMessage    String?      @db.Text
+  winnerId            String?
+  endReason           String?
+  challengedAt        DateTime     @default(now())
+  acceptedAt          DateTime?
+  startedAt           DateTime?
+  endedAt             DateTime?
+  lastActivityAt      DateTime     @default(now())
+
+  topic             Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  challenger        User           @relation("ChallengerBattles", fields: [challengerId], references: [id], onDelete: Cascade)
+  challenged        User           @relation("ChallengedBattles", fields: [challengedId], references: [id], onDelete: Cascade)
+  winner            User?          @relation("WonBattles", fields: [winnerId], references: [id], onDelete: SetNull)
+  challengerOpinion Opinion?       @relation("ChallengerOpinion", fields: [challengerOpinionId], references: [id], onDelete: SetNull)
+  challengedOpinion Opinion?       @relation("ChallengedOpinion", fields: [challengedOpinionId], references: [id], onDelete: SetNull)
+  isHidden          Boolean        @default(false)
+  hiddenAt          DateTime?
+  hiddenReason      String?        @db.VarChar(500)
+
+  messages          BattleMessage[]
+  comments          BattleComment[]
+  notifications     Notification[]
+
+  @@index([topicId])
+  @@index([challengerId])
+  @@index([challengedId])
+  @@index([status])
+  @@index([topicId, status])
+  @@index([lastActivityAt])
+  @@index([isHidden])
+}
+
+model BattleMessage {
+  id           String            @id @default(cuid())
+  battleId     String
+  role         BattleMessageRole
+  userId       String?
+  content      String            @db.Text
+  hpChange     Int?
+  targetUserId String?
+  metadata     Json?
+  createdAt    DateTime          @default(now())
+
+  battle Battle @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([battleId, createdAt])
+  @@index([battleId])
+}
+
+model BattleComment {
+  id        String   @id @default(cuid())
+  battleId  String
+  userId    String
+  content   String   @db.VarChar(200)
+  createdAt DateTime @default(now())
+
+  battle Battle @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([battleId, createdAt])
+  @@index([userId])
 }
 
 model LlmSettings {

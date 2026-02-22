@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Swords } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NotificationItemProps {
@@ -30,9 +30,19 @@ interface NotificationItemProps {
       id: string;
       title: string;
     } | null;
+    battleId: string | null;
   };
   onRead: (id: string) => void;
 }
+
+const BATTLE_NOTIFICATION_MESSAGES: Record<string, (actorName: string) => string> = {
+  BATTLE_CHALLENGE: (name) => `${name}님이 맞짱을 신청했습니다!`,
+  BATTLE_ACCEPTED: (name) => `${name}님이 맞짱을 수락했습니다!`,
+  BATTLE_DECLINED: (name) => `${name}님이 맞짱을 거절했습니다.`,
+  BATTLE_STARTED: () => "맞짱이 시작되었습니다!",
+  BATTLE_YOUR_TURN: () => "맞짱에서 당신의 차례입니다!",
+  BATTLE_ENDED: () => "맞짱이 종료되었습니다.",
+};
 
 export function NotificationItem({ notification, onRead }: NotificationItemProps) {
   const actorName = notification.actor?.nickname || notification.actor?.name || "알 수 없는 사용자";
@@ -43,18 +53,42 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
       : notification.reply.body
     : "";
 
+  const isBattleNotification = notification.type.startsWith("BATTLE_");
+
   const handleClick = () => {
     if (!notification.isRead) {
       onRead(notification.id);
     }
   };
 
-  // Build URL with highlightReply parameter if reply exists
-  const href = notification.topic
-    ? notification.reply
+  // Build URL based on notification type
+  let href = "#";
+  if (isBattleNotification && notification.battleId) {
+    href = `/battles/${notification.battleId}`;
+  } else if (notification.topic) {
+    href = notification.reply
       ? `/topics/${notification.topic.id}?highlightReply=${notification.reply.id}`
-      : `/topics/${notification.topic.id}`
-    : "#";
+      : `/topics/${notification.topic.id}`;
+  }
+
+  const getMessage = () => {
+    if (isBattleNotification) {
+      const msgFn = BATTLE_NOTIFICATION_MESSAGES[notification.type];
+      return msgFn ? msgFn(actorName) : "새 알림이 있습니다.";
+    }
+    return (
+      <>
+        <span className="font-semibold">{actorName}</span>
+        님이 회원님의 의견에 답글을 남겼습니다
+      </>
+    );
+  };
+
+  const Icon = isBattleNotification ? Swords : MessageSquare;
+  const iconColor = isBattleNotification ? "text-orange-500" : "text-sideA";
+  const iconBg = isBattleNotification
+    ? notification.isRead ? "bg-muted" : "bg-orange-100 dark:bg-orange-950/30"
+    : notification.isRead ? "bg-muted" : "bg-sideA/20 dark:bg-sideA/30";
 
   return (
     <Link
@@ -66,13 +100,10 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
       )}
     >
       <div className="flex-shrink-0 mt-0.5">
-        <div className={cn(
-          "p-2 rounded-full",
-          notification.isRead ? "bg-muted" : "bg-sideA/20 dark:bg-sideA/30"
-        )}>
-          <MessageSquare className={cn(
+        <div className={cn("p-2 rounded-full", iconBg)}>
+          <Icon className={cn(
             "h-4 w-4",
-            notification.isRead ? "text-muted-foreground" : "text-sideA"
+            notification.isRead ? "text-muted-foreground" : iconColor
           )} />
         </div>
       </div>
@@ -81,10 +112,9 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
           "text-sm",
           !notification.isRead && "font-medium"
         )}>
-          <span className="font-semibold">{actorName}</span>
-          님이 회원님의 의견에 답글을 남겼습니다
+          {getMessage()}
         </p>
-        {replyPreview && (
+        {!isBattleNotification && replyPreview && (
           <p className="text-sm text-muted-foreground mt-0.5 truncate">
             &quot;{replyPreview}&quot;
           </p>
