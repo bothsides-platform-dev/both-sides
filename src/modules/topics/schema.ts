@@ -83,3 +83,10 @@ export type UpdateTopicInput = z.infer<typeof updateTopicSchema>;
 export type UpdateHiddenInput = z.infer<typeof updateHiddenSchema>;
 export type UpdateTopicAnonymityInput = z.infer<typeof updateTopicAnonymitySchema>;
 export type GetTopicsAdminInput = z.infer<typeof getTopicsAdminSchema>;
+
+export const getScheduledTopicsForMonthSchema = z.object({
+  year: z.coerce.number().int().min(2024).max(2100),
+  month: z.coerce.number().int().min(1).max(12),
+});
+
+export type GetScheduledTopicsForMonthInput = z.infer<typeof getScheduledTopicsForMonthSchema>;
