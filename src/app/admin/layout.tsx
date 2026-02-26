@@ -13,6 +13,7 @@ import {
   Star,
   Bot,
   Swords,
+  CalendarClock,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
 const navItems = [
   { href: "/admin", label: "대시보드", icon: LayoutDashboard },
   { href: "/admin/topics", label: "토론 관리", icon: MessageSquare },
+  { href: "/admin/schedule", label: "예약 관리", icon: CalendarClock },
   { href: "/admin/opinions", label: "의견 관리", icon: MessageCircle },
   { href: "/admin/battles", label: "맞짱 관리", icon: Swords },
   { href: "/admin/reports", label: "신고 관리", icon: Flag },

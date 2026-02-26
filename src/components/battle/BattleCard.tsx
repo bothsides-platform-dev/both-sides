@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Swords } from "lucide-react";
+import { Swords, Trophy } from "lucide-react";
 import { BattleHpBar } from "./BattleHpBar";
 import { cn } from "@/lib/utils";
 
@@ -23,13 +23,24 @@ interface BattleCardProps {
     challengerSide: string;
     challengedSide: string;
     topic: {
+      title?: string;
       optionA: string;
       optionB: string;
     };
+    winner?: { nickname: string | null; name: string | null } | null;
+    endReason?: string | null;
   };
+  showTopicTitle?: boolean;
 }
 
-export function BattleCard({ battle }: BattleCardProps) {
+const END_REASON_LABELS: Record<string, string> = {
+  hp_zero: "HP 소진",
+  timeout: "시간 초과",
+  resigned: "기권",
+  admin_force_ended: "관리자 종료",
+};
+
+export function BattleCard({ battle, showTopicTitle }: BattleCardProps) {
   const maxHp = battle.durationSeconds ?? 600;
   const challengerName = battle.challenger.nickname || battle.challenger.name || "도전자";
   const challengedName = battle.challenged.nickname || battle.challenged.name || "상대";
@@ -54,6 +65,10 @@ export function BattleCard({ battle }: BattleCardProps) {
             )}
           </div>
         </div>
+
+        {showTopicTitle && battle.topic.title && (
+          <p className="text-xs text-muted-foreground truncate mb-1">{battle.topic.title}</p>
+        )}
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div className="text-sm font-medium truncate text-right">
@@ -83,6 +98,16 @@ export function BattleCard({ battle }: BattleCardProps) {
               max={maxHp}
               label={challengedName}
             />
+          </div>
+        )}
+
+        {battle.status === "COMPLETED" && battle.winner && (
+          <div className="flex items-center gap-1.5 mt-2 text-xs text-amber-600 dark:text-amber-400">
+            <Trophy className="h-3.5 w-3.5" />
+            <span className="font-medium">{battle.winner.nickname || battle.winner.name}</span>
+            {battle.endReason && (
+              <span className="text-muted-foreground">· {END_REASON_LABELS[battle.endReason] ?? battle.endReason}</span>
+            )}
           </div>
         )}
       </div>

@@ -13,6 +13,7 @@ function handlePrismaNotFound(e: unknown): never {
   }
   throw e;
 }
+import { startOfMonth, endOfMonth } from "date-fns";
 import type {
   CreateTopicInput,
   GetTopicsInput,
@@ -21,6 +22,7 @@ import type {
   UpdateHiddenInput,
   UpdateTopicAnonymityInput,
   GetTopicsAdminInput,
+  GetScheduledTopicsForMonthInput,
 } from "./schema";
 
 export async function createTopic(authorId: string, input: CreateTopicInput) {
@@ -464,6 +466,33 @@ export async function getTopicsForLlmAdmin(input: {
       totalPages: Math.ceil(total / input.limit),
     },
   };
+}
+
+export async function getScheduledTopicsForMonth(input: GetScheduledTopicsForMonthInput) {
+  const date = new Date(input.year, input.month - 1);
+  const start = startOfMonth(date);
+  const end = endOfMonth(date);
+
+  return prisma.topic.findMany({
+    where: {
+      scheduledAt: {
+        gte: start,
+        lte: end,
+      },
+    },
+    orderBy: { scheduledAt: "asc" },
+    select: {
+      id: true,
+      title: true,
+      category: true,
+      optionA: true,
+      optionB: true,
+      scheduledAt: true,
+      createdAt: true,
+      isHidden: true,
+      author: { select: AUTHOR_SELECT },
+    },
+  });
 }
 
 /** 예약 발행: scheduledAt이 현재 시각 이전인 토픽의 scheduledAt을 null로 초기화합니다. */
