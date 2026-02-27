@@ -3,66 +3,49 @@ import { isKoreanOrEnglishOnly } from "@/lib/language";
 import type {
   TrendItem,
   CachedTrends,
-  SerpApiTrendingResponse,
+  NamuWikiTrendingResponse,
 } from "./types";
 
-const SERPAPI_BASE_URL = "https://serpapi.com/search.json";
+const NAMUWIKI_URL = "https://namu.wiki";
 
 /**
- * SerpAPI에서 한국 트렌딩 검색어 가져오기
+ * 나무위키에서 인기 검색어 가져오기
+ * 나무위키 메인 페이지에 JSON 요청을 보내면 인기 검색어 문자열 배열을 반환
  */
-async function fetchFromSerpApi(): Promise<TrendItem[]> {
-  const apiKey = process.env.SERPAPI_KEY;
-
-  if (!apiKey) {
-    console.error("SERPAPI_KEY 환경변수가 설정되지 않았습니다.");
-    throw new Error("트렌드 서비스를 사용할 수 없습니다.");
-  }
-
-  const params = new URLSearchParams({
-    engine: "google_trends_trending_now",
-    geo: "KR",
-    hl: "ko",
-    api_key: apiKey,
-  });
-
-  const response = await fetch(`${SERPAPI_BASE_URL}?${params.toString()}`, {
+async function fetchFromNamuWiki(): Promise<TrendItem[]> {
+  const response = await fetch(NAMUWIKI_URL, {
     headers: {
-      Accept: "application/json",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0",
+      Accept: "application/json, text/plain, */*",
+      "Accept-Language": "ko-KR,ko;q=0.8,en-US;q=0.5,en;q=0.3",
     },
+    method: "GET",
   });
 
   if (!response.ok) {
     console.error(
-      `SerpAPI 요청 실패: ${response.status} ${response.statusText}`
+      `나무위키 요청 실패: ${response.status} ${response.statusText}`
     );
     throw new Error("트렌드 데이터를 가져오는데 실패했습니다.");
   }
 
-  const data: SerpApiTrendingResponse = await response.json();
+  const data: NamuWikiTrendingResponse = await response.json();
 
-  if (data.error) {
-    console.error(`SerpAPI 에러: ${data.error}`);
+  if (!Array.isArray(data)) {
+    console.error("나무위키 응답이 배열이 아닙니다.");
     throw new Error("트렌드 데이터를 가져오는데 실패했습니다.");
   }
 
-  const trendingSearches = data.trending_searches || [];
-
   // 한국어 또는 영어만 포함하는 검색어로 필터링
-  const filteredSearches = trendingSearches.filter((item) =>
-    isKoreanOrEnglishOnly(item.query)
+  const filteredSearches = data.filter((query) =>
+    isKoreanOrEnglishOnly(query)
   );
 
   // TrendItem 형식으로 변환 (상위 20개만)
-  return filteredSearches.slice(0, 20).map((item, index) => ({
+  return filteredSearches.slice(0, 20).map((query, index) => ({
     rank: index + 1,
-    query: item.query,
-    traffic: item.formattedTraffic,
-    articles: item.articles?.slice(0, 3).map((article) => ({
-      title: article.title,
-      link: article.link,
-      source: article.source,
-    })),
+    query,
   }));
 }
 
@@ -87,8 +70,8 @@ export async function getTrendingSearches(): Promise<{
   }
 
   // API 호출
-  console.log("[Trends] SerpAPI에서 트렌드 데이터 가져오기");
-  const trends = await fetchFromSerpApi();
+  console.log("[Trends] 나무위키에서 트렌드 데이터 가져오기");
+  const trends = await fetchFromNamuWiki();
   const now = new Date();
   const expiresAt = now.getTime() + CACHE_TTL.TRENDS;
 
