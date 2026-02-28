@@ -14,7 +14,7 @@ export async function PATCH(
     const body = await request.json();
     const input = await validateRequest(respondChallengeSchema, body);
 
-    const battle = await respondToChallenge(id, user.id, input.accept);
+    const battle = await respondToChallenge(id, user.id, input.action, input.counterDuration);
     return Response.json({ data: battle });
   } catch (error) {
     return handleApiError(error);

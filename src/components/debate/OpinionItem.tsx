@@ -289,6 +289,9 @@ export const OpinionItem = memo(function OpinionItem({
                 opinionUserId={opinion.user.id}
                 topicId={opinion.topicId || ""}
                 currentUserId={currentUserId}
+                opinionSide={opinion.side}
+                optionA={optionA}
+                optionB={optionB}
               />
             )}
             {(session?.user || userVoteSide) && (

@@ -12,7 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
-import { Swords, Loader2 } from "lucide-react";
+import { Swords, Loader2, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { DURATION_OPTIONS, DURATION_LABELS } from "@/modules/battles/constants";
+import type { Side } from "@prisma/client";
 
 interface ChallengeDialogProps {
   open: boolean;
@@ -21,6 +24,9 @@ interface ChallengeDialogProps {
   challengedId: string;
   challengedOpinionId?: string;
   challengerOpinionId?: string;
+  challengedSide: Side;
+  optionA: string;
+  optionB: string;
 }
 
 export function ChallengeDialog({
@@ -30,10 +36,17 @@ export function ChallengeDialog({
   challengedId,
   challengedOpinionId,
   challengerOpinionId,
+  challengedSide,
+  optionA,
+  optionB,
 }: ChallengeDialogProps) {
   const [message, setMessage] = useState("");
+  const [durationSeconds, setDurationSeconds] = useState<number>(DURATION_OPTIONS[1]); // default 10min
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
+
+  const challengerSide: Side = challengedSide === "A" ? "B" : "A";
+  const challengerOptionText = challengerSide === "A" ? optionA : optionB;
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -47,6 +60,7 @@ export function ChallengeDialog({
           challengedOpinionId,
           challengerOpinionId,
           challengeMessage: message || undefined,
+          durationSeconds,
         }),
       });
 
@@ -79,6 +93,47 @@ export function ChallengeDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {/* Side display */}
+          <div className="rounded-lg border p-3 bg-muted/30">
+            <p className="text-sm font-medium mb-1">당신의 입장</p>
+            <div className="flex items-center gap-2">
+              <span className={cn(
+                "text-sm font-bold px-2 py-0.5 rounded",
+                challengerSide === "A"
+                  ? "bg-sideA/20 text-sideA"
+                  : "bg-sideB/20 text-sideB"
+              )}>
+                {challengerSide === "A" ? "A" : "B"}
+              </span>
+              <span className="text-sm">{challengerOptionText}</span>
+            </div>
+          </div>
+
+          {/* Duration picker */}
+          <div>
+            <label className="text-sm font-medium mb-1.5 flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
+              배틀 시간
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {DURATION_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setDurationSeconds(option)}
+                  className={cn(
+                    "px-3 py-2 text-sm rounded-lg border transition-colors",
+                    durationSeconds === option
+                      ? "border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400"
+                      : "border-border hover:border-orange-300 hover:bg-orange-50/50 dark:hover:bg-orange-950/10"
+                  )}
+                >
+                  {DURATION_LABELS[option]}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label className="text-sm font-medium mb-1.5 block">
               도발 메시지 (선택)

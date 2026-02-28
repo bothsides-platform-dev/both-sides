@@ -83,23 +83,8 @@ export async function createChallenge(challengerId: string, input: CreateChallen
   });
   if (!topic) throw new NotFoundError("토론을 찾을 수 없습니다.");
 
-  // Determine sides from opinions or votes
-  let challengerSide: "A" | "B" = "A";
+  // Determine challenged side from opinion or vote, then force challenger to opposite
   let challengedSide: "A" | "B" = "B";
-
-  if (challengerOpinionId) {
-    const opinion = await prisma.opinion.findUnique({
-      where: { id: challengerOpinionId },
-      select: { side: true },
-    });
-    if (opinion) challengerSide = opinion.side;
-  } else {
-    const vote = await prisma.vote.findFirst({
-      where: { topicId, userId: challengerId },
-      select: { side: true },
-    });
-    if (vote) challengerSide = vote.side;
-  }
 
   if (challengedOpinionId) {
     const opinion = await prisma.opinion.findUnique({
@@ -115,6 +100,8 @@ export async function createChallenge(challengerId: string, input: CreateChallen
     if (vote) challengedSide = vote.side;
   }
 
+  const challengerSide: "A" | "B" = challengedSide === "A" ? "B" : "A";
+
   const battle = await prisma.battle.create({
     data: {
       topicId,
@@ -125,6 +112,8 @@ export async function createChallenge(challengerId: string, input: CreateChallen
       challengerOpinionId,
       challengedOpinionId,
       challengeMessage,
+      durationSeconds: input.durationSeconds,
+      durationProposedBy: challengerId,
       status: "PENDING",
     },
     include: BATTLE_INCLUDE,
@@ -152,7 +141,8 @@ export async function createChallenge(challengerId: string, input: CreateChallen
 export async function respondToChallenge(
   battleId: string,
   userId: string,
-  accept: boolean
+  action: "accept" | "decline" | "counter",
+  counterDuration?: number
 ) {
   const battle = await prisma.battle.findUnique({
     where: { id: battleId },
@@ -160,14 +150,24 @@ export async function respondToChallenge(
   });
 
   if (!battle) throw new NotFoundError("맞짱을 찾을 수 없습니다.");
-  if (battle.challengedId !== userId) {
-    throw new ForbiddenError("이 맞짱에 응답할 권한이 없습니다.");
+
+  // The responder is whoever is NOT the current durationProposedBy
+  // Initially challenged user responds; after counter-proposals it swaps
+  const isChallenger = userId === battle.challengerId;
+  const isChallenged = userId === battle.challengedId;
+  if (!isChallenger && !isChallenged) {
+    throw new ForbiddenError("이 맞짱의 참가자가 아닙니다.");
+  }
+  if (battle.durationProposedBy === userId) {
+    throw new ForbiddenError("상대방의 응답을 기다려야 합니다.");
   }
   if (battle.status !== "PENDING") {
     throw new ConflictError("이미 응답된 맞짱입니다.");
   }
 
-  if (!accept) {
+  const otherUserId = isChallenger ? battle.challengedId : battle.challengerId;
+
+  if (action === "decline") {
     const declined = await prisma.battle.update({
       where: { id: battleId },
       data: { status: "DECLINED" },
@@ -176,7 +176,7 @@ export async function respondToChallenge(
 
     await prisma.notification.create({
       data: {
-        userId: battle.challengerId,
+        userId: otherUserId,
         actorId: userId,
         type: "BATTLE_DECLINED",
         topicId: battle.topicId,
@@ -184,7 +184,7 @@ export async function respondToChallenge(
       },
     });
 
-    broadcast(`user:${battle.challengerId}`, {
+    broadcast(`user:${otherUserId}`, {
       type: "notification:new",
       data: { type: "BATTLE_DECLINED" },
     });
@@ -192,43 +192,126 @@ export async function respondToChallenge(
     return declined;
   }
 
-  // Check if the challenged user already has active battles
+  if (action === "counter") {
+    const updated = await prisma.battle.update({
+      where: { id: battleId },
+      data: {
+        durationSeconds: counterDuration,
+        durationProposedBy: userId,
+        lastActivityAt: new Date(),
+      },
+      include: BATTLE_INCLUDE,
+    });
+
+    await prisma.notification.create({
+      data: {
+        userId: otherUserId,
+        actorId: userId,
+        type: "BATTLE_COUNTER_PROPOSAL",
+        topicId: battle.topicId,
+        battleId: battle.id,
+      },
+    });
+
+    broadcast(`user:${otherUserId}`, {
+      type: "notification:new",
+      data: { type: "BATTLE_COUNTER_PROPOSAL" },
+    });
+
+    broadcastToBattle(battleId, { type: "battle:state", data: updated });
+
+    return updated;
+  }
+
+  // action === "accept" — start the battle directly
   const activeBattles = await prisma.battle.count({
     where: {
       OR: [{ challengerId: userId }, { challengedId: userId }],
-      status: { in: ["SETUP", "ACTIVE"] },
+      status: "ACTIVE",
     },
   });
   if (activeBattles >= MAX_ACTIVE_BATTLES_PER_USER) {
     throw new ConflictError("이미 진행 중인 맞짱이 있습니다.");
   }
 
-  const accepted = await prisma.battle.update({
+  const hp = battle.durationSeconds ?? 600;
+
+  const updated = await prisma.battle.update({
     where: { id: battleId },
     data: {
-      status: "SETUP",
+      status: "ACTIVE",
+      challengerHp: hp,
+      challengedHp: hp,
+      currentTurn: battle.challengerId,
+      turnStartedAt: new Date(),
       acceptedAt: new Date(),
+      startedAt: new Date(),
       lastActivityAt: new Date(),
     },
     include: BATTLE_INCLUDE,
   });
 
-  await prisma.notification.create({
+  // Generate opening message
+  const openingMessage = await generateOpeningMessage(updated).catch(
+    () => "⚔️ 맞짱이 시작됩니다! 양측 모두 근거를 제시해주세요."
+  );
+
+  await prisma.battleMessage.create({
     data: {
-      userId: battle.challengerId,
-      actorId: userId,
-      type: "BATTLE_ACCEPTED",
-      topicId: battle.topicId,
-      battleId: battle.id,
+      battleId,
+      role: "HOST",
+      content: openingMessage,
     },
   });
 
-  broadcast(`user:${battle.challengerId}`, {
-    type: "notification:new",
-    data: { type: "BATTLE_ACCEPTED" },
+  // First turn prompt
+  const turnPrompt = await prisma.battleMessage.create({
+    data: {
+      battleId,
+      role: "HOST",
+      content: `${updated.challenger.nickname || updated.challenger.name}님, 근거를 제시해주세요.`,
+    },
+    include: MESSAGE_INCLUDE,
   });
 
-  return accepted;
+  // Notify both users
+  await Promise.all([
+    prisma.notification.create({
+      data: {
+        userId: battle.challengerId,
+        type: "BATTLE_STARTED",
+        topicId: battle.topicId,
+        battleId: battle.id,
+      },
+    }),
+    prisma.notification.create({
+      data: {
+        userId: battle.challengedId,
+        type: "BATTLE_STARTED",
+        topicId: battle.topicId,
+        battleId: battle.id,
+      },
+    }),
+  ]);
+
+  broadcast(`user:${battle.challengerId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_STARTED" },
+  });
+  broadcast(`user:${battle.challengedId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_STARTED" },
+  });
+
+  broadcastToBattle(battleId, { type: "battle:state", data: updated });
+  broadcastToBattle(battleId, { type: "battle:message", data: turnPrompt });
+
+  broadcast(`topic:${battle.topicId}`, {
+    type: "battle:active",
+    data: { battleId },
+  });
+
+  return updated;
 }
 
 export async function setupBattle(

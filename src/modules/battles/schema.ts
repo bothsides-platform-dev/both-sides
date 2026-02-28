@@ -7,12 +7,20 @@ export const createChallengeSchema = z.object({
   challengedOpinionId: z.string().cuid("유효하지 않은 의견 ID입니다.").optional(),
   challengerOpinionId: z.string().cuid("유효하지 않은 의견 ID입니다.").optional(),
   challengeMessage: z.string().max(500, "도발 메시지는 500자 이내여야 합니다.").optional(),
+  durationSeconds: z.number().refine(
+    (v) => (DURATION_OPTIONS as readonly number[]).includes(v),
+    "유효하지 않은 배틀 시간입니다."
+  ),
 });
 export type CreateChallengeInput = z.infer<typeof createChallengeSchema>;
 
 export const respondChallengeSchema = z.object({
-  accept: z.boolean(),
-});
+  action: z.enum(["accept", "decline", "counter"]),
+  counterDuration: z.number().optional(),
+}).refine(
+  (data) => data.action !== "counter" || (data.counterDuration !== undefined && (DURATION_OPTIONS as readonly number[]).includes(data.counterDuration)),
+  "시간 역제안 시 유효한 배틀 시간이 필요합니다."
+);
 export type RespondChallengeInput = z.infer<typeof respondChallengeSchema>;
 
 export const setupBattleSchema = z.object({

@@ -62,6 +62,7 @@ enum NotificationType {
   BATTLE_STARTED
   BATTLE_YOUR_TURN
   BATTLE_ENDED
+  BATTLE_COUNTER_PROPOSAL
 }
 
 enum BattleStatus {
@@ -450,6 +451,7 @@ model Battle {
   currentTurn         String?
   turnStartedAt       DateTime?
   challengeMessage    String?      @db.Text
+  durationProposedBy  String?
   winnerId            String?
   endReason           String?
   challengedAt        DateTime     @default(now())

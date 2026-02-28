@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
@@ -11,12 +11,12 @@ import { BattleChat } from "@/components/battle/BattleChat";
 import { BattleGroundInput } from "@/components/battle/BattleGroundInput";
 import { BattleObserverComments } from "@/components/battle/BattleObserverComments";
 import { BattleResultBanner } from "@/components/battle/BattleResultBanner";
-import { BattleSetupDialog } from "@/components/battle/BattleSetupDialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Swords, Flag, Wifi, WifiOff } from "lucide-react";
+import { ArrowLeft, Swords, Flag, Wifi, Clock } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
+import { DURATION_OPTIONS, DURATION_LABELS } from "@/modules/battles/constants";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -81,18 +81,12 @@ export function BattleClient({ battleId }: BattleClientProps) {
   // Keep ref in sync with latest mutate functions
   swrMutateRef.current = { battle: mutateBattle, messages: mutateMessages, comments: mutateComments };
 
-  const [showSetup, setShowSetup] = useState(false);
+  const [counterDuration, setCounterDuration] = useState<number | null>(null);
+  const [showCounterPicker, setShowCounterPicker] = useState(false);
 
   const battle = battleData?.data;
   const messages = messagesData?.data ?? [];
   const comments = commentsData?.data?.comments ?? [];
-
-  // Show setup dialog when battle is in SETUP status
-  useEffect(() => {
-    if (battle?.status === "SETUP" && isParticipant) {
-      setShowSetup(true);
-    }
-  }, [battle?.status]);
 
   if (!battle) {
     return (
@@ -110,8 +104,11 @@ export function BattleClient({ battleId }: BattleClientProps) {
   const isActive = battle.status === "ACTIVE";
   const isCompleted = ["COMPLETED", "RESIGNED", "ABANDONED"].includes(battle.status);
   const isPending = battle.status === "PENDING";
-  const isChallenged = currentUserId === battle.challengedId;
   const maxHp = battle.durationSeconds ?? 600;
+
+  // For PENDING negotiation: the responder is whoever is NOT durationProposedBy
+  const isResponder = isParticipant && battle.durationProposedBy !== currentUserId;
+  const isProposer = isParticipant && battle.durationProposedBy === currentUserId;
 
   const challengerName = battle.challenger.nickname || battle.challenger.name || "도전자";
   const challengedName = battle.challenged.nickname || battle.challenged.name || "상대";
@@ -120,18 +117,20 @@ export function BattleClient({ battleId }: BattleClientProps) {
       ? challengerName
       : challengedName;
 
-  const handleRespond = async (accept: boolean) => {
+  const handleRespond = async (action: "accept" | "decline" | "counter", counterDur?: number) => {
     try {
       const res = await fetch(`/api/battles/${battleId}/respond`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accept }),
+        body: JSON.stringify({ action, counterDuration: counterDur }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         showToast(data.error || "응답에 실패했습니다.", "error");
         return;
       }
+      setShowCounterPicker(false);
+      setCounterDuration(null);
       mutateBattle();
     } catch {
       showToast("응답에 실패했습니다.", "error");
@@ -149,6 +148,10 @@ export function BattleClient({ battleId }: BattleClientProps) {
       // Error handled by SWR revalidation
     }
   };
+
+  const durationLabel = battle.durationSeconds
+    ? (DURATION_LABELS[battle.durationSeconds as keyof typeof DURATION_LABELS] ?? `${Math.floor(battle.durationSeconds / 60)}분`)
+    : "미설정";
 
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-4">
@@ -185,25 +188,130 @@ export function BattleClient({ battleId }: BattleClientProps) {
         {battle.topic.title}
       </Link>
 
-      {/* Pending: Accept/Decline */}
-      {isPending && isChallenged && (
-        <div className="border rounded-lg p-4 space-y-3">
+      {/* Pending: Negotiation UI */}
+      {isPending && isParticipant && (
+        <div className="border rounded-lg p-4 space-y-4">
           <div className="flex items-center gap-2">
             <Swords className="h-5 w-5 text-orange-500" />
-            <span className="font-medium">{challengerName}님이 맞짱을 신청했습니다!</span>
+            <span className="font-medium">맞짱 대기 중</span>
           </div>
+
           {battle.challengeMessage && (
             <p className="text-sm bg-muted/50 rounded p-2 italic">
               &ldquo;{battle.challengeMessage}&rdquo;
             </p>
           )}
-          <div className="flex gap-2">
-            <Button onClick={() => handleRespond(true)} className="bg-orange-500 hover:bg-orange-600 text-white">
-              수락
-            </Button>
-            <Button variant="outline" onClick={() => handleRespond(false)}>
-              거절
-            </Button>
+
+          {/* Show both sides */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <div className="text-center space-y-1">
+              <div className="text-sm font-medium truncate">{challengerName}</div>
+              <span className={cn(
+                "inline-block text-xs font-bold px-2 py-0.5 rounded",
+                battle.challengerSide === "A"
+                  ? "bg-sideA/20 text-sideA"
+                  : "bg-sideB/20 text-sideB"
+              )}>
+                {battle.challengerSide === "A" ? battle.topic.optionA : battle.topic.optionB}
+              </span>
+            </div>
+            <div className="text-lg font-bold text-muted-foreground">VS</div>
+            <div className="text-center space-y-1">
+              <div className="text-sm font-medium truncate">{challengedName}</div>
+              <span className={cn(
+                "inline-block text-xs font-bold px-2 py-0.5 rounded",
+                battle.challengedSide === "A"
+                  ? "bg-sideA/20 text-sideA"
+                  : "bg-sideB/20 text-sideB"
+              )}>
+                {battle.challengedSide === "A" ? battle.topic.optionA : battle.topic.optionB}
+              </span>
+            </div>
+          </div>
+
+          {/* Proposed duration */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            <span>제안된 배틀 시간: <strong className="text-foreground">{durationLabel}</strong></span>
+          </div>
+
+          {/* Responder actions */}
+          {isResponder && (
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleRespond("accept")}
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                >
+                  수락
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCounterPicker(!showCounterPicker);
+                    setCounterDuration(null);
+                  }}
+                >
+                  시간 변경 제안
+                </Button>
+                <Button variant="outline" onClick={() => handleRespond("decline")}>
+                  거절
+                </Button>
+              </div>
+
+              {showCounterPicker && (
+                <div className="space-y-2 p-3 border rounded-lg bg-muted/30">
+                  <p className="text-sm font-medium">배틀 시간 선택</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {DURATION_OPTIONS.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => setCounterDuration(option)}
+                        className={cn(
+                          "px-3 py-2 text-sm rounded-lg border transition-colors",
+                          counterDuration === option
+                            ? "border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400"
+                            : "border-border hover:border-orange-300 hover:bg-orange-50/50 dark:hover:bg-orange-950/10"
+                        )}
+                      >
+                        {DURATION_LABELS[option]}
+                      </button>
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={counterDuration === null}
+                    onClick={() => counterDuration && handleRespond("counter", counterDuration)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    시간 역제안
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Proposer waiting */}
+          {isProposer && (
+            <p className="text-sm text-muted-foreground animate-pulse">
+              상대방의 응답을 기다리고 있습니다...
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Pending: Non-participant view */}
+      {isPending && !isParticipant && (
+        <div className="border rounded-lg p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Swords className="h-5 w-5 text-orange-500" />
+            <span className="font-medium">맞짱 대기 중</span>
+          </div>
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <div className="text-center text-sm font-medium truncate">{challengerName}</div>
+            <div className="text-lg font-bold text-muted-foreground">VS</div>
+            <div className="text-center text-sm font-medium truncate">{challengedName}</div>
           </div>
         </div>
       )}
@@ -315,14 +423,6 @@ export function BattleClient({ battleId }: BattleClientProps) {
           />
         </div>
       )}
-
-      {/* Setup Dialog */}
-      <BattleSetupDialog
-        open={showSetup}
-        onOpenChange={setShowSetup}
-        battleId={battleId}
-        onSetupComplete={() => mutateBattle()}
-      />
     </div>
   );
 }
