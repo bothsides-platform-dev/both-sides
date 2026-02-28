@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Vote, MessageSquare, Award, Users, ArrowRight } from "lucide-react";
+import { Vote, MessageSquare, Award, Users, ArrowRight, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -66,6 +66,41 @@ export default function AboutPage() {
           사회적 이슈까지, 두 가지 선택지 중 하나를 고르고 서로의 이유를 나누는
           토론 방식입니다. BothSides에서 다양한 사람들의 생각을 만나보세요.
         </p>
+      </section>
+
+      {/* 맞짱 배틀 */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-center gap-2">
+          <Swords className="h-6 w-6 text-orange-500" />
+          <h2 className="text-xl sm:text-2xl font-semibold">맞짱 배틀</h2>
+        </div>
+        <p className="text-muted-foreground max-w-2xl mx-auto text-center leading-relaxed">
+          의견이 다른 상대에게 직접 맞짱을 신청하세요! 1:1 실시간 토론 배틀로
+          자신의 주장을 펼치고, AI 심판의 판정을 받아보세요.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+          <div className="rounded-lg border bg-card p-4 text-center space-y-2">
+            <div className="text-2xl">🎯</div>
+            <h3 className="font-semibold text-sm">도전 신청</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              토론 주제에서 반대 의견을 가진 상대에게 맞짱을 걸 수 있습니다
+            </p>
+          </div>
+          <div className="rounded-lg border bg-card p-4 text-center space-y-2">
+            <div className="text-2xl">⚔️</div>
+            <h3 className="font-semibold text-sm">실시간 배틀</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              턴제로 근거를 주고받으며 상대의 HP를 깎는 실시간 토론 대결
+            </p>
+          </div>
+          <div className="rounded-lg border bg-card p-4 text-center space-y-2">
+            <div className="text-2xl">🏆</div>
+            <h3 className="font-semibold text-sm">AI 판정</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              AI가 근거의 타당성을 평가하고 승패를 판정합니다
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Features */}
