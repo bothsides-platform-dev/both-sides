@@ -8,6 +8,7 @@ import {
   Gamepad2,
   Cpu,
   Trophy,
+  Laugh,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +21,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   GAME: "게임",
   TECH: "기술",
   SPORTS: "스포츠",
+  HUMOR: "유머",
 };
 
 export interface CategoryMeta {
@@ -96,6 +98,14 @@ export const CATEGORY_META: Record<Category, CategoryMeta> = {
     bgColor: "bg-red-100 dark:bg-red-900/30",
     gradient: "from-red-500 to-orange-500",
   },
+  HUMOR: {
+    icon: Laugh,
+    label: "유머",
+    description: "웃음을 주는 유쾌한 토론과 재미있는 논쟁",
+    color: "text-lime-600 dark:text-lime-400",
+    bgColor: "bg-lime-100 dark:bg-lime-900/30",
+    gradient: "from-lime-500 to-green-500",
+  },
 };
 
 export const CATEGORY_SLUG_MAP: Record<string, Category> = {
@@ -107,6 +117,7 @@ export const CATEGORY_SLUG_MAP: Record<string, Category> = {
   game: "GAME",
   tech: "TECH",
   sports: "SPORTS",
+  humor: "HUMOR",
 };
 
 export const CATEGORY_TO_SLUG: Record<Category, string> = {
@@ -118,6 +129,7 @@ export const CATEGORY_TO_SLUG: Record<Category, string> = {
   GAME: "game",
   TECH: "tech",
   SPORTS: "sports",
+  HUMOR: "humor",
 };
 
 export const SIDE_LABELS: Record<Side, string> = {
@@ -148,6 +160,7 @@ export const CATEGORY_CSS_VAR: Record<Category, string> = {
   GAME: "var(--category-game)",
   TECH: "var(--category-tech)",
   SPORTS: "var(--category-sports)",
+  HUMOR: "var(--category-humor)",
 };
 
 // 블라인드 처리 기준 (신고 누적 수)

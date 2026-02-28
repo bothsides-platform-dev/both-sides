@@ -27,6 +27,7 @@ enum Category {
   GAME
   TECH
   SPORTS
+  HUMOR
 }
 
 enum ReactionType {

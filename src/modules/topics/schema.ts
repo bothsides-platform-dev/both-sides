@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TOPIC_MAX_IMAGES } from "@/lib/constants";
 
-const categoryEnum = z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH", "SPORTS"]);
+const categoryEnum = z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH", "SPORTS", "HUMOR"]);
 
 const referenceLinkSchema = z.object({
   url: z.string().url("올바른 URL 형식이 아닙니다.").max(2000, "URL은 2000자 이하여야 합니다.")
