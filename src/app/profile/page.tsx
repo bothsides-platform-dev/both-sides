@@ -135,6 +135,8 @@ export default function ProfilePage() {
         opinionsCount: profile.opinionsCount,
         topicsCount: profile.topicsCount,
         reactionsCount: profile.reactionsCount,
+        battlesTotal: profile.battleStats?.total ?? 0,
+        battlesWins: profile.battleStats?.wins ?? 0,
       })
     : null;
 
@@ -214,6 +216,8 @@ export default function ProfilePage() {
                           opinionsCount: profile.opinionsCount,
                           topicsCount: profile.topicsCount,
                           reactionsCount: profile.reactionsCount,
+                          battlesTotal: profile.battleStats?.total ?? 0,
+                          battlesWins: profile.battleStats?.wins ?? 0,
                         }}
                         selectedBadgeId={profile.selectedBadgeId}
                         onSelectBadge={handleSelectBadge}

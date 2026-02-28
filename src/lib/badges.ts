@@ -15,6 +15,7 @@ export enum BadgeCategory {
   OPINION = "OPINION",
   TOPIC = "TOPIC",
   ENGAGEMENT = "ENGAGEMENT",
+  BATTLE = "BATTLE",
   ALL_AROUND = "ALL_AROUND",
 }
 
@@ -34,6 +35,8 @@ export interface UserActivityStats {
   opinionsCount: number;
   topicsCount: number;
   reactionsCount: number;
+  battlesTotal: number;
+  battlesWins: number;
 }
 
 export interface EarnedBadge {
@@ -196,6 +199,48 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     progress: (stats) => ({ current: stats.reactionsCount, target: 50 }),
   },
 
+  // Battle Badges
+  {
+    id: "first-battle",
+    name: "첫 맞짱",
+    description: "첫 번째 맞짱 배틀에 참여했습니다",
+    icon: "⚔️",
+    category: BadgeCategory.BATTLE,
+    tier: BadgeTier.BRONZE,
+    requirement: (stats) => stats.battlesTotal >= 1,
+    progress: (stats) => ({ current: stats.battlesTotal, target: 1 }),
+  },
+  {
+    id: "battler",
+    name: "맞짱러",
+    description: "5회 이상 맞짱 배틀에 참여했습니다",
+    icon: "🥊",
+    category: BadgeCategory.BATTLE,
+    tier: BadgeTier.SILVER,
+    requirement: (stats) => stats.battlesTotal >= 5,
+    progress: (stats) => ({ current: stats.battlesTotal, target: 5 }),
+  },
+  {
+    id: "battle-expert",
+    name: "맞짱 고수",
+    description: "맞짱 배틀에서 5회 이상 승리했습니다",
+    icon: "🔥",
+    category: BadgeCategory.BATTLE,
+    tier: BadgeTier.GOLD,
+    requirement: (stats) => stats.battlesWins >= 5,
+    progress: (stats) => ({ current: stats.battlesWins, target: 5 }),
+  },
+  {
+    id: "battle-champion",
+    name: "맞짱왕",
+    description: "맞짱 배틀에서 15회 이상 승리했습니다",
+    icon: "💀",
+    category: BadgeCategory.BATTLE,
+    tier: BadgeTier.PLATINUM,
+    requirement: (stats) => stats.battlesWins >= 15,
+    progress: (stats) => ({ current: stats.battlesWins, target: 15 }),
+  },
+
   // All-Around Badge
   {
     id: "all-rounder",
@@ -208,15 +253,17 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
       stats.votesCount >= 1 &&
       stats.opinionsCount >= 1 &&
       stats.topicsCount >= 1 &&
-      stats.reactionsCount >= 1,
+      stats.reactionsCount >= 1 &&
+      stats.battlesTotal >= 1,
     progress: (stats) => {
       const completed = [
         stats.votesCount >= 1,
         stats.opinionsCount >= 1,
         stats.topicsCount >= 1,
         stats.reactionsCount >= 1,
+        stats.battlesTotal >= 1,
       ].filter(Boolean).length;
-      return { current: completed, target: 4 };
+      return { current: completed, target: 5 };
     },
   },
 ];

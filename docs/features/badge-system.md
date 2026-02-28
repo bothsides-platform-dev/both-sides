@@ -7,8 +7,8 @@ BothSides 플랫폼의 뱃지 시스템은 사용자의 활동을 시각적으�
 ## 특징
 
 - **DB 스키마 변경 없음**: 기존 활동 데이터로 실시간 계산
-- **5개 카테고리**: 투표, 의견, 토론, 참여, 종합 활동
-- **14개 뱃지**: Bronze → Silver → Gold → Platinum 티어 시스템
+- **6개 카테고리**: 투표, 의견, 토론, 참여, 맞짱 배틀, 종합 활동
+- **18개 뱃지**: Bronze → Silver → Gold → Platinum 티어 시스템
 - **진행률 추적**: 다음 뱃지까지의 진행률 표시
 - **반응형 디자인**: 모바일/데스크톱 최적화
 - **토스증권 스타일**: 그라데이션 색상의 현대적인 디자인
@@ -48,11 +48,20 @@ BothSides 플랫폼의 뱃지 시스템은 사용자의 활동을 시각적으�
 | 리액션 요정 | 10개 이상 리액션 | Silver | ✨ |
 | 공감왕 | 50개 이상 리액션 | Gold | ❤️ |
 
-### 5. 종합 활동 (All-Around)
+### 5. 맞짱 배틀 (Battle)
 
 | 뱃지 | 조건 | 티어 | 아이콘 |
 |------|------|------|--------|
-| 올라운더 | 투표 1개 + 의견 1개 + 토론 1개 + 리액션 1개 | Gold | 🎖️ |
+| 첫 맞짱 | 배틀 참여 1회 | Bronze | ⚔️ |
+| 맞짱러 | 배틀 참여 5회 | Silver | 🥊 |
+| 맞짱 고수 | 배틀 승리 5회 | Gold | 🔥 |
+| 맞짱왕 | 배틀 승리 15회 | Platinum | 💀 |
+
+### 6. 종합 활동 (All-Around)
+
+| 뱃지 | 조건 | 티어 | 아이콘 |
+|------|------|------|--------|
+| 올라운더 | 투표 1개 + 의견 1개 + 토론 1개 + 리액션 1개 + 배틀 1회 | Gold | 🎖️ |
 
 ## 아키텍처
 
@@ -63,6 +72,7 @@ flowchart TB
         opinions[의견 수]
         topics[토론 수]
         reactions[리액션 수]
+        battles[배틀 참여/승리]
     end
 
     subgraph engine[뱃지 엔진]
@@ -123,6 +133,8 @@ interface UserActivityStats {
   opinionsCount: number;
   topicsCount: number;
   reactionsCount: number;
+  battlesTotal: number;
+  battlesWins: number;
 }
 ```
 

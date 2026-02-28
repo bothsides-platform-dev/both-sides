@@ -34,6 +34,7 @@ const CATEGORY_LABELS: Record<BadgeCategory, string> = {
   [BadgeCategory.OPINION]: "의견 작성",
   [BadgeCategory.TOPIC]: "토론 개설",
   [BadgeCategory.ENGAGEMENT]: "커뮤니티 참여",
+  [BadgeCategory.BATTLE]: "맞짱 배틀",
   [BadgeCategory.ALL_AROUND]: "종합 활동",
 };
 
@@ -71,6 +72,8 @@ export function BadgeShowcase({ stats, trigger, selectedBadgeId, onSelectBadge, 
         return `${remaining}개 더 토론을 만들면 획득`;
       case BadgeCategory.ENGAGEMENT:
         return `${remaining}개 더 리액션을 남기면 획득`;
+      case BadgeCategory.BATTLE:
+        return `${remaining}회 더 참여하면 획득`;
       case BadgeCategory.ALL_AROUND:
         return `${remaining}개 활동을 더 경험하면 획득`;
       default:
