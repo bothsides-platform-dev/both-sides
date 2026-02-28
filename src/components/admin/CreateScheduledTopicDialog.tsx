@@ -45,6 +45,7 @@ export function CreateScheduledTopicDialog({
     : "";
 
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [optionA, setOptionA] = useState("");
   const [optionB, setOptionB] = useState("");
   const [category, setCategory] = useState<Category>("DAILY");
@@ -63,6 +64,7 @@ export function CreateScheduledTopicDialog({
 
   const resetForm = () => {
     setTitle("");
+    setDescription("");
     setOptionA("");
     setOptionB("");
     setCategory("DAILY");
@@ -81,6 +83,7 @@ export function CreateScheduledTopicDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: title.trim(),
+          description: description.trim() || undefined,
           optionA: optionA.trim(),
           optionB: optionB.trim(),
           category,
@@ -129,6 +132,19 @@ export function CreateScheduledTopicDialog({
               onChange={(e) => setTitle(e.target.value)}
               placeholder="5자 이상 입력"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="create-description">설명 (선택)</Label>
+            <textarea
+              id="create-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="토론 설명을 입력하세요"
+              maxLength={1000}
+              rows={3}
+              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
             />
           </div>
 
