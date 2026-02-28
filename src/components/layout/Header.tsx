@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "./UserMenu";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { PlusCircle, Menu } from "lucide-react";
+import { PlusCircle, Menu, Info } from "lucide-react";
 import { MobileSidebar } from "./MobileSidebar";
 import logo from "@/app/logo.png";
 
@@ -52,8 +52,10 @@ export function Header() {
               <span className="text-sideB">Sides</span>
             </span>
           </Link>
+          <Link href="/about" aria-label="서비스 소개">
+            <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+          </Link>
         </div>
-
 
         {/* Actions */}
         <nav className="flex items-center gap-2 sm:gap-3">
