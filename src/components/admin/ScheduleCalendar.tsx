@@ -16,6 +16,7 @@ import {
 } from "date-fns";
 import { ko } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useDroppable } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { CATEGORY_CSS_VAR } from "@/lib/constants";
 import type { Category } from "@prisma/client";
@@ -36,6 +37,79 @@ interface ScheduleCalendarProps {
 }
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+function CalendarDayCell({
+  day,
+  dateKey,
+  dayTopics,
+  inCurrentMonth,
+  isSelected,
+  today,
+  onDateSelect,
+}: {
+  day: Date;
+  dateKey: string;
+  dayTopics: ScheduledTopic[];
+  inCurrentMonth: boolean;
+  isSelected: boolean;
+  today: boolean;
+  onDateSelect: (date: Date | null) => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `date-${dateKey}`,
+    data: { date: day, dateKey },
+  });
+
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      onClick={() => onDateSelect(isSelected ? null : day)}
+      className={`
+        relative min-h-[72px] p-1.5 text-left transition-colors bg-card
+        ${!inCurrentMonth ? "opacity-40" : ""}
+        ${isSelected ? "ring-2 ring-primary ring-inset" : ""}
+        ${isOver ? "bg-primary/10 ring-2 ring-primary" : ""}
+        ${inCurrentMonth && !isOver ? "hover:bg-muted/50" : ""}
+      `}
+    >
+      <span
+        className={`
+          text-xs font-medium inline-flex items-center justify-center w-6 h-6 rounded-full
+          ${today ? "bg-primary text-primary-foreground" : ""}
+        `}
+      >
+        {format(day, "d")}
+      </span>
+
+      {/* Topic dots */}
+      {dayTopics.length > 0 && (
+        <div className="mt-0.5 flex flex-wrap gap-0.5">
+          {dayTopics.slice(0, 4).map((t) => (
+            <span
+              key={t.id}
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: CATEGORY_CSS_VAR[t.category] }}
+              title={t.title}
+            />
+          ))}
+          {dayTopics.length > 4 && (
+            <span className="text-[10px] text-muted-foreground leading-none">
+              +{dayTopics.length - 4}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Count badge */}
+      {dayTopics.length > 0 && (
+        <span className="absolute top-1 right-1 text-[10px] font-medium text-muted-foreground">
+          {dayTopics.length}
+        </span>
+      )}
+    </button>
+  );
+}
 
 export function ScheduleCalendar({
   currentMonth,
@@ -116,58 +190,20 @@ export function ScheduleCalendar({
           const key = format(day, "yyyy-MM-dd");
           const dayTopics = topicsByDate.get(key) ?? [];
           const inCurrentMonth = isSameMonth(day, currentMonth);
-          const isSelected = selectedDate && isSameDay(day, selectedDate);
+          const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
           const today = isToday(day);
 
           return (
-            <button
+            <CalendarDayCell
               key={key}
-              type="button"
-              onClick={() =>
-                onDateSelect(isSelected ? null : day)
-              }
-              className={`
-                relative min-h-[72px] p-1.5 text-left transition-colors bg-card
-                ${!inCurrentMonth ? "opacity-40" : ""}
-                ${isSelected ? "ring-2 ring-primary ring-inset" : ""}
-                ${inCurrentMonth ? "hover:bg-muted/50" : ""}
-              `}
-            >
-              <span
-                className={`
-                  text-xs font-medium inline-flex items-center justify-center w-6 h-6 rounded-full
-                  ${today ? "bg-primary text-primary-foreground" : ""}
-                `}
-              >
-                {format(day, "d")}
-              </span>
-
-              {/* Topic dots */}
-              {dayTopics.length > 0 && (
-                <div className="mt-0.5 flex flex-wrap gap-0.5">
-                  {dayTopics.slice(0, 4).map((t) => (
-                    <span
-                      key={t.id}
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: CATEGORY_CSS_VAR[t.category] }}
-                      title={t.title}
-                    />
-                  ))}
-                  {dayTopics.length > 4 && (
-                    <span className="text-[10px] text-muted-foreground leading-none">
-                      +{dayTopics.length - 4}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Count badge */}
-              {dayTopics.length > 0 && (
-                <span className="absolute top-1 right-1 text-[10px] font-medium text-muted-foreground">
-                  {dayTopics.length}
-                </span>
-              )}
-            </button>
+              day={day}
+              dateKey={key}
+              dayTopics={dayTopics}
+              inCurrentMonth={inCurrentMonth}
+              isSelected={isSelected}
+              today={today}
+              onDateSelect={onDateSelect}
+            />
           );
         })}
       </div>
