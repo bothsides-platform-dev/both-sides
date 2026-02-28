@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { AUTHOR_SELECT_PUBLIC } from "@/lib/prisma-selects";
+import { broadcast } from "@/lib/sse";
 import type { GetNotificationsInput } from "./schema";
 
 export async function createReplyNotification({
@@ -20,7 +21,7 @@ export async function createReplyNotification({
     return null;
   }
 
-  return prisma.notification.create({
+  const notification = await prisma.notification.create({
     data: {
       userId,
       actorId,
@@ -30,6 +31,13 @@ export async function createReplyNotification({
       type: "REPLY",
     },
   });
+
+  broadcast(`user:${userId}`, {
+    type: "notification:new",
+    data: { id: notification.id, type: "REPLY" },
+  });
+
+  return notification;
 }
 
 export async function getNotifications(userId: string, input: GetNotificationsInput) {

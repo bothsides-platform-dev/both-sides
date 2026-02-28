@@ -1,6 +1,8 @@
 "use client";
 
+import { useCallback, useRef } from "react";
 import useSWR from "swr";
+import { useTopicSSE } from "@/hooks/useTopicSSE";
 import { BattleCard } from "./BattleCard";
 import { Swords } from "lucide-react";
 
@@ -11,11 +13,23 @@ interface ActiveBattlesSectionProps {
 }
 
 export function ActiveBattlesSection({ topicId }: ActiveBattlesSectionProps) {
-  const { data } = useSWR(
+  const mutateRef = useRef<() => void>(() => {});
+
+  const { isConnected: sseConnected } = useTopicSSE(
+    useCallback((event: { type: string }) => {
+      if (event.type === "battle:active") {
+        mutateRef.current();
+      }
+    }, [])
+  );
+
+  const { data, mutate } = useSWR(
     `/api/battles?topicId=${topicId}&status=ACTIVE`,
     fetcher,
-    { refreshInterval: 10000 }
+    { refreshInterval: sseConnected ? 0 : 10000 }
   );
+
+  mutateRef.current = mutate;
 
   const battles = data?.data?.battles ?? [];
 
