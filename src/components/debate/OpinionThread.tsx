@@ -1,8 +1,9 @@
 "use client";
 
-import { memo, useState, useEffect, useMemo } from "react";
+import { memo, useState, useEffect, useMemo, useCallback, useRef } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
+import { useTopicSSE } from "@/hooks/useTopicSSE";
 import { OpinionItem } from "./OpinionItem";
 import type { Opinion } from "./types";
 import type { ReactionType } from "@prisma/client";
@@ -49,16 +50,29 @@ export const OpinionThread = memo(function OpinionThread({
 
   // Fetch replies when expanded
   const shouldFetch = showReplies && hasReplies;
+
+  const mutateRepliesRef = useRef<() => void>(() => {});
+
+  const { isConnected: sseConnected } = useTopicSSE(
+    useCallback((event: { type: string }) => {
+      if (event.type === "opinion:reply") {
+        mutateRepliesRef.current();
+      }
+    }, [])
+  );
+
   const { data: repliesData, mutate: mutateReplies } = useSWR<{ data: { opinions: Opinion[] } }>(
     shouldFetch ? `/api/topics/${opinion.topicId}/opinions?parentId=${opinion.id}&sort=latest&limit=100` : null,
     fetcher,
     {
-      refreshInterval: shouldFetch ? 15000 : 0,
+      refreshInterval: shouldFetch && !sseConnected ? 15000 : 0,
       dedupingInterval: 10000,
       isPaused: () => typeof document !== 'undefined' && document.hidden,
       revalidateOnFocus: false,  // 탭 포커스시 불필요한 동시 요청 방지
     }
   );
+
+  mutateRepliesRef.current = mutateReplies;
 
   const replies = repliesData?.data?.opinions || [];
 

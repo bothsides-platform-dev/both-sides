@@ -11,6 +11,7 @@ import {
 import { calculateElapsedDrain, calculatePenalty } from "./timer";
 import { evaluateGround, generateOpeningMessage, generateVictoryMessage } from "./host";
 import { broadcastToBattle } from "./sse";
+import { broadcast } from "@/lib/sse";
 import type {
   CreateChallengeInput,
   GetBattlesInput,
@@ -140,6 +141,11 @@ export async function createChallenge(challengerId: string, input: CreateChallen
     },
   });
 
+  broadcast(`user:${challengedId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_CHALLENGE" },
+  });
+
   return battle;
 }
 
@@ -178,6 +184,11 @@ export async function respondToChallenge(
       },
     });
 
+    broadcast(`user:${battle.challengerId}`, {
+      type: "notification:new",
+      data: { type: "BATTLE_DECLINED" },
+    });
+
     return declined;
   }
 
@@ -210,6 +221,11 @@ export async function respondToChallenge(
       topicId: battle.topicId,
       battleId: battle.id,
     },
+  });
+
+  broadcast(`user:${battle.challengerId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_ACCEPTED" },
   });
 
   return accepted;
@@ -293,9 +309,24 @@ export async function setupBattle(
     }),
   ]);
 
+  broadcast(`user:${battle.challengerId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_STARTED" },
+  });
+  broadcast(`user:${battle.challengedId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_STARTED" },
+  });
+
   // Broadcast via SSE
   broadcastToBattle(battleId, { type: "battle:state", data: updated });
   broadcastToBattle(battleId, { type: "battle:message", data: turnPrompt });
+
+  // Notify topic SSE channel about active battle
+  broadcast(`topic:${battle.topicId}`, {
+    type: "battle:active",
+    data: { battleId },
+  });
 
   return updated;
 }
@@ -488,6 +519,11 @@ export async function submitGround(
         battleId: battle.id,
       },
     });
+
+    broadcast(`user:${opponentId}`, {
+      type: "notification:new",
+      data: { type: "BATTLE_YOUR_TURN" },
+    });
   }
 
   return updated;
@@ -555,7 +591,22 @@ async function endBattle(
     }),
   ]);
 
+  broadcast(`user:${battle.challengerId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_ENDED" },
+  });
+  broadcast(`user:${battle.challengedId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_ENDED" },
+  });
+
   broadcastToBattle(battleId, { type: "battle:end", data: battle });
+
+  // Notify topic SSE channel about battle end
+  broadcast(`topic:${battle.topicId}`, {
+    type: "battle:active",
+    data: { battleId },
+  });
 
   return battle;
 }
@@ -872,7 +923,22 @@ export async function forceEndBattle(battleId: string, input: ForceEndBattleInpu
     }),
   ]);
 
+  broadcast(`user:${battle.challengerId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_ENDED" },
+  });
+  broadcast(`user:${battle.challengedId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_ENDED" },
+  });
+
   broadcastToBattle(battleId, { type: "battle:end", data: updated });
+
+  // Notify topic SSE channel about battle end
+  broadcast(`topic:${battle.topicId}`, {
+    type: "battle:active",
+    data: { battleId },
+  });
 
   return updated;
 }

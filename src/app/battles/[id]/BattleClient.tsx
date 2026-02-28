@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
@@ -29,49 +29,63 @@ export function BattleClient({ battleId }: BattleClientProps) {
   const currentUserId = session?.user?.id;
   const { showToast } = useToast();
 
+  // Ref to hold latest SWR mutate functions for SSE callback
+  const swrMutateRef = useRef({
+    battle: () => {},
+    messages: () => {},
+    comments: () => {},
+  });
+
+  // SSE connection status determines whether SWR polling is needed
+  const sseCallbackRef = useCallback(
+    (event: { type: string }) => {
+      if (event.type === "battle:state" || event.type === "battle:hp" || event.type === "battle:turn" || event.type === "battle:end") {
+        swrMutateRef.current.battle();
+      }
+      if (event.type === "battle:message") {
+        swrMutateRef.current.messages();
+      }
+      if (event.type === "battle:comment") {
+        swrMutateRef.current.comments();
+      }
+    },
+    []
+  );
+
+  const { connectionStatus } = useBattleSSE({
+    battleId,
+    enabled: true,
+    onMessage: sseCallbackRef,
+  });
+
+  const sseActive = connectionStatus === "connected" || connectionStatus === "connecting";
+
   const { data: battleData, mutate: mutateBattle } = useSWR(
     `/api/battles/${battleId}`,
     fetcher,
-    { refreshInterval: 5000 }
+    { refreshInterval: sseActive ? 0 : 5000 }
   );
 
   const { data: messagesData, mutate: mutateMessages } = useSWR(
     `/api/battles/${battleId}/messages`,
     fetcher,
-    { refreshInterval: 3000 }
+    { refreshInterval: sseActive ? 0 : 3000 }
   );
 
   const { data: commentsData, mutate: mutateComments } = useSWR(
     `/api/battles/${battleId}/comments`,
     fetcher,
-    { refreshInterval: 5000 }
+    { refreshInterval: sseActive ? 0 : 5000 }
   );
+
+  // Keep ref in sync with latest mutate functions
+  swrMutateRef.current = { battle: mutateBattle, messages: mutateMessages, comments: mutateComments };
 
   const [showSetup, setShowSetup] = useState(false);
 
   const battle = battleData?.data;
   const messages = messagesData?.data ?? [];
   const comments = commentsData?.data?.comments ?? [];
-
-  // SSE for real-time updates
-  const { connectionStatus } = useBattleSSE({
-    battleId,
-    enabled: battle?.status === "ACTIVE",
-    onMessage: useCallback(
-      (event: { type: string }) => {
-        if (event.type === "battle:state" || event.type === "battle:hp" || event.type === "battle:turn" || event.type === "battle:end") {
-          mutateBattle();
-        }
-        if (event.type === "battle:message") {
-          mutateMessages();
-        }
-        if (event.type === "battle:comment") {
-          mutateComments();
-        }
-      },
-      [mutateBattle, mutateMessages, mutateComments]
-    ),
-  });
 
   // Show setup dialog when battle is in SETUP status
   useEffect(() => {

@@ -15,6 +15,7 @@ import { Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetcher } from "@/lib/fetcher";
 import { useSwipeableTabs } from "@/hooks/useSwipeableTabs";
+import { useTopicSSE } from "@/hooks/useTopicSSE";
 import { useToast } from "@/components/ui/toast";
 import { MobileSideTabs } from "./MobileSideTabs";
 import { OpinionColumn } from "./OpinionColumn";
@@ -131,11 +132,22 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
     return params.toString();
   }, [sort]);
 
+  const mutateKeyRef = useRef(`/api/topics/${topicId}/opinions?${queryParams}`);
+  mutateKeyRef.current = `/api/topics/${topicId}/opinions?${queryParams}`;
+
+  const { isConnected: sseConnected } = useTopicSSE(
+    useCallback((event: { type: string }) => {
+      if (event.type === "opinion:new" || event.type === "opinion:reply") {
+        mutate(mutateKeyRef.current);
+      }
+    }, [])
+  );
+
   const { data: opinionsData, isLoading } = useSWR<{ data: { opinions: Opinion[] } }>(
     `/api/topics/${topicId}/opinions?${queryParams}`,
     fetcher,
     {
-      refreshInterval: 15000,
+      refreshInterval: sseConnected ? 0 : 15000,
       dedupingInterval: 10000,
       isPaused: () => typeof document !== 'undefined' && document.hidden,
     }

@@ -16,6 +16,7 @@ import { ActiveBattlesSection } from "@/components/battle/ActiveBattlesSection";
 import { RelatedTopics } from "@/components/topics/RelatedTopics";
 import { TopicImageGallery } from "@/components/topics/TopicImageGallery";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { TopicSSEWrapper } from "@/components/debate/TopicSSEWrapper";
 
 interface ReferenceLink {
   url: string;
@@ -252,16 +253,18 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
       {/* AI Grounds Analysis */}
       <GroundsSection topicId={topic.id} optionA={topic.optionA} optionB={topic.optionB} />
 
-      {/* Active Battles */}
-      <ActiveBattlesSection topicId={topic.id} />
+      <TopicSSEWrapper topicId={topic.id}>
+        {/* Active Battles */}
+        <ActiveBattlesSection topicId={topic.id} />
 
-      {/* Opinions Section */}
-      <OpinionSection
-        topicId={topic.id}
-        optionA={topic.optionA}
-        optionB={topic.optionB}
-        highlightReplyId={highlightReply}
-      />
+        {/* Opinions Section */}
+        <OpinionSection
+          topicId={topic.id}
+          optionA={topic.optionA}
+          optionB={topic.optionB}
+          highlightReplyId={highlightReply}
+        />
+      </TopicSSEWrapper>
 
       {/* Related Topics */}
       <RelatedTopics topicId={topic.id} category={topic.category} />

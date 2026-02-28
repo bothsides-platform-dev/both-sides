@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import { AUTHOR_SELECT, OPINION_COUNT_SELECT, REACTION_SELECT } from "@/lib/prisma-selects";
+import { broadcast } from "@/lib/sse";
 import type { CreateOpinionInput, GetOpinionsInput, UpdateOpinionAnonymityInput, GetOpinionsAdminInput } from "./schema";
 import { createReplyNotification } from "@/modules/notifications/service";
 import { getVote } from "@/modules/votes/service";
@@ -85,6 +86,12 @@ export async function createOpinion(
       });
     }
   }
+
+  // Broadcast to topic SSE channel
+  broadcast(`topic:${actualTopicId}`, {
+    type: input.parentId ? "opinion:reply" : "opinion:new",
+    data: { opinionId: opinion.id },
+  });
 
   // 의견 생성 후 자동 LLM 작업 트리거
   // Auto-trigger LLM tasks after opinion creation
