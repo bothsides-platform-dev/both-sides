@@ -1,7 +1,8 @@
 "use client";
 
 import useSWR from "swr";
-import { Swords, Trophy } from "lucide-react";
+import { Info, Swords } from "lucide-react";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import { BattleCard } from "./BattleCard";
 import { HorizontalScroll } from "@/components/ui/horizontal-scroll";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -59,6 +60,25 @@ export function HomeBattleSection() {
       <div className="flex items-center gap-2">
         <Swords className="h-5 w-5 text-orange-500" />
         <h2 className="text-xl font-bold">맞짱 배틀</h2>
+        <Tooltip.Provider delayDuration={200}>
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Info className="h-4 w-4" />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content
+                side="bottom"
+                sideOffset={4}
+                className="z-50 max-w-[240px] rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
+              >
+                두 유저가 실시간으로 HP를 걸고 의견 대결하는 배틀이에요. 투표로 상대의 HP를 깎아 승부를 가려요!
+                <Tooltip.Arrow className="fill-border" />
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        </Tooltip.Provider>
       </div>
 
       {activeBattles.length > 0 && (
@@ -78,19 +98,13 @@ export function HomeBattleSection() {
       )}
 
       {completedBattles.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-            <Trophy className="h-3.5 w-3.5" />
-            <span>최근 결과</span>
-          </div>
-          <HorizontalScroll>
-            {completedBattles.map((battle) => (
-              <div key={battle.id} className="flex-shrink-0 w-[280px]">
-                <BattleCard battle={battle} showTopicTitle />
-              </div>
-            ))}
-          </HorizontalScroll>
-        </div>
+        <HorizontalScroll>
+          {completedBattles.map((battle) => (
+            <div key={battle.id} className="flex-shrink-0 w-[280px]">
+              <BattleCard battle={battle} showTopicTitle />
+            </div>
+          ))}
+        </HorizontalScroll>
       )}
     </section>
   );
