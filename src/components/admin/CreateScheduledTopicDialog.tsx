@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { MultiImageUpload } from "@/components/ui/MultiImageUpload";
 import { Loader2 } from "lucide-react";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import type { Category } from "@prisma/client";
@@ -48,6 +49,8 @@ export function CreateScheduledTopicDialog({
   const [optionB, setOptionB] = useState("");
   const [category, setCategory] = useState<Category>("DAILY");
   const [scheduledAt, setScheduledAt] = useState(defaultDatetime);
+  const [images, setImages] = useState<string[]>([]);
+  const [isImageUploading, setIsImageUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -55,13 +58,15 @@ export function CreateScheduledTopicDialog({
     title.trim().length >= 5 &&
     optionA.trim().length >= 1 &&
     optionB.trim().length >= 1 &&
-    scheduledAt;
+    scheduledAt &&
+    !isImageUploading;
 
   const resetForm = () => {
     setTitle("");
     setOptionA("");
     setOptionB("");
     setCategory("DAILY");
+    setImages([]);
     setScheduledAt(defaultDatetime);
     setError("");
   };
@@ -79,6 +84,7 @@ export function CreateScheduledTopicDialog({
           optionA: optionA.trim(),
           optionB: optionB.trim(),
           category,
+          images: images.length > 0 ? images : undefined,
           scheduledAt: new Date(scheduledAt).toISOString(),
         }),
       });
@@ -104,7 +110,7 @@ export function CreateScheduledTopicDialog({
         onOpenChange(v);
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>예약 토론 생성</DialogTitle>
         </DialogHeader>
@@ -165,6 +171,16 @@ export function CreateScheduledTopicDialog({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>이미지 (선택)</Label>
+            <MultiImageUpload
+              value={images}
+              onChange={setImages}
+              disabled={loading}
+              onUploadingChange={setIsImageUploading}
+            />
           </div>
 
           <div className="space-y-2">
