@@ -66,6 +66,8 @@ export async function GET() {
       opinionsCount,
       topicsCount,
       reactionsCount,
+      battlesTotal: battleStats.total,
+      battlesWins: battleStats.wins,
     };
     const badges = computeBadges(stats);
     const badgeProgress = computeBadgeProgress(stats);
@@ -112,17 +114,20 @@ export async function PATCH(request: Request) {
 
     // Validate selectedBadgeId if provided (skip for "none" and null)
     if (data.selectedBadgeId !== undefined && data.selectedBadgeId !== null && data.selectedBadgeId !== "none") {
-      const [uVotesCount, uOpinionsCount, uTopicsCount, uReactionsCount] = await Promise.all([
+      const [uVotesCount, uOpinionsCount, uTopicsCount, uReactionsCount, uBattleStats] = await Promise.all([
         prisma.vote.count({ where: { userId: user.id } }),
         prisma.opinion.count({ where: { userId: user.id } }),
         prisma.topic.count({ where: { authorId: user.id } }),
         prisma.reaction.count({ where: { userId: user.id } }),
+        getUserBattleStats(user.id),
       ]);
       const earnedBadges = computeBadges({
         votesCount: uVotesCount,
         opinionsCount: uOpinionsCount,
         topicsCount: uTopicsCount,
         reactionsCount: uReactionsCount,
+        battlesTotal: uBattleStats.total,
+        battlesWins: uBattleStats.wins,
       });
       const hasEarned = earnedBadges.some((b) => b.id === data.selectedBadgeId);
       if (!hasEarned) {

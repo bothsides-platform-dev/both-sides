@@ -1,6 +1,7 @@
 import { handleApiError, NotFoundError } from "@/lib/errors";
 import { prisma } from "@/lib/db";
 import { computeBadges, getDefaultBadgeId } from "@/lib/badges";
+import { getUserBattleStats } from "@/modules/battles/service";
 import { NextRequest } from "next/server";
 
 export async function GET(
@@ -118,12 +119,16 @@ export async function GET(
     const topicsCount = topics.length;
     const reactionsCount = reactions.length;
 
+    const battleStats = await getUserBattleStats(userId);
+
     // Compute badges
     const stats = {
       votesCount,
       opinionsCount,
       topicsCount,
       reactionsCount,
+      battlesTotal: battleStats.total,
+      battlesWins: battleStats.wins,
     };
     const badges = computeBadges(stats);
 
