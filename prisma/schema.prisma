@@ -466,6 +466,7 @@ model Battle {
   winner            User?          @relation("WonBattles", fields: [winnerId], references: [id], onDelete: SetNull)
   challengerOpinion Opinion?       @relation("ChallengerOpinion", fields: [challengerOpinionId], references: [id], onDelete: SetNull)
   challengedOpinion Opinion?       @relation("ChallengedOpinion", fields: [challengedOpinionId], references: [id], onDelete: SetNull)
+  groundsRegistry   Json?          @default("{\"A\":[],\"B\":[]}")
   isHidden          Boolean        @default(false)
   hiddenAt          DateTime?
   hiddenReason      String?        @db.VarChar(500)

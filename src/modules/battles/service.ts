@@ -7,9 +7,11 @@ import {
   ABANDON_TIMEOUT_MINUTES,
   INVALID_GROUND_PENALTY_PERCENT,
   COUNTER_GROUND_PENALTY_PERCENT,
+  REDUNDANT_GROUND_PENALTY_PERCENT,
 } from "./constants";
 import { calculateElapsedDrain, calculatePenalty } from "./timer";
 import { evaluateGround, generateOpeningMessage, generateVictoryMessage } from "./host";
+import { parseRegistry, addGround, counterGround, reinforceGround, getCurrentTurnNumber } from "./grounds";
 import { broadcastToBattle } from "./sse";
 import { broadcast } from "@/lib/sse";
 import type {
@@ -43,6 +45,8 @@ const MESSAGE_INCLUDE = {
 const COMMENT_INCLUDE = {
   user: { select: AUTHOR_SELECT_PUBLIC },
 } as const;
+
+const EMPTY_REGISTRY = { A: [], B: [] };
 
 // ── Challenge Flow ──
 
@@ -247,6 +251,7 @@ export async function respondToChallenge(
       acceptedAt: new Date(),
       startedAt: new Date(),
       lastActivityAt: new Date(),
+      groundsRegistry: EMPTY_REGISTRY,
     },
     include: BATTLE_INCLUDE,
   });
@@ -345,6 +350,7 @@ export async function setupBattle(
       turnStartedAt: new Date(),
       startedAt: new Date(),
       lastActivityAt: new Date(),
+      groundsRegistry: EMPTY_REGISTRY,
     },
     include: BATTLE_INCLUDE,
   });
@@ -423,22 +429,7 @@ export async function submitGround(
 ) {
   const battle = await prisma.battle.findUnique({
     where: { id: battleId },
-    include: {
-      ...BATTLE_INCLUDE,
-      messages: {
-        where: {
-          role: { in: ["CHALLENGER", "CHALLENGED"] },
-        },
-        orderBy: { createdAt: "asc" },
-        select: {
-          id: true,
-          role: true,
-          userId: true,
-          content: true,
-          createdAt: true,
-        },
-      },
-    },
+    include: BATTLE_INCLUDE,
   });
 
   if (!battle) throw new NotFoundError("맞짱을 찾을 수 없습니다.");
@@ -451,6 +442,7 @@ export async function submitGround(
 
   const isChallenger = userId === battle.challengerId;
   const role = isChallenger ? "CHALLENGER" : "CHALLENGED";
+  const currentSide = isChallenger ? battle.challengerSide : battle.challengedSide;
   const opponentId = isChallenger ? battle.challengedId : battle.challengerId;
 
   // Calculate HP drain from elapsed turn time
@@ -481,28 +473,29 @@ export async function submitGround(
   });
   broadcastToBattle(battleId, { type: "battle:message", data: userMessage });
 
-  // Evaluate with LLM host
-  const previousGrounds = battle.messages.map((m) => ({
-    role: m.role,
-    content: m.content,
-    userId: m.userId,
-  }));
+  // Load grounds registry
+  const registry = parseRegistry(battle.groundsRegistry);
+  const turnNumber = getCurrentTurnNumber(registry);
 
+  // Evaluate with LLM host
   const evaluation = await evaluateGround(
     {
       topic: battle.topic,
       challengerSide: battle.challengerSide,
       challengedSide: battle.challengedSide,
-      previousGrounds,
-      currentSide: isChallenger ? battle.challengerSide : battle.challengedSide,
+      groundsRegistry: registry,
+      currentSide,
     },
     content
   ).catch((err) => {
     console.error("[Battle] LLM evaluation failed:", err);
     return {
-      validity: "valid" as const,
-      countersGroundIndex: null,
-      explanation: "⚙️ 평가 시스템에 일시적인 문제가 발생하여 근거가 자동 수락되었습니다.",
+      action: "new_ground" as const,
+      explanation: "평가 시스템에 일시적인 문제가 발생하여 근거가 자동 수락되었습니다.",
+      targetGroundId: null,
+      reinforcedGroundId: null,
+      groundSummary: content.slice(0, 50),
+      updatedSummary: null,
       penaltyReason: null,
     };
   });
@@ -511,18 +504,75 @@ export async function submitGround(
   let hpChange = 0;
   let opponentHpChange = 0;
   let targetUserId: string | null = null;
+  let updatedRegistry = registry;
+  let switchTurn = true;
 
-  if (evaluation.validity === "invalid") {
-    // Invalid ground: penalty to submitter
-    const penalty = calculatePenalty(maxHp, INVALID_GROUND_PENALTY_PERCENT);
-    hpChange = -penalty;
-    targetUserId = userId;
-    currentHp = Math.max(0, currentHp - penalty);
-  } else if (evaluation.validity === "valid" && evaluation.countersGroundIndex !== null) {
-    // Valid counter: penalty to opponent
-    const penalty = calculatePenalty(maxHp, COUNTER_GROUND_PENALTY_PERCENT);
-    opponentHpChange = -penalty;
-    targetUserId = opponentId;
+  switch (evaluation.action) {
+    case "new_ground": {
+      const result = addGround(
+        updatedRegistry,
+        currentSide,
+        content,
+        evaluation.groundSummary || content.slice(0, 50),
+        turnNumber
+      );
+      updatedRegistry = result.registry;
+      break;
+    }
+
+    case "reinforce": {
+      if (evaluation.reinforcedGroundId) {
+        updatedRegistry = reinforceGround(
+          updatedRegistry,
+          evaluation.reinforcedGroundId,
+          evaluation.updatedSummary || undefined
+        );
+      }
+      break;
+    }
+
+    case "counter": {
+      // Mark opponent's ground as countered
+      if (evaluation.targetGroundId) {
+        updatedRegistry = counterGround(
+          updatedRegistry,
+          evaluation.targetGroundId,
+          `counter-by-${currentSide}`
+        );
+      }
+      // Add the counter argument as a new ground for the current side
+      const counterResult = addGround(
+        updatedRegistry,
+        currentSide,
+        content,
+        evaluation.groundSummary || content.slice(0, 50),
+        turnNumber
+      );
+      updatedRegistry = counterResult.registry;
+      // Apply damage to opponent
+      const counterPenalty = calculatePenalty(maxHp, COUNTER_GROUND_PENALTY_PERCENT);
+      opponentHpChange = -counterPenalty;
+      targetUserId = opponentId;
+      break;
+    }
+
+    case "redundant": {
+      const redundantPenalty = calculatePenalty(maxHp, REDUNDANT_GROUND_PENALTY_PERCENT);
+      hpChange = -redundantPenalty;
+      targetUserId = userId;
+      currentHp = Math.max(0, currentHp - redundantPenalty);
+      switchTurn = false; // Keep turn for retry
+      break;
+    }
+
+    case "invalid": {
+      const invalidPenalty = calculatePenalty(maxHp, INVALID_GROUND_PENALTY_PERCENT);
+      hpChange = -invalidPenalty;
+      targetUserId = userId;
+      currentHp = Math.max(0, currentHp - invalidPenalty);
+      switchTurn = false; // Keep turn for retry
+      break;
+    }
   }
 
   // Create host evaluation message
@@ -542,15 +592,26 @@ export async function submitGround(
   // Update HP values
   const updateData: Record<string, unknown> = {
     lastActivityAt: now,
+    groundsRegistry: updatedRegistry,
   };
 
   if (isChallenger) {
-    updateData.challengerHp = currentHp + hpChange;
+    updateData.challengerHp = currentHp + (hpChange > 0 ? hpChange : 0) + (hpChange < 0 ? 0 : 0);
+    // hpChange is already factored into currentHp for penalty cases
+    if (hpChange < 0) {
+      updateData.challengerHp = currentHp;
+    } else {
+      updateData.challengerHp = currentHp;
+    }
     if (opponentHpChange) {
       updateData.challengedHp = Math.max(0, (battle.challengedHp ?? 0) + opponentHpChange);
     }
   } else {
-    updateData.challengedHp = currentHp + hpChange;
+    if (hpChange < 0) {
+      updateData.challengedHp = currentHp;
+    } else {
+      updateData.challengedHp = currentHp;
+    }
     if (opponentHpChange) {
       updateData.challengerHp = Math.max(0, (battle.challengerHp ?? 0) + opponentHpChange);
     }
@@ -568,8 +629,8 @@ export async function submitGround(
     });
   }
 
-  // Switch turn (skip if ambiguous — clock keeps running)
-  if (evaluation.validity !== "ambiguous") {
+  // Switch turn or keep for retry
+  if (switchTurn) {
     updateData.currentTurn = opponentId;
     updateData.turnStartedAt = now;
   }
@@ -592,8 +653,22 @@ export async function submitGround(
     data: { currentTurn: updated.currentTurn, turnStartedAt: updated.turnStartedAt },
   });
 
-  // Notify opponent it's their turn
-  if (evaluation.validity !== "ambiguous") {
+  // Broadcast grounds registry update
+  broadcastToBattle(battleId, {
+    type: "battle:grounds",
+    data: updatedRegistry,
+  });
+
+  // Broadcast counter animation event
+  if (evaluation.action === "counter" && evaluation.targetGroundId) {
+    broadcastToBattle(battleId, {
+      type: "battle:ground_countered",
+      data: { targetGroundId: evaluation.targetGroundId },
+    });
+  }
+
+  // Notify opponent it's their turn (only on turn switch)
+  if (switchTurn) {
     await prisma.notification.create({
       data: {
         userId: opponentId,

@@ -9,6 +9,7 @@ import { BattleHpBar } from "@/components/battle/BattleHpBar";
 import { BattleTimer } from "@/components/battle/BattleTimer";
 import { BattleChat } from "@/components/battle/BattleChat";
 import { BattleGroundInput } from "@/components/battle/BattleGroundInput";
+import { BattleGroundsPanel } from "@/components/battle/BattleGroundsPanel";
 import { BattleObserverComments } from "@/components/battle/BattleObserverComments";
 import { BattleResultBanner } from "@/components/battle/BattleResultBanner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import { ArrowLeft, Swords, Flag, Wifi, Clock } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import { DURATION_OPTIONS, DURATION_LABELS } from "@/modules/battles/constants";
+import type { GroundsRegistry } from "@/modules/battles/types";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -29,6 +31,10 @@ export function BattleClient({ battleId }: BattleClientProps) {
   const currentUserId = session?.user?.id;
   const { showToast } = useToast();
 
+  // Grounds registry state (updated via SSE or from battle data)
+  const [groundsRegistry, setGroundsRegistry] = useState<GroundsRegistry | null>(null);
+  const [counteredGroundId, setCounteredGroundId] = useState<string | null>(null);
+
   // Ref to hold latest SWR mutate functions for SSE callback
   const swrMutateRef = useRef({
     battle: () => {},
@@ -38,7 +44,7 @@ export function BattleClient({ battleId }: BattleClientProps) {
 
   // SSE connection status determines whether SWR polling is needed
   const sseCallbackRef = useCallback(
-    (event: { type: string }) => {
+    (event: { type: string; data: unknown }) => {
       if (event.type === "battle:state" || event.type === "battle:hp" || event.type === "battle:turn" || event.type === "battle:end") {
         swrMutateRef.current.battle();
       }
@@ -47,6 +53,15 @@ export function BattleClient({ battleId }: BattleClientProps) {
       }
       if (event.type === "battle:comment") {
         swrMutateRef.current.comments();
+      }
+      if (event.type === "battle:grounds") {
+        setGroundsRegistry(event.data as GroundsRegistry);
+      }
+      if (event.type === "battle:ground_countered") {
+        const { targetGroundId } = event.data as { targetGroundId: string };
+        setCounteredGroundId(targetGroundId);
+        // Clear after animation
+        setTimeout(() => setCounteredGroundId(null), 600);
       }
     },
     []
@@ -88,6 +103,9 @@ export function BattleClient({ battleId }: BattleClientProps) {
   const messages = messagesData?.data ?? [];
   const comments = commentsData?.data?.comments ?? [];
 
+  // Sync groundsRegistry from battle data when SSE hasn't provided it
+  const registry = groundsRegistry ?? battle?.groundsRegistry ?? null;
+
   if (!battle) {
     return (
       <div className="max-w-2xl mx-auto p-4 space-y-4">
@@ -105,6 +123,13 @@ export function BattleClient({ battleId }: BattleClientProps) {
   const isCompleted = ["COMPLETED", "RESIGNED", "ABANDONED"].includes(battle.status);
   const isPending = battle.status === "PENDING";
   const maxHp = battle.durationSeconds ?? 600;
+
+  // Detect retry state: last host message has action=redundant or action=invalid and it's still my turn
+  const lastHostMessage = [...messages].reverse().find(
+    (m: { role: string; metadata?: { action?: string } }) => m.role === "HOST" && m.metadata?.action
+  );
+  const isRetry = isMyTurn && lastHostMessage?.metadata?.action &&
+    (lastHostMessage.metadata.action === "redundant" || lastHostMessage.metadata.action === "invalid");
 
   // For PENDING negotiation: the responder is whoever is NOT durationProposedBy
   const isResponder = isParticipant && battle.durationProposedBy !== currentUserId;
@@ -382,6 +407,16 @@ export function BattleClient({ battleId }: BattleClientProps) {
         </div>
       )}
 
+      {/* Grounds Panel */}
+      {(isActive || isCompleted) && (
+        <BattleGroundsPanel
+          registry={registry}
+          optionA={battle.topic.optionA}
+          optionB={battle.topic.optionB}
+          counteredGroundId={counteredGroundId}
+        />
+      )}
+
       {/* Chat & Ground Input */}
       {(isActive || isCompleted) && (
         <div className="border rounded-lg overflow-hidden flex flex-col">
@@ -392,6 +427,7 @@ export function BattleClient({ battleId }: BattleClientProps) {
               battleId={battleId}
               isMyTurn={isMyTurn}
               isActive={isActive}
+              isRetry={!!isRetry}
             />
           )}
         </div>

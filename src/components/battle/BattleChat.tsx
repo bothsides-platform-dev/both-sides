@@ -15,6 +15,7 @@ type Message = {
   } | null;
   hpChange: number | null;
   targetUserId: string | null;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
 };
 
@@ -44,6 +45,7 @@ export function BattleChat({ messages }: BattleChatProps) {
           user={msg.user}
           hpChange={msg.hpChange}
           targetUserId={msg.targetUserId}
+          metadata={msg.metadata}
           createdAt={msg.createdAt}
         />
       ))}

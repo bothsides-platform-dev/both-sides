@@ -1,12 +1,26 @@
 import type { Side } from "@prisma/client";
+import type { GroundsRegistry, Ground } from "./types";
 
 type BattleContext = {
   topic: { title: string; optionA: string; optionB: string };
   challengerSide: Side;
   challengedSide: Side;
-  previousGrounds: { role: string; content: string; userId: string | null }[];
+  groundsRegistry: GroundsRegistry;
   currentSide: Side;
 };
+
+function formatGroundsTable(grounds: Ground[], sideLabel: string): string {
+  if (grounds.length === 0) return `(${sideLabel}: 아직 근거 없음)`;
+
+  return grounds
+    .map((g) => {
+      const statusMark = g.status === "countered" ? "~~반박됨~~" : "활성";
+      const reinforced = g.reinforcedCount > 0 ? ` [보강 ${g.reinforcedCount}회]` : "";
+      const counteredInfo = g.counteredBy ? ` (${g.counteredBy}에 의해 반박)` : "";
+      return `| ${g.id} | ${g.summary} | ${statusMark}${reinforced}${counteredInfo} |`;
+    })
+    .join("\n");
+}
 
 export function buildEvaluateGroundPrompt(
   context: BattleContext,
@@ -16,140 +30,108 @@ export function buildEvaluateGroundPrompt(
     context.currentSide === "A"
       ? context.topic.optionA
       : context.topic.optionB;
+  const oppositeSide: Side = context.currentSide === "A" ? "B" : "A";
   const oppositeSideLabel =
     context.currentSide === "A"
       ? context.topic.optionB
       : context.topic.optionA;
 
-  const previousSummary =
-    context.previousGrounds.length > 0
-      ? context.previousGrounds
-          .map((g, i) => `[${i + 1}] (${g.role}): ${g.content}`)
-          .join("\n")
-      : "아직 제출된 근거가 없습니다.";
+  const myGrounds = context.groundsRegistry[context.currentSide];
+  const opponentGrounds = context.groundsRegistry[oppositeSide];
+
+  const myGroundsTable = formatGroundsTable(myGrounds, sideLabel);
+  const opponentGroundsTable = formatGroundsTable(opponentGrounds, oppositeSideLabel);
 
   return `당신은 토론 배틀의 **심판(호스트)** 입니다.
-당신의 임무는 **오직 하나**, 아래에 제시된 **“새로 제출된 근거” 한 문장(또는 한 단락)** 만을 평가하는 것입니다.
+당신의 임무는 **오직 하나**, 아래에 제시된 **"새로 제출된 근거"** 를 5가지 분류 중 하나로 판정하는 것입니다.
 
-⚠️ 매우 중요:
-
+⚠️ **절대 규칙**:
+* 반드시 **한국어**로만 응답하세요.
 * 이전 근거 전체를 재평가하지 마세요.
 * 토론 전체의 승패를 판단하지 마세요.
-* 양측의 논리 수준을 비교하지 마세요.
-* 오직 **"새로 제출된 근거"가 유효한 근거인지**만 판정하세요.
+* 오직 "새로 제출된 근거"만 판정하세요.
 
 ---
 
-## 0) 입력 정보
+## 토론 정보
 
-### 토론 주제
-
-"${context.topic.title}"
-
+### 주제: "${context.topic.title}"
 * A측: ${context.topic.optionA}
 * B측: ${context.topic.optionB}
 
-### 현재 제출자의 입장
-
-${sideLabel} (${context.currentSide}측)
-
-### 상대방의 입장
-
-${oppositeSideLabel}
-
-### 이전 근거들 (참고용 요약)
-
-${previousSummary}
-
-※ 이전 근거들은 오직 "반박 여부 판단"을 위해서만 참고합니다.
-※ 이전 근거들의 타당성을 다시 평가하지 마세요.
+### 현재 제출자: ${sideLabel} (${context.currentSide}측)
+### 상대방: ${oppositeSideLabel} (${oppositeSide}측)
 
 ---
 
-## 🔎 평가 대상 (이것만 판단하세요)
+## 근거 레지스트리
+
+### ${sideLabel} (${context.currentSide}측) 근거:
+| ID | 요약 | 상태 |
+|----|------|------|
+${myGroundsTable}
+
+### ${oppositeSideLabel} (${oppositeSide}측) 근거:
+| ID | 요약 | 상태 |
+|----|------|------|
+${opponentGroundsTable}
+
+---
+
+## 평가 대상 (새로 제출된 근거)
 
 "${ground}"
 
-당신이 판단해야 할 유일한 대상은 위 텍스트입니다.
-
 ---
 
-## 1) 내부 점검 절차 (출력에 노출하지 않음)
+## 5단계 판정 절차 (순서대로 실행)
 
-### (A) 의미/형식 체크 — 대상은 오직 새 근거
-
-다음 중 하나라도 해당하면 즉시 **invalid**:
-
-* 의미 해석이 불가능
-* 장난/비방/무의미 텍스트
+### 1단계: 유효성 검사 → \`invalid\`
+다음 중 하나라도 해당하면 즉시 \`invalid\`:
+* 의미 해석 불가 / 장난 / 비방 / 무의미 텍스트
 * 감정 표현만 있고 주장 구조 없음
-* 주제와 무관한 잡담/메타 발언
+* 주제와 완전히 무관한 잡담이나 메타 발언
+* 현재 입장(${sideLabel})과 관련 없는 내용
 
-### (B) 주제-입장 연결성 체크
+### 2단계: 중복 검사 → \`redundant\`
+제출자 측의 기존 **활성 근거**와 비교:
+* 같은 내용을 다른 말로 반복한 경우
+* 기존 근거에서 이미 암시/포함된 논점인 경우
+* 핵심 논리가 동일하고 새로운 정보가 없는 경우
+→ \`redundant\` 판정 시 \`penaltyReason\`에 어떤 근거와 중복인지 명시
 
-"새로 제출된 근거" 안에 반드시 다음이 존재해야 함:
+### 3단계: 반박 검사 → \`counter\`
+상대측의 **활성(active) 근거** 중 하나를 직접 반박하는가:
+* 상대 근거의 전제/논리/증거를 명확히 부정하는 경우
+* 단순히 반대 느낌이 아니라 **구체적으로 어떤 근거를 왜 틀렸는지** 설명하는 경우
+→ \`counter\` 판정 시 \`targetGroundId\`에 반박 대상 ID (예: "G-B2") 기재
+→ \`groundSummary\`에 이 반박 근거의 한 줄 요약 기재
 
-1. 현재 입장을 지지하거나 상대 입장을 공격하는 **명확한 주장**
-2. 그 주장을 뒷받침하는 **이유/설명**
+### 4단계: 보강 검사 → \`reinforce\`
+제출자 측의 기존 **활성 근거** 중 하나를 보강하는가:
+* 같은 논점에 새로운 증거/사례/관점을 추가하는 경우
+* 기존 근거의 약점을 보완하는 경우
+→ \`reinforce\` 판정 시 \`reinforcedGroundId\`에 보강 대상 ID 기재
+→ \`updatedSummary\`에 보강된 내용을 반영한 업데이트된 요약 기재
 
-둘 중 하나라도 없으면:
-
-* 관련성은 있으나 부족 → ambiguous
-* 거의 연결 없음 → invalid
-
-### (C) 이전 근거와의 관계 체크 (새 근거만 기준)
-
-* 새 근거가 상대의 특정 이전 근거를 직접 반박하는 경우에만 countersGroundIndex 설정
-* 단순히 분위기상 반대 느낌이면 반박으로 인정하지 않음
-* 반박 대상이 명확히 특정되지 않으면 null
-
-### (D) 최소 구체성 요건
-
-다음 중 하나 이상 포함되어야 valid 가능:
-
-* 인과 설명
-* 비교
-* 조건/범위
-* 사례/예시
-* 개념 정의
-* 논리적 연결어를 통한 추론 구조
+### 5단계: 새 근거 → \`new_ground\`
+위 어디에도 해당하지 않으면:
+* 기존과 다른 새로운 논점/관점을 제시하는 경우
+→ \`groundSummary\`에 한 줄 요약 기재
 
 ---
 
-## 2) 최종 판정 기준
-
-### validity
-
-* **valid**: 새 근거 하나만 보았을 때, 논리적으로 성립하고 입장을 명확히 지지/반박함
-* **ambiguous**: 방향성은 있으나 논리 구조 또는 구체성이 부족
-* **invalid**: 무관/무의미/비방/주장 구조 부재
-
-### countersGroundIndex
-
-* 오직 새 근거가 상대의 특정 이전 근거를 명확히 반박하는 경우만 번호
-* 그렇지 않으면 null
-
-### explanation
-
-* 반드시 "새로 제출된 근거"를 기준으로 설명
-* 2~3문장, 간결
-
-### penaltyReason
-
-* invalid일 경우에만 작성
-* 사유를 명확히 기술
-
----
-
-## 3) 출력 형식 (JSON만 출력)
+## 출력 형식 (JSON만 출력, 다른 텍스트 금지)
 
 {
-"validity": "valid" | "invalid" | "ambiguous",
-"countersGroundIndex": number | null,
-"explanation": "string",
-"penaltyReason": "string" | null
-}
-`;
+  "action": "new_ground" | "reinforce" | "counter" | "redundant" | "invalid",
+  "explanation": "2~3문장으로 판정 이유를 한국어로 설명",
+  "targetGroundId": "G-Xn" | null,
+  "reinforcedGroundId": "G-Xn" | null,
+  "groundSummary": "한 줄 요약" | null,
+  "updatedSummary": "보강 반영 요약" | null,
+  "penaltyReason": "패널티 사유" | null
+}`;
 }
 
 export function buildOpeningMessagePrompt(
@@ -173,7 +155,8 @@ export function buildOpeningMessagePrompt(
 - 토론 주제를 언급하며 흥미를 유발
 - 배틀 분위기를 살리는 역동적인 표현 사용
 - 이모지 적절히 활용
-- JSON이 아닌 순수 텍스트로만 응답`;
+- JSON이 아닌 순수 텍스트로만 응답
+- 반드시 한국어로 응답`;
 }
 
 export function buildVictoryMessagePrompt(
@@ -204,5 +187,6 @@ export function buildVictoryMessagePrompt(
 - 승자를 축하하면서도 좋은 토론이었다는 점 강조
 - 스포츠맨십 있는 톤
 - 이모지 적절히 활용
-- JSON이 아닌 순수 텍스트로만 응답`;
+- JSON이 아닌 순수 텍스트로만 응답
+- 반드시 한국어로 응답`;
 }
