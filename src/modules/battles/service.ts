@@ -7,9 +7,11 @@ import {
   ABANDON_TIMEOUT_MINUTES,
   INVALID_GROUND_PENALTY_PERCENT,
   COUNTER_GROUND_PENALTY_PERCENT,
+  REDUNDANT_GROUND_PENALTY_PERCENT,
 } from "./constants";
 import { calculateElapsedDrain, calculatePenalty } from "./timer";
 import { evaluateGround, generateOpeningMessage, generateVictoryMessage } from "./host";
+import { parseRegistry, addGround, counterGround, reinforceGround, getCurrentTurnNumber } from "./grounds";
 import { broadcastToBattle } from "./sse";
 import { broadcast } from "@/lib/sse";
 import type {
@@ -43,6 +45,8 @@ const MESSAGE_INCLUDE = {
 const COMMENT_INCLUDE = {
   user: { select: AUTHOR_SELECT_PUBLIC },
 } as const;
+
+const EMPTY_REGISTRY = { A: [], B: [] };
 
 // ── Challenge Flow ──
 
@@ -83,23 +87,8 @@ export async function createChallenge(challengerId: string, input: CreateChallen
   });
   if (!topic) throw new NotFoundError("토론을 찾을 수 없습니다.");
 
-  // Determine sides from opinions or votes
-  let challengerSide: "A" | "B" = "A";
+  // Determine challenged side from opinion or vote, then force challenger to opposite
   let challengedSide: "A" | "B" = "B";
-
-  if (challengerOpinionId) {
-    const opinion = await prisma.opinion.findUnique({
-      where: { id: challengerOpinionId },
-      select: { side: true },
-    });
-    if (opinion) challengerSide = opinion.side;
-  } else {
-    const vote = await prisma.vote.findFirst({
-      where: { topicId, userId: challengerId },
-      select: { side: true },
-    });
-    if (vote) challengerSide = vote.side;
-  }
 
   if (challengedOpinionId) {
     const opinion = await prisma.opinion.findUnique({
@@ -115,6 +104,8 @@ export async function createChallenge(challengerId: string, input: CreateChallen
     if (vote) challengedSide = vote.side;
   }
 
+  const challengerSide: "A" | "B" = challengedSide === "A" ? "B" : "A";
+
   const battle = await prisma.battle.create({
     data: {
       topicId,
@@ -125,6 +116,8 @@ export async function createChallenge(challengerId: string, input: CreateChallen
       challengerOpinionId,
       challengedOpinionId,
       challengeMessage,
+      durationSeconds: input.durationSeconds,
+      durationProposedBy: challengerId,
       status: "PENDING",
     },
     include: BATTLE_INCLUDE,
@@ -152,7 +145,8 @@ export async function createChallenge(challengerId: string, input: CreateChallen
 export async function respondToChallenge(
   battleId: string,
   userId: string,
-  accept: boolean
+  action: "accept" | "decline" | "counter",
+  counterDuration?: number
 ) {
   const battle = await prisma.battle.findUnique({
     where: { id: battleId },
@@ -160,14 +154,24 @@ export async function respondToChallenge(
   });
 
   if (!battle) throw new NotFoundError("맞짱을 찾을 수 없습니다.");
-  if (battle.challengedId !== userId) {
-    throw new ForbiddenError("이 맞짱에 응답할 권한이 없습니다.");
+
+  // The responder is whoever is NOT the current durationProposedBy
+  // Initially challenged user responds; after counter-proposals it swaps
+  const isChallenger = userId === battle.challengerId;
+  const isChallenged = userId === battle.challengedId;
+  if (!isChallenger && !isChallenged) {
+    throw new ForbiddenError("이 맞짱의 참가자가 아닙니다.");
+  }
+  if (battle.durationProposedBy === userId) {
+    throw new ForbiddenError("상대방의 응답을 기다려야 합니다.");
   }
   if (battle.status !== "PENDING") {
     throw new ConflictError("이미 응답된 맞짱입니다.");
   }
 
-  if (!accept) {
+  const otherUserId = isChallenger ? battle.challengedId : battle.challengerId;
+
+  if (action === "decline") {
     const declined = await prisma.battle.update({
       where: { id: battleId },
       data: { status: "DECLINED" },
@@ -176,7 +180,7 @@ export async function respondToChallenge(
 
     await prisma.notification.create({
       data: {
-        userId: battle.challengerId,
+        userId: otherUserId,
         actorId: userId,
         type: "BATTLE_DECLINED",
         topicId: battle.topicId,
@@ -184,7 +188,7 @@ export async function respondToChallenge(
       },
     });
 
-    broadcast(`user:${battle.challengerId}`, {
+    broadcast(`user:${otherUserId}`, {
       type: "notification:new",
       data: { type: "BATTLE_DECLINED" },
     });
@@ -192,43 +196,127 @@ export async function respondToChallenge(
     return declined;
   }
 
-  // Check if the challenged user already has active battles
+  if (action === "counter") {
+    const updated = await prisma.battle.update({
+      where: { id: battleId },
+      data: {
+        durationSeconds: counterDuration,
+        durationProposedBy: userId,
+        lastActivityAt: new Date(),
+      },
+      include: BATTLE_INCLUDE,
+    });
+
+    await prisma.notification.create({
+      data: {
+        userId: otherUserId,
+        actorId: userId,
+        type: "BATTLE_COUNTER_PROPOSAL",
+        topicId: battle.topicId,
+        battleId: battle.id,
+      },
+    });
+
+    broadcast(`user:${otherUserId}`, {
+      type: "notification:new",
+      data: { type: "BATTLE_COUNTER_PROPOSAL" },
+    });
+
+    broadcastToBattle(battleId, { type: "battle:state", data: updated });
+
+    return updated;
+  }
+
+  // action === "accept" — start the battle directly
   const activeBattles = await prisma.battle.count({
     where: {
       OR: [{ challengerId: userId }, { challengedId: userId }],
-      status: { in: ["SETUP", "ACTIVE"] },
+      status: "ACTIVE",
     },
   });
   if (activeBattles >= MAX_ACTIVE_BATTLES_PER_USER) {
     throw new ConflictError("이미 진행 중인 맞짱이 있습니다.");
   }
 
-  const accepted = await prisma.battle.update({
+  const hp = battle.durationSeconds ?? 600;
+
+  const updated = await prisma.battle.update({
     where: { id: battleId },
     data: {
-      status: "SETUP",
+      status: "ACTIVE",
+      challengerHp: hp,
+      challengedHp: hp,
+      currentTurn: battle.challengerId,
+      turnStartedAt: new Date(),
       acceptedAt: new Date(),
+      startedAt: new Date(),
       lastActivityAt: new Date(),
+      groundsRegistry: EMPTY_REGISTRY,
     },
     include: BATTLE_INCLUDE,
   });
 
-  await prisma.notification.create({
+  // Generate opening message
+  const openingMessage = await generateOpeningMessage(updated).catch(
+    () => "⚔️ 맞짱이 시작됩니다! 양측 모두 근거를 제시해주세요."
+  );
+
+  await prisma.battleMessage.create({
     data: {
-      userId: battle.challengerId,
-      actorId: userId,
-      type: "BATTLE_ACCEPTED",
-      topicId: battle.topicId,
-      battleId: battle.id,
+      battleId,
+      role: "HOST",
+      content: openingMessage,
     },
   });
 
-  broadcast(`user:${battle.challengerId}`, {
-    type: "notification:new",
-    data: { type: "BATTLE_ACCEPTED" },
+  // First turn prompt
+  const turnPrompt = await prisma.battleMessage.create({
+    data: {
+      battleId,
+      role: "HOST",
+      content: `${updated.challenger.nickname || updated.challenger.name}님, 근거를 제시해주세요.`,
+    },
+    include: MESSAGE_INCLUDE,
   });
 
-  return accepted;
+  // Notify both users
+  await Promise.all([
+    prisma.notification.create({
+      data: {
+        userId: battle.challengerId,
+        type: "BATTLE_STARTED",
+        topicId: battle.topicId,
+        battleId: battle.id,
+      },
+    }),
+    prisma.notification.create({
+      data: {
+        userId: battle.challengedId,
+        type: "BATTLE_STARTED",
+        topicId: battle.topicId,
+        battleId: battle.id,
+      },
+    }),
+  ]);
+
+  broadcast(`user:${battle.challengerId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_STARTED" },
+  });
+  broadcast(`user:${battle.challengedId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_STARTED" },
+  });
+
+  broadcastToBattle(battleId, { type: "battle:state", data: updated });
+  broadcastToBattle(battleId, { type: "battle:message", data: turnPrompt });
+
+  broadcast(`topic:${battle.topicId}`, {
+    type: "battle:active",
+    data: { battleId },
+  });
+
+  return updated;
 }
 
 export async function setupBattle(
@@ -262,6 +350,7 @@ export async function setupBattle(
       turnStartedAt: new Date(),
       startedAt: new Date(),
       lastActivityAt: new Date(),
+      groundsRegistry: EMPTY_REGISTRY,
     },
     include: BATTLE_INCLUDE,
   });
@@ -340,22 +429,7 @@ export async function submitGround(
 ) {
   const battle = await prisma.battle.findUnique({
     where: { id: battleId },
-    include: {
-      ...BATTLE_INCLUDE,
-      messages: {
-        where: {
-          role: { in: ["CHALLENGER", "CHALLENGED"] },
-        },
-        orderBy: { createdAt: "asc" },
-        select: {
-          id: true,
-          role: true,
-          userId: true,
-          content: true,
-          createdAt: true,
-        },
-      },
-    },
+    include: BATTLE_INCLUDE,
   });
 
   if (!battle) throw new NotFoundError("맞짱을 찾을 수 없습니다.");
@@ -368,6 +442,7 @@ export async function submitGround(
 
   const isChallenger = userId === battle.challengerId;
   const role = isChallenger ? "CHALLENGER" : "CHALLENGED";
+  const currentSide = isChallenger ? battle.challengerSide : battle.challengedSide;
   const opponentId = isChallenger ? battle.challengedId : battle.challengerId;
 
   // Calculate HP drain from elapsed turn time
@@ -398,28 +473,29 @@ export async function submitGround(
   });
   broadcastToBattle(battleId, { type: "battle:message", data: userMessage });
 
-  // Evaluate with LLM host
-  const previousGrounds = battle.messages.map((m) => ({
-    role: m.role,
-    content: m.content,
-    userId: m.userId,
-  }));
+  // Load grounds registry
+  const registry = parseRegistry(battle.groundsRegistry);
+  const turnNumber = getCurrentTurnNumber(registry);
 
+  // Evaluate with LLM host
   const evaluation = await evaluateGround(
     {
       topic: battle.topic,
       challengerSide: battle.challengerSide,
       challengedSide: battle.challengedSide,
-      previousGrounds,
-      currentSide: isChallenger ? battle.challengerSide : battle.challengedSide,
+      groundsRegistry: registry,
+      currentSide,
     },
     content
   ).catch((err) => {
     console.error("[Battle] LLM evaluation failed:", err);
     return {
-      validity: "valid" as const,
-      countersGroundIndex: null,
-      explanation: "⚙️ 평가 시스템에 일시적인 문제가 발생하여 근거가 자동 수락되었습니다.",
+      action: "new_ground" as const,
+      explanation: "평가 시스템에 일시적인 문제가 발생하여 근거가 자동 수락되었습니다.",
+      targetGroundId: null,
+      reinforcedGroundId: null,
+      groundSummary: content.slice(0, 50),
+      updatedSummary: null,
       penaltyReason: null,
     };
   });
@@ -428,18 +504,75 @@ export async function submitGround(
   let hpChange = 0;
   let opponentHpChange = 0;
   let targetUserId: string | null = null;
+  let updatedRegistry = registry;
+  let switchTurn = true;
 
-  if (evaluation.validity === "invalid") {
-    // Invalid ground: penalty to submitter
-    const penalty = calculatePenalty(maxHp, INVALID_GROUND_PENALTY_PERCENT);
-    hpChange = -penalty;
-    targetUserId = userId;
-    currentHp = Math.max(0, currentHp - penalty);
-  } else if (evaluation.validity === "valid" && evaluation.countersGroundIndex !== null) {
-    // Valid counter: penalty to opponent
-    const penalty = calculatePenalty(maxHp, COUNTER_GROUND_PENALTY_PERCENT);
-    opponentHpChange = -penalty;
-    targetUserId = opponentId;
+  switch (evaluation.action) {
+    case "new_ground": {
+      const result = addGround(
+        updatedRegistry,
+        currentSide,
+        content,
+        evaluation.groundSummary || content.slice(0, 50),
+        turnNumber
+      );
+      updatedRegistry = result.registry;
+      break;
+    }
+
+    case "reinforce": {
+      if (evaluation.reinforcedGroundId) {
+        updatedRegistry = reinforceGround(
+          updatedRegistry,
+          evaluation.reinforcedGroundId,
+          evaluation.updatedSummary || undefined
+        );
+      }
+      break;
+    }
+
+    case "counter": {
+      // Mark opponent's ground as countered
+      if (evaluation.targetGroundId) {
+        updatedRegistry = counterGround(
+          updatedRegistry,
+          evaluation.targetGroundId,
+          `counter-by-${currentSide}`
+        );
+      }
+      // Add the counter argument as a new ground for the current side
+      const counterResult = addGround(
+        updatedRegistry,
+        currentSide,
+        content,
+        evaluation.groundSummary || content.slice(0, 50),
+        turnNumber
+      );
+      updatedRegistry = counterResult.registry;
+      // Apply damage to opponent
+      const counterPenalty = calculatePenalty(maxHp, COUNTER_GROUND_PENALTY_PERCENT);
+      opponentHpChange = -counterPenalty;
+      targetUserId = opponentId;
+      break;
+    }
+
+    case "redundant": {
+      const redundantPenalty = calculatePenalty(maxHp, REDUNDANT_GROUND_PENALTY_PERCENT);
+      hpChange = -redundantPenalty;
+      targetUserId = userId;
+      currentHp = Math.max(0, currentHp - redundantPenalty);
+      switchTurn = false; // Keep turn for retry
+      break;
+    }
+
+    case "invalid": {
+      const invalidPenalty = calculatePenalty(maxHp, INVALID_GROUND_PENALTY_PERCENT);
+      hpChange = -invalidPenalty;
+      targetUserId = userId;
+      currentHp = Math.max(0, currentHp - invalidPenalty);
+      switchTurn = false; // Keep turn for retry
+      break;
+    }
   }
 
   // Create host evaluation message
@@ -459,15 +592,26 @@ export async function submitGround(
   // Update HP values
   const updateData: Record<string, unknown> = {
     lastActivityAt: now,
+    groundsRegistry: updatedRegistry,
   };
 
   if (isChallenger) {
-    updateData.challengerHp = currentHp + hpChange;
+    updateData.challengerHp = currentHp + (hpChange > 0 ? hpChange : 0) + (hpChange < 0 ? 0 : 0);
+    // hpChange is already factored into currentHp for penalty cases
+    if (hpChange < 0) {
+      updateData.challengerHp = currentHp;
+    } else {
+      updateData.challengerHp = currentHp;
+    }
     if (opponentHpChange) {
       updateData.challengedHp = Math.max(0, (battle.challengedHp ?? 0) + opponentHpChange);
     }
   } else {
-    updateData.challengedHp = currentHp + hpChange;
+    if (hpChange < 0) {
+      updateData.challengedHp = currentHp;
+    } else {
+      updateData.challengedHp = currentHp;
+    }
     if (opponentHpChange) {
       updateData.challengerHp = Math.max(0, (battle.challengerHp ?? 0) + opponentHpChange);
     }
@@ -485,8 +629,8 @@ export async function submitGround(
     });
   }
 
-  // Switch turn (skip if ambiguous — clock keeps running)
-  if (evaluation.validity !== "ambiguous") {
+  // Switch turn or keep for retry
+  if (switchTurn) {
     updateData.currentTurn = opponentId;
     updateData.turnStartedAt = now;
   }
@@ -509,8 +653,22 @@ export async function submitGround(
     data: { currentTurn: updated.currentTurn, turnStartedAt: updated.turnStartedAt },
   });
 
-  // Notify opponent it's their turn
-  if (evaluation.validity !== "ambiguous") {
+  // Broadcast grounds registry update
+  broadcastToBattle(battleId, {
+    type: "battle:grounds",
+    data: updatedRegistry,
+  });
+
+  // Broadcast counter animation event
+  if (evaluation.action === "counter" && evaluation.targetGroundId) {
+    broadcastToBattle(battleId, {
+      type: "battle:ground_countered",
+      data: { targetGroundId: evaluation.targetGroundId },
+    });
+  }
+
+  // Notify opponent it's their turn (only on turn switch)
+  if (switchTurn) {
     await prisma.notification.create({
       data: {
         userId: opponentId,

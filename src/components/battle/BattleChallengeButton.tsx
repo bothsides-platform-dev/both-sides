@@ -4,12 +4,16 @@ import { useState } from "react";
 import { Swords } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChallengeDialog } from "./ChallengeDialog";
+import type { Side } from "@prisma/client";
 
 interface BattleChallengeButtonProps {
   opinionId: string;
   opinionUserId: string;
   topicId: string;
   currentUserId?: string;
+  opinionSide: Side;
+  optionA: string;
+  optionB: string;
 }
 
 export function BattleChallengeButton({
@@ -17,6 +21,9 @@ export function BattleChallengeButton({
   opinionUserId,
   topicId,
   currentUserId,
+  opinionSide,
+  optionA,
+  optionB,
 }: BattleChallengeButtonProps) {
   const [open, setOpen] = useState(false);
 
@@ -44,6 +51,9 @@ export function BattleChallengeButton({
         topicId={topicId}
         challengedId={opinionUserId}
         challengedOpinionId={opinionId}
+        challengedSide={opinionSide}
+        optionA={optionA}
+        optionB={optionB}
       />
     </>
   );

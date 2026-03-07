@@ -1,5 +1,6 @@
 import type { Side } from "@prisma/client";
-import type { GroundEvaluation } from "./types";
+import type { GroundEvaluation, GroundsRegistry } from "./types";
+import { findGround } from "./grounds";
 import {
   buildEvaluateGroundPrompt,
   buildOpeningMessagePrompt,
@@ -10,7 +11,7 @@ type BattleContext = {
   topic: { title: string; optionA: string; optionB: string };
   challengerSide: Side;
   challengedSide: Side;
-  previousGrounds: { role: string; content: string; userId: string | null }[];
+  groundsRegistry: GroundsRegistry;
   currentSide: Side;
 };
 
@@ -42,9 +43,12 @@ async function callLlm(prompt: string): Promise<{ text: string }> {
   if (!settings?.apiKey) {
     return {
       text: JSON.stringify({
-        validity: "valid",
-        countersGroundIndex: null,
-        explanation: "⚙️ 평가 시스템을 사용할 수 없어 근거가 자동 수락되었습니다.",
+        action: "new_ground",
+        explanation: "평가 시스템을 사용할 수 없어 근거가 자동 수락되었습니다.",
+        targetGroundId: null,
+        reinforcedGroundId: null,
+        groundSummary: "자동 수락된 근거",
+        updatedSummary: null,
         penaltyReason: null,
       }),
     };
@@ -58,7 +62,7 @@ async function callLlm(prompt: string): Promise<{ text: string }> {
     const payload: Record<string, unknown> = {
       model,
       messages: [{ role: "user", content: prompt }],
-      max_completion_tokens: 500,
+      max_completion_tokens: 800,
     };
     if (includeTemperature) {
       payload.temperature = 0.2;
@@ -107,6 +111,20 @@ async function callLlm(prompt: string): Promise<{ text: string }> {
   return { text: data.choices?.[0]?.message?.content?.trim() ?? "" };
 }
 
+const VALID_ACTIONS = new Set(["new_ground", "reinforce", "counter", "redundant", "invalid"]);
+
+function makeFallbackEval(groundContent: string): GroundEvaluation {
+  return {
+    action: "new_ground",
+    explanation: "평가 시스템에 일시적인 문제가 발생하여 근거가 자동 수락되었습니다.",
+    targetGroundId: null,
+    reinforcedGroundId: null,
+    groundSummary: groundContent.slice(0, 50),
+    updatedSummary: null,
+    penaltyReason: null,
+  };
+}
+
 export async function evaluateGround(
   context: BattleContext,
   ground: string
@@ -116,19 +134,53 @@ export async function evaluateGround(
 
   try {
     const parsed = JSON.parse(extractJson(result.text));
-    return {
-      validity: parsed.validity || "valid",
-      countersGroundIndex: parsed.countersGroundIndex ?? null,
+    const action = VALID_ACTIONS.has(parsed.action) ? parsed.action : "new_ground";
+
+    const evaluation: GroundEvaluation = {
+      action,
       explanation: parsed.explanation || "근거가 평가되었습니다.",
+      targetGroundId: parsed.targetGroundId ?? null,
+      reinforcedGroundId: parsed.reinforcedGroundId ?? null,
+      groundSummary: parsed.groundSummary ?? null,
+      updatedSummary: parsed.updatedSummary ?? null,
       penaltyReason: parsed.penaltyReason ?? null,
     };
+
+    // Validate referenced IDs exist in registry
+    if (action === "counter" && evaluation.targetGroundId) {
+      const target = findGround(context.groundsRegistry, evaluation.targetGroundId);
+      if (!target || target.status !== "active") {
+        // Target doesn't exist or already countered — fallback to new_ground
+        return {
+          ...evaluation,
+          action: "new_ground",
+          targetGroundId: null,
+          groundSummary: evaluation.groundSummary || ground.slice(0, 50),
+        };
+      }
+    }
+
+    if (action === "reinforce" && evaluation.reinforcedGroundId) {
+      const target = findGround(context.groundsRegistry, evaluation.reinforcedGroundId);
+      if (!target || target.status !== "active") {
+        // Target doesn't exist — fallback to new_ground
+        return {
+          ...evaluation,
+          action: "new_ground",
+          reinforcedGroundId: null,
+          groundSummary: evaluation.groundSummary || ground.slice(0, 50),
+        };
+      }
+    }
+
+    // Ensure groundSummary is set for new_ground
+    if (action === "new_ground" && !evaluation.groundSummary) {
+      evaluation.groundSummary = ground.slice(0, 50);
+    }
+
+    return evaluation;
   } catch {
-    return {
-      validity: "valid",
-      countersGroundIndex: null,
-      explanation: "근거가 수락되었습니다.",
-      penaltyReason: null,
-    };
+    return makeFallbackEval(ground);
   }
 }
 

@@ -42,6 +42,7 @@ const BATTLE_NOTIFICATION_MESSAGES: Record<string, (actorName: string) => string
   BATTLE_STARTED: () => "맞짱이 시작되었습니다!",
   BATTLE_YOUR_TURN: () => "맞짱에서 당신의 차례입니다!",
   BATTLE_ENDED: () => "맞짱이 종료되었습니다.",
+  BATTLE_COUNTER_PROPOSAL: (name) => `${name}님이 배틀 시간 변경을 제안했습니다.`,
 };
 
 export function NotificationItem({ notification, onRead }: NotificationItemProps) {

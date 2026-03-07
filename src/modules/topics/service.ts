@@ -514,7 +514,7 @@ export async function publishScheduledTopics() {
     where: {
       scheduledAt: { lte: now },
     },
-    data: { scheduledAt: null },
+    data: { scheduledAt: null, createdAt: now },
   });
 
   return {

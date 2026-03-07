@@ -61,6 +61,8 @@ export function useBattleSSE({
         "battle:turn",
         "battle:end",
         "battle:comment",
+        "battle:grounds",
+        "battle:ground_countered",
       ];
 
       for (const type of eventTypes) {

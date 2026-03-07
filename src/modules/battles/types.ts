@@ -8,6 +8,36 @@ export type BattleParticipant = {
   selectedBadgeId: string | null;
 };
 
+export type Ground = {
+  id: string; // "G-A1", "G-B2", etc.
+  side: "A" | "B";
+  content: string;
+  summary: string; // LLM-generated 1-line summary
+  status: "active" | "countered";
+  counteredBy: string | null; // ID of ground that countered this
+  reinforcedCount: number;
+  createdAtTurn: number;
+};
+
+export type GroundsRegistry = { A: Ground[]; B: Ground[] };
+
+export type GroundAction =
+  | "new_ground"
+  | "reinforce"
+  | "counter"
+  | "redundant"
+  | "invalid";
+
+export type GroundEvaluation = {
+  action: GroundAction;
+  explanation: string;
+  targetGroundId: string | null; // counter target
+  reinforcedGroundId: string | null; // reinforce target
+  groundSummary: string | null; // for new_ground/counter
+  updatedSummary: string | null; // for reinforce
+  penaltyReason: string | null; // for redundant/invalid
+};
+
 export type BattleState = {
   id: string;
   topicId: string;
@@ -28,6 +58,7 @@ export type BattleState = {
   acceptedAt: string | null;
   startedAt: string | null;
   endedAt: string | null;
+  groundsRegistry: GroundsRegistry | null;
   topic: {
     id: string;
     title: string;
@@ -58,13 +89,6 @@ export type BattleCommentData = {
   user: BattleParticipant;
 };
 
-export type GroundEvaluation = {
-  validity: "valid" | "invalid" | "ambiguous";
-  countersGroundIndex: number | null;
-  explanation: string;
-  penaltyReason: string | null;
-};
-
 // SSE event types
 export type SSEEventType =
   | "battle:state"
@@ -73,6 +97,8 @@ export type SSEEventType =
   | "battle:turn"
   | "battle:end"
   | "battle:comment"
+  | "battle:grounds"
+  | "battle:ground_countered"
   | "heartbeat";
 
 export type SSEEvent = {

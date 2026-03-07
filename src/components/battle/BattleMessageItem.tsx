@@ -3,6 +3,15 @@
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { BattleMessageRole } from "@prisma/client";
+import type { GroundAction } from "@/modules/battles/types";
+
+type MessageMetadata = {
+  action?: GroundAction;
+  targetGroundId?: string | null;
+  reinforcedGroundId?: string | null;
+  // Legacy fields for backward compatibility
+  validity?: "valid" | "invalid" | "ambiguous";
+};
 
 interface BattleMessageItemProps {
   role: BattleMessageRole;
@@ -14,14 +23,39 @@ interface BattleMessageItemProps {
   } | null;
   hpChange: number | null;
   targetUserId: string | null;
+  metadata: MessageMetadata | null;
   createdAt: string;
 }
+
+const ACTION_BADGES: Record<GroundAction, { label: string; className: string }> = {
+  new_ground: {
+    label: "NEW",
+    className: "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400",
+  },
+  reinforce: {
+    label: "REINFORCE",
+    className: "bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
+  },
+  counter: {
+    label: "COUNTER",
+    className: "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400",
+  },
+  redundant: {
+    label: "REDUNDANT",
+    className: "bg-orange-100 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400",
+  },
+  invalid: {
+    label: "INVALID",
+    className: "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400",
+  },
+};
 
 export function BattleMessageItem({
   role,
   content,
   user,
   hpChange,
+  metadata,
   createdAt,
 }: BattleMessageItemProps) {
   const isHost = role === "HOST";
@@ -32,6 +66,18 @@ export function BattleMessageItem({
       : isSystem
         ? "시스템"
         : user?.nickname || user?.name || "참가자";
+
+  // Determine action badge from metadata
+  const action = metadata?.action;
+  const badge = action ? ACTION_BADGES[action] : null;
+
+  // Affected ground info
+  let affectedInfo: string | null = null;
+  if (action === "counter" && metadata?.targetGroundId) {
+    affectedInfo = `${metadata.targetGroundId} 반박됨`;
+  } else if (action === "reinforce" && metadata?.reinforcedGroundId) {
+    affectedInfo = `${metadata.reinforcedGroundId} 보강됨`;
+  }
 
   return (
     <div
@@ -77,18 +123,35 @@ export function BattleMessageItem({
           </span>
         </div>
         <p className="text-sm whitespace-pre-wrap mt-0.5">{content}</p>
-        {hpChange !== null && hpChange !== 0 && (
-          <span
-            className={cn(
-              "inline-block text-xs font-medium mt-1 px-1.5 py-0.5 rounded",
-              hpChange < 0
-                ? "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"
-                : "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-            )}
-          >
-            {hpChange > 0 ? "+" : ""}{hpChange} HP
-          </span>
-        )}
+        <div className="flex flex-wrap items-center gap-1.5 mt-1">
+          {badge && (
+            <span
+              className={cn(
+                "inline-block text-[10px] font-bold px-1.5 py-0.5 rounded",
+                badge.className
+              )}
+            >
+              {badge.label}
+            </span>
+          )}
+          {affectedInfo && (
+            <span className="text-[10px] text-muted-foreground font-medium">
+              {affectedInfo}
+            </span>
+          )}
+          {hpChange !== null && hpChange !== 0 && (
+            <span
+              className={cn(
+                "inline-block text-xs font-medium px-1.5 py-0.5 rounded",
+                hpChange < 0
+                  ? "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"
+                  : "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400"
+              )}
+            >
+              {hpChange > 0 ? "+" : ""}{hpChange} HP
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
