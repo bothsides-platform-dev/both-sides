@@ -164,7 +164,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
 
   const { data, isLoading } = useSWR<TopicsResponse>(
-    "/api/topics?sort=popular&limit=50",
+    "/api/topics?sort=popular&limit=50&since=672",
     fetcher,
     { revalidateOnFocus: false }
   );
