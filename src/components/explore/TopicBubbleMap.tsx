@@ -10,7 +10,7 @@ import "d3-transition";
 import { useTheme } from "next-themes";
 import { fetcher } from "@/lib/fetcher";
 import { CATEGORY_META, CATEGORY_CSS_VAR } from "@/lib/constants";
-import { Eye, Info, MessageSquare, RotateCcw, Users, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronUp, Eye, Info, MessageSquare, RotateCcw, Users, ZoomIn, ZoomOut } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/useMediaQuery";
@@ -57,6 +57,7 @@ interface BubbleData {
 
 interface TopicBubbleMapProps {
   highlightCategory?: Category | null;
+  onCollapse?: () => void;
 }
 
 function truncateText(text: string, maxLen: number): string {
@@ -133,6 +134,7 @@ function getPopoverPosition(
 
 export const TopicBubbleMap = memo(function TopicBubbleMap({
   highlightCategory = null,
+  onCollapse,
 }: TopicBubbleMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -336,12 +338,18 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
 
   return (
     <div className="rounded-xl border bg-card p-4 sm:p-6">
-      <div className="mb-4 flex items-center gap-1.5">
+      <div
+        className={`mb-4 flex items-center gap-1.5${onCollapse ? " cursor-pointer" : ""}`}
+        onClick={onCollapse}
+        role={onCollapse ? "button" : undefined}
+        tabIndex={onCollapse ? 0 : undefined}
+        onKeyDown={onCollapse ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onCollapse(); } } : undefined}
+      >
         <h2 className="text-base font-semibold">토픽 버블맵</h2>
         <Tooltip.Provider delayDuration={200}>
           <Tooltip.Root>
             <Tooltip.Trigger asChild>
-              <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+              <button type="button" className="text-muted-foreground hover:text-foreground transition-colors" onClick={(e) => e.stopPropagation()}>
                 <Info className="h-4 w-4" />
               </button>
             </Tooltip.Trigger>
@@ -357,6 +365,7 @@ export const TopicBubbleMap = memo(function TopicBubbleMap({
             </Tooltip.Portal>
           </Tooltip.Root>
         </Tooltip.Provider>
+        {onCollapse && <ChevronUp className="ml-auto h-5 w-5 text-muted-foreground" />}
       </div>
       <div ref={containerCallbackRef} className="relative w-full overflow-hidden min-h-[200px] touch-none">
         {containerWidth > 0 && (

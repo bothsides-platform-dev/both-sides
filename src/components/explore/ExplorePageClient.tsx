@@ -9,7 +9,7 @@ import { TopicListItem, type TopicListItemProps } from "@/components/topics/Topi
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Loader2, Search } from "lucide-react";
+import { ChevronDown, Loader2, Search } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TopicBubbleMap } from "@/components/explore/TopicBubbleMap";
@@ -85,17 +85,7 @@ function ExplorePageContent() {
           <ChevronDown className="h-5 w-5 text-muted-foreground" />
         </button>
       ) : (
-        <div className="relative">
-          <TopicBubbleMap highlightCategory={categoryEnum ?? null} />
-          <button
-            type="button"
-            onClick={() => setIsMapCollapsed(true)}
-            className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-md border bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent hover:text-foreground"
-            aria-label="버블맵 접기"
-          >
-            <ChevronUp className="h-4 w-4" />
-          </button>
-        </div>
+        <TopicBubbleMap highlightCategory={categoryEnum ?? null} onCollapse={() => setIsMapCollapsed(true)} />
       )}
 
       {/* Category + Sort */}
