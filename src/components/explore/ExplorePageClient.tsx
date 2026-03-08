@@ -11,7 +11,7 @@ import { FeedListItem, type FeedItem } from "@/components/feed/FeedListItem";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Button } from "@/components/ui/button";
-import { Loader2, Search } from "lucide-react";
+import { ChevronDown, Loader2, Search } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TopicBubbleMap } from "@/components/explore/TopicBubbleMap";
@@ -35,6 +35,7 @@ function ExplorePageContent() {
   const [sort, setSort] = useState<"latest" | "popular">("latest");
   const [page, setPage] = useState(1);
   const [contentType, setContentType] = useState<ContentType>("all");
+  const [isMapCollapsed, setIsMapCollapsed] = useState(!!categoryEnum);
   const limit = 20;
 
   const handleCategoryChange = useCallback(
@@ -107,7 +108,18 @@ function ExplorePageContent() {
   return (
     <div className="space-y-4">
       {/* Bubble Map */}
-      <TopicBubbleMap highlightCategory={categoryEnum ?? null} />
+      {isMapCollapsed ? (
+        <button
+          type="button"
+          onClick={() => setIsMapCollapsed(false)}
+          className="flex w-full items-center justify-between rounded-xl border bg-card px-4 py-3 text-left transition-colors hover:bg-accent/50"
+        >
+          <span className="text-base font-semibold">토픽 버블맵</span>
+          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+        </button>
+      ) : (
+        <TopicBubbleMap highlightCategory={categoryEnum ?? null} onCollapse={() => setIsMapCollapsed(true)} />
+      )}
 
       {/* Content Type Tabs */}
       <div className="flex items-center gap-4">

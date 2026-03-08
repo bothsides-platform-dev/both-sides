@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       sort: searchParams.get("sort") || undefined,
       featured: searchParams.get("featured") || undefined,
       exclude: searchParams.get("exclude") || undefined,
+      since: searchParams.get("since") || undefined,
     });
 
     const result = await getTopics(input);

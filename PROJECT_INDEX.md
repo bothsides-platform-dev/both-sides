@@ -1,222 +1,204 @@
 # Project Index: BothSides
 
-Generated: 2026-02-28 | 311 source files | ~31K LOC | 0 test files
-
-## Quick Start
-
-```bash
-pnpm install          # Install dependencies
-pnpm prisma generate  # Generate Prisma client
-pnpm dev              # Start dev server (localhost:3000)
-pnpm build            # Production build
-```
-
-## Tech Stack
-
-Next.js 16.1.6 (App Router) | React 18 | TypeScript | Prisma 6.19 + PostgreSQL | NextAuth.js 4.24 (Kakao OAuth) | TailwindCSS 3.4 + Radix UI | SWR | Zod 4.3 | Framer Motion 12.29 | Vercel (Hosting + Blob) | pnpm
+Generated: 2026-03-07
 
 ## Project Structure
 
 ```
 src/
-├── app/                    # Next.js App Router (pages + API routes)
-│   ├── api/                # REST API endpoints (~60 routes)
-│   ├── admin/              # Admin dashboard (9 pages: dashboard, topics, opinions, users, reports, feedback, site-reviews, llm, battles, schedule)
-│   ├── topics/             # Topic CRUD + detail + OG images
-│   ├── battles/            # Battle detail page + client component
-│   ├── users/              # User profile page
-│   ├── auth/               # Sign in / error
-│   ├── explore/            # Explore/search with bubble map
+├── app/                    # Next.js App Router pages & API routes
+│   ├── admin/              # Admin dashboard pages (battles, feedback, llm, opinions, reports, schedule, site-reviews, topics, users)
+│   ├── api/                # REST API endpoints
+│   │   ├── admin/          # Admin-only APIs
+│   │   ├── auth/           # NextAuth [...nextauth]
+│   │   ├── battles/        # Battle CRUD, challenge, stream, setup
+│   │   ├── cron/           # Cron endpoints (battle cleanup)
+│   │   ├── feedback/       # User feedback
+│   │   ├── notifications/  # Notification CRUD, SSE stream
+│   │   ├── opinions/       # Opinions, reactions, replies, reports
+│   │   ├── site-reviews/   # NPS site reviews
+│   │   ├── topics/         # Topics CRUD, votes, opinions, grounds, summary, stream
+│   │   ├── trends/         # Trending topics
+│   │   ├── upload/         # File upload (Vercel Blob)
+│   │   └── users/          # User profiles
+│   ├── auth/               # Sign-in & error pages
+│   ├── battles/[id]/       # Battle detail page
+│   ├── explore/            # Explore/browse topics
+│   ├── feedback/           # Feedback submission page
 │   ├── notifications/      # Notifications page
-│   ├── profile/            # Profile edit
-│   ├── feedback/           # Feedback page
-│   └── about/              # About page
-├── components/             # React components (~90 files)
-│   ├── admin/              # Admin tables & dashboards (11 files)
-│   ├── admin/llm/          # LLM management UI (6 files)
-│   ├── battle/             # Battle UI (14 files)
-│   ├── debate/             # Opinions, voting, reports, SSE (12 files)
-│   ├── topics/             # Topic cards, lists, sharing (12 files)
-│   ├── layout/             # AppShell, Header, Sidebars, Footer (8 files)
-│   ├── notifications/      # Bell, dropdown, list (5 files)
-│   ├── ui/                 # Radix primitives + custom (25+ files)
-│   ├── badges/             # UserBadges, BadgeShowcase
-│   ├── providers/          # Session, Theme, SWR, Kakao, UTM (5 files)
-│   └── explore/, home/, trending/, feedback/, site-review/
-├── modules/                # Business logic (14 domains)
-│   ├── auth/               # NextAuth config (Kakao OAuth, Prisma adapter)
-│   ├── topics/             # Topic CRUD, filtering, featuring, scheduling
-│   ├── opinions/           # Opinions CRUD, threading, admin management
-│   ├── votes/              # Voting (auth + guest), stats, cache invalidation
-│   ├── reactions/          # Like/dislike toggle
-│   ├── notifications/      # Reply & battle notifications, unread count
-│   ├── battles/            # Challenge, setup, messaging, host AI, SSE, timer, prompts (8 files)
-│   ├── reports/            # Content reporting
-│   ├── feedback/           # User feedback
-│   ├── users/              # Admin user management, badge selection
-│   ├── trends/             # Trending searches (SerpAPI, 3h cache)
-│   ├── site-reviews/       # NPS survey
-│   ├── llm/                # AI summarization & opinion generation (OpenAI) - core/, prompts/, services
-│   └── llm-settings/       # Encrypted LLM provider config
-├── hooks/                  # Custom React hooks (7 files)
-│   ├── useSSE.ts           # Generic SSE with reconnection
-│   ├── useBattleSSE.tsx    # Battle SSE + polling fallback
-│   ├── useTopicSSE.tsx     # Topic real-time updates
-│   ├── useUnreadNotificationCount.ts  # Notification count via SSE
-│   ├── useMediaQuery.ts    # useIsMobile(), useIsDesktop()
-│   ├── useSwipeableTabs.ts # Swipe gesture for tabs
-│   └── useTruncationDetection.ts
-├── lib/                    # Utilities (18 files)
-│   ├── db.ts               # Prisma singleton
-│   ├── auth.ts             # getSession, requireAuth, requireAdmin
-│   ├── errors.ts           # AppError hierarchy + handleApiError
-│   ├── validation.ts       # Zod helpers + common schemas
-│   ├── utils.ts            # cn(), formatDate/Number/RelativeTime
-│   ├── cache.ts            # In-memory TTL cache (MemoryCache singleton)
-│   ├── sse.ts              # SSE client management + broadcast
-│   ├── visitor.ts          # Guest tracking: visitorId, fingerprint, IP
-│   ├── badges.ts           # 14 badge definitions, 5 categories, 4 tiers
-│   ├── profanity.ts        # Korean profanity filter
-│   ├── nickname.ts         # Random Korean nicknames
-│   ├── encryption.ts       # AES-256-GCM for API keys
-│   ├── analytics.ts        # GA4 event tracking
-│   ├── constants.ts        # CATEGORY_LABELS, enums
-│   ├── fetcher.ts          # SWR fetcher
-│   ├── api-error.ts        # ApiError class + apiFetch<T>()
-│   ├── api-helpers.ts      # withAdmin middleware
-│   ├── inapp.ts            # In-app browser detection
-│   └── prisma-selects.ts   # Reusable Prisma select objects
-└── types/                  # TypeScript declarations (4 files)
+│   ├── profile/            # User profile edit
+│   ├── topics/[id]/        # Topic detail & debate page
+│   ├── topics/new/         # Create new topic
+│   └── users/[id]/         # Public user profile
+├── components/
+│   ├── admin/              # Admin dashboard components (tables, stats, schedule, LLM)
+│   ├── badges/             # Badge system (UserBadges, BadgeShowcase)
+│   ├── battle/             # Battle UI (cards, chat, HP bar, timer, grounds, setup)
+│   ├── debate/             # Debate UI (opinions, votes, replies, reports, SSE)
+│   ├── explore/            # Explore page (bubble map)
+│   ├── feedback/           # Feedback FAB
+│   ├── home/               # Home page client
+│   ├── layout/             # App shell, header, sidebars, footer, user menu
+│   ├── notifications/      # Notification bell, dropdown, list
+│   ├── providers/          # Context providers (theme, session, SWR, Kakao, UTM)
+│   ├── site-review/        # NPS prompt
+│   ├── topics/             # Topic cards, lists, share, author, images, featured
+│   └── ui/                 # Radix UI primitives (button, dialog, select, tabs, etc.)
+├── hooks/                  # Custom hooks (SSE, media query, swipe tabs, truncation)
+├── lib/                    # Utilities
+│   ├── auth.ts             # Auth helpers
+│   ├── badges.ts           # Badge definitions & calculation
+│   ├── cache.ts            # Caching utilities
+│   ├── constants.ts        # App constants
+│   ├── db.ts               # Prisma client singleton
+│   ├── encryption.ts       # Encryption helpers
+│   ├── profanity.ts        # Profanity filter (badwords-ko)
+│   ├── sse.ts              # Server-Sent Events helpers
+│   ├── validation.ts       # Input validation
+│   └── visitor.ts          # Visitor/fingerprint tracking
+├── modules/                # Business logic (service layer)
+│   ├── auth/               # NextAuth options
+│   ├── battles/            # Battle service, SSE, timer, grounds, prompts
+│   ├── feedback/           # Feedback service
+│   ├── llm/                # LLM integration (OpenAI provider, prompts, auto-trigger)
+│   ├── llm-settings/       # LLM admin settings
+│   ├── notifications/      # Notification service
+│   ├── opinions/           # Opinion service
+│   ├── reactions/          # Reaction service
+│   ├── reports/            # Report service
+│   ├── site-reviews/       # Site review (NPS) service
+│   ├── topics/             # Topic service
+│   ├── trends/             # Trending algorithm
+│   ├── users/              # User service
+│   └── votes/              # Vote service
+├── types/                  # TypeScript definitions (api.ts, next-auth.d.ts, vendor .d.ts)
+└── middleware.ts           # Next.js middleware
+
 prisma/
-└── schema.prisma           # 20 models, 8 enums (547 lines)
+└── schema.prisma           # Database schema (PostgreSQL)
+
+scripts/cron/
+├── applyViewBoostLedger.mjs  # View boost cron job
+└── publishScheduledTopics.mjs # Scheduled topic publishing
+
 docs/
-└── features/badge-system.md
+├── README.md
+├── i18n-seo.md
+└── features/
+    ├── badge-system.md
+    └── namuwiki-trending-analysis.md
 ```
 
 ## Entry Points
 
-- **App**: `src/app/layout.tsx` — Root layout with providers (Session, Theme, Kakao, SWR, UTM, Toast)
-- **Home**: `src/app/page.tsx` → `HomePageClient.tsx`
-- **API**: `src/app/api/` — ~60 REST endpoints
-- **DB**: `prisma/schema.prisma` — PostgreSQL via Prisma
+- **Web App**: `src/app/layout.tsx` - Root layout with providers
+- **Home Page**: `src/app/page.tsx` - Landing page with featured topics
+- **API**: `src/app/api/` - REST endpoints
+- **Auth**: `src/app/api/auth/[...nextauth]/route.ts` - NextAuth handler
+- **Middleware**: `src/middleware.ts` - Request middleware
+- **DB Client**: `src/lib/db.ts` - Prisma singleton
+- **Cron**: `scripts/cron/*.mjs` - Scheduled jobs
 
-## Database Models (20 models)
+## Core Modules
 
-```
-User ──┬── Account (OAuth)
-       ├── Session
-       ├── Topic ──┬── Vote (A/B, guest+auth dedup)
-       │           ├── Opinion ──┬── Reaction (LIKE/DISLIKE)
-       │           │             ├── Report
-       │           │             ├── Opinion (self-ref replies)
-       │           │             └── OpinionGround (AI classification)
-       │           ├── TopicView (unique visitor tracking)
-       │           ├── TopicSummary (AI summary)
-       │           ├── GroundsSummary (per-side AI grounds)
-       │           ├── Report
-       │           ├── Battle ──┬── BattleMessage
-       │           │            ├── BattleComment
-       │           │            └── Notification
-       │           └── Notification
-       ├── Battle (as challenger/challenged)
-       ├── Feedback
-       ├── SiteReview (NPS)
-       └── Notification
-LlmSettings (AI provider config, encrypted)
-VerificationToken (standalone)
-```
+### battles
+- Path: `src/modules/battles/`
+- Files: service.ts, sse.ts, timer.ts, grounds.ts, host.ts, prompts.ts, constants.ts, schema.ts, types.ts
+- Purpose: Real-time debate battles with HP system, turn-based messaging, SSE streaming
 
-**Enums**: Role(USER/ADMIN), Side(A/B), Category(8: DAILY/POLITICS/SOCIAL/RELATIONSHIP/HISTORY/GAME/TECH/SPORTS), ReactionType, ReportStatus, FeedbackStatus, FeedbackCategory, NotificationType(7), BattleStatus(8), BattleMessageRole, BattleResult
+### llm
+- Path: `src/modules/llm/`
+- Files: service.ts, singleton.ts, auto-trigger.ts, schema.ts, core/ (provider, prompts, retry, usage)
+- Purpose: AI-powered opinion generation, topic summarization, grounds classification (OpenAI)
 
-## API Routes Summary
+### topics
+- Path: `src/modules/topics/`
+- Files: service.ts, schema.ts
+- Purpose: Topic CRUD, scheduling, featuring, category management
 
-| Prefix | Methods | Auth | Purpose |
-|--------|---------|------|---------|
-| `/api/topics` | GET, POST | Optional/Required | List & create topics |
-| `/api/topics/[id]` | GET, PUT, DELETE | Varies | Topic CRUD |
-| `/api/topics/[id]/vote` | POST | Optional | Vote (auth + guest) |
-| `/api/topics/[id]/opinions` | GET | Public | Topic opinions |
-| `/api/topics/[id]/summary` | GET | Public | AI summary |
-| `/api/topics/[id]/grounds` | GET | Public | Grounds analysis |
-| `/api/topics/[id]/stream` | GET | Public | SSE real-time updates |
-| `/api/topics/[id]/view` | GET | Public | Track view |
-| `/api/topics/[id]/vote-stats` | GET | Public | Vote statistics |
-| `/api/topics/[id]/vote-info` | GET | Public | Stats + user vote |
-| `/api/topics/[id]/my-vote` | GET | Required | Current user's vote |
-| `/api/opinions` | GET, POST | Varies | Opinion CRUD |
-| `/api/opinions/[id]/replies` | GET | Public | Threaded replies |
-| `/api/opinions/[id]/reactions` | GET, POST | Varies | Like/dislike |
-| `/api/opinions/[id]/ancestors` | GET | Public | Reply thread chain |
-| `/api/battles` | GET, POST | Varies | Battle list & create |
-| `/api/battles/[id]` | GET, PUT, DELETE | Varies | Battle CRUD |
-| `/api/battles/[id]/messages` | GET, POST | Required | Battle chat |
-| `/api/battles/[id]/comments` | GET, POST | Varies | Observer comments |
-| `/api/battles/[id]/grounds` | GET, POST | Varies | Battle grounds |
-| `/api/battles/[id]/stream` | GET | Public | Battle SSE |
-| `/api/battles/[id]/setup` | POST | Required | Setup battle |
-| `/api/battles/[id]/respond` | POST | Required | Accept/decline |
-| `/api/battles/[id]/resign` | POST | Required | Resign battle |
-| `/api/battles/challenge` | POST | Required | Issue challenge |
-| `/api/battles/active` | GET | Public | Active battles list |
-| `/api/notifications` | GET | Required | User notifications |
-| `/api/notifications/stream` | GET | Required | Notification SSE |
-| `/api/notifications/unread-count` | GET | Required | Badge count |
-| `/api/notifications/read-all` | POST | Required | Mark all read |
-| `/api/profile` | GET, PUT | Required | User profile |
-| `/api/users/[id]` | GET | Public | Public profile |
-| `/api/upload` | POST | Required | Blob storage |
-| `/api/feedback` | POST | Optional | Submit feedback |
-| `/api/site-reviews` | POST | Optional | NPS review |
-| `/api/trends` | GET | Public | Trending searches |
-| `/api/admin/*` | Various | Admin | ~25 admin endpoints |
-| `/api/admin/llm/*` | Various | Admin | AI management (settings, generate, summarize, grounds) |
-| `/api/cron/battles` | POST | System | Battle maintenance cron |
+### opinions
+- Path: `src/modules/opinions/`
+- Files: service.ts, schema.ts
+- Purpose: Nested comment system with sides (A/B), blinding, anonymity
 
-## Key Patterns
+### votes
+- Path: `src/modules/votes/`
+- Files: service.ts, schema.ts
+- Purpose: Voting system supporting both authenticated users and guests
 
-- **Auth**: `requireAuth()` / `requireAdmin()` from `lib/auth.ts`
-- **Validation**: Zod schemas in `modules/*/schema.ts`, validated via `validateRequest()`
-- **Errors**: `AppError` hierarchy → `handleApiError()` in API routes
-- **Data fetching**: SWR on client, Prisma on server, `fetcher<T>()` helper
-- **Real-time**: SSE via `lib/sse.ts` (addClient/removeClient/broadcast)
-- **Guest support**: Votes & opinions via visitorId/fingerprint/IP
-- **Caching**: In-memory TTL cache (`lib/cache.ts`) for vote stats & trends
-- **Dark mode**: `next-themes` with class-based Tailwind
-- **Rate limiting**: `@upstash/ratelimit` + Redis
-- **Profanity**: `badwords-ko` Korean filter on opinions
-- **Security**: CSP headers, CSRF origin check, body size limits
+### notifications
+- Path: `src/modules/notifications/`
+- Files: service.ts, schema.ts
+- Purpose: Reply and battle notifications with SSE real-time delivery
 
-## Environment Variables
+### trends
+- Path: `src/modules/trends/`
+- Files: service.ts, types.ts
+- Purpose: Trending topics algorithm
 
-**Required**: DATABASE_URL, DIRECT_URL, NEXTAUTH_SECRET, NEXTAUTH_URL, KAKAO_CLIENT_ID, KAKAO_CLIENT_SECRET, NEXT_PUBLIC_KAKAO_JS_KEY, BLOB_READ_WRITE_TOKEN
+## Data Models (Prisma)
 
-**Optional**: SERPAPI_KEY (trends), ENCRYPTION_KEY (LLM API key encryption)
+| Model | Purpose |
+|-------|---------|
+| User | Users with roles (USER/ADMIN), bot flag, blacklist, badge |
+| Topic | A vs B debate topics with categories, images, scheduling, SEO |
+| Vote | Authenticated + guest voting with fingerprint dedup |
+| Opinion | Nested comments with sides, blinding, anonymity |
+| Reaction | Like/dislike on opinions |
+| Report | Content reporting (opinions & topics) |
+| Feedback | User feedback (bug/suggestion/question) |
+| Notification | Reply & battle notifications |
+| SiteReview | NPS score tracking |
+| Battle | Real-time 1v1 debate with HP, turns, timer |
+| BattleMessage | Chat messages in battles |
+| BattleComment | Observer comments on battles |
+| TopicSummary | AI-generated topic summaries |
+| GroundsSummary | AI-generated argument grounds per side |
+| OpinionGround | AI classification of opinions to grounds |
+| LlmSettings | Admin-configurable LLM provider settings |
+
+## Configuration
+
+| File | Purpose |
+|------|---------|
+| `package.json` | Dependencies & scripts (next, prisma, radix, swr, zod) |
+| `prisma/schema.prisma` | PostgreSQL schema with 17 models |
+| `next.config.mjs` | Security headers, CSP, image remotes, package optimization |
+| `tsconfig.json` | TypeScript strict mode, `@/*` path alias |
+| `.eslintrc.json` | ESLint config |
+| `components.json` | shadcn/ui component config |
+| `tailwind.config.ts` | Tailwind CSS config |
 
 ## Key Dependencies
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| next | 16.1.6 | App framework (App Router) |
-| react | ^18 | UI library |
-| @prisma/client | ^6.19.2 | Database ORM |
-| next-auth | ^4.24.13 | Authentication (Kakao OAuth) |
-| swr | ^2.3.8 | Client data fetching + caching |
-| zod | ^4.3.5 | Schema validation |
-| @radix-ui/* | various | UI primitives (13+ packages) |
-| framer-motion | ^12.29.0 | Animations |
-| d3-* | ^3.x | Bubble map visualization |
-| @upstash/ratelimit | ^2.0.8 | Rate limiting |
-| @vercel/blob | ^2.2.0 | Image/file storage |
-| lucide-react | ^0.562.0 | Icons |
-| next-themes | ^0.4.6 | Dark mode |
-| badwords-ko | ^1.0.4 | Korean profanity filter |
-| date-fns | ^4.1.0 | Date formatting |
-| @dnd-kit/core | ^6.3.1 | Drag-and-drop |
+| Package | Purpose |
+|---------|---------|
+| next@16.1.6 | React framework (App Router) |
+| next-auth@4.x | Authentication (Kakao OAuth) |
+| @prisma/client | Database ORM |
+| swr | Client-side data fetching/caching |
+| zod | Schema validation |
+| @radix-ui/* | Accessible UI primitives |
+| lucide-react | Icon library |
+| framer-motion | Animations |
+| d3-hierarchy/selection/zoom | Data visualization (bubble map) |
+| @vercel/blob | File storage |
+| @upstash/ratelimit | Rate limiting |
+| badwords-ko | Korean profanity filter |
+| next-themes | Dark mode |
+| date-fns | Date utilities |
+
+## Quick Start
+
+1. `pnpm install` - Install dependencies
+2. `cp .env.example .env.local` - Configure environment
+3. `pnpm prisma migrate dev` - Run migrations
+4. `pnpm dev` - Start dev server (http://localhost:3000)
 
 ## Deployment
 
-- **Host**: Vercel (auto-deploy on push to `main`)
-- **Branches**: `main` (production), `dev` (development)
-- **URL**: https://bothsides.club
-- **Package manager**: pnpm (lockfile must be in sync for CI)
-- **Build**: `pnpm build` (includes `prisma generate`)
+- **Platform**: Vercel (auto-deploy on push to `main`)
+- **Database**: PostgreSQL (pooled + direct connections)
+- **Storage**: Vercel Blob
+- **Rate Limiting**: Upstash Redis
+- **Branch**: `main` (production), `dev` (development)

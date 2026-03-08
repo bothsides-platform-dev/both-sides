@@ -35,6 +35,7 @@ export const getTopicsSchema = z.object({
   sort: z.enum(["latest", "popular"]).default("latest"),
   featured: z.coerce.boolean().optional(),
   exclude: z.string().optional(),
+  since: z.coerce.number().int().min(1).max(720).optional(), // hours ago filter
 });
 
 export const updateFeaturedSchema = z.object({

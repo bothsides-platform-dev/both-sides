@@ -45,7 +45,7 @@ export async function createTopic(authorId: string, input: CreateTopicInput) {
 }
 
 export async function getTopics(input: GetTopicsInput) {
-  const { page, limit, category, sort, featured, exclude } = input;
+  const { page, limit, category, sort, featured, exclude, since } = input;
   const skip = (page - 1) * limit;
 
   const where: Record<string, unknown> = {
@@ -58,6 +58,9 @@ export async function getTopics(input: GetTopicsInput) {
   if (category) where.category = category;
   if (featured !== undefined) where.isFeatured = featured;
   if (exclude) where.id = { not: exclude };
+  if (since) {
+    where.createdAt = { gte: new Date(Date.now() - since * 60 * 60 * 1000) };
+  }
 
   const orderBy =
     sort === "popular"
@@ -514,7 +517,7 @@ export async function publishScheduledTopics() {
     where: {
       scheduledAt: { lte: now },
     },
-    data: { scheduledAt: null },
+    data: { scheduledAt: null, createdAt: now },
   });
 
   return {
