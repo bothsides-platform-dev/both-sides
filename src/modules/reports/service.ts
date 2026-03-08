@@ -3,7 +3,7 @@ import { NotFoundError, ConflictError } from "@/lib/errors";
 import { BLIND_THRESHOLD } from "@/lib/constants";
 import type { ReportStatus } from "@prisma/client";
 
-export type ReportType = "opinion" | "topic";
+export type ReportType = "opinion" | "topic" | "post" | "post_comment";
 
 export async function createReport(
   userId: string,
@@ -99,11 +99,77 @@ export async function createTopicReport(
   return report;
 }
 
+export async function createPostReport(
+  userId: string,
+  postId: string,
+  reason: string
+) {
+  const post = await prisma.post.findUnique({ where: { id: postId } });
+  if (!post) {
+    throw new NotFoundError("게시글을 찾을 수 없습니다.");
+  }
+
+  const existingReport = await prisma.report.findFirst({
+    where: { postId, userId },
+  });
+  if (existingReport) {
+    throw new ConflictError("이미 이 게시글을 신고하셨습니다.");
+  }
+
+  const report = await prisma.report.create({
+    data: { postId, userId, reason },
+  });
+
+  const reportCount = await prisma.report.count({ where: { postId } });
+  if (reportCount >= BLIND_THRESHOLD && !post.isHidden) {
+    await prisma.post.update({
+      where: { id: postId },
+      data: { isHidden: true, hiddenAt: new Date() },
+    });
+  }
+
+  return report;
+}
+
+export async function createPostCommentReport(
+  userId: string,
+  postCommentId: string,
+  reason: string
+) {
+  const comment = await prisma.postComment.findUnique({ where: { id: postCommentId } });
+  if (!comment) {
+    throw new NotFoundError("댓글을 찾을 수 없습니다.");
+  }
+
+  const existingReport = await prisma.report.findFirst({
+    where: { postCommentId, userId },
+  });
+  if (existingReport) {
+    throw new ConflictError("이미 이 댓글을 신고하셨습니다.");
+  }
+
+  const report = await prisma.report.create({
+    data: { postCommentId, userId, reason },
+  });
+
+  const reportCount = await prisma.report.count({ where: { postCommentId } });
+  if (reportCount >= BLIND_THRESHOLD && !comment.isBlinded) {
+    await prisma.postComment.update({
+      where: { id: postCommentId },
+      data: { isBlinded: true },
+    });
+  }
+
+  return report;
+}
+
 export async function getReports(status?: ReportStatus, type?: ReportType) {
   const where: {
     status?: ReportStatus;
     opinionId?: { not: null } | null;
     topicId?: { not: null } | null;
+    postId?: { not: null } | null;
+    postCommentId?: { not: null } | null;
   } = {};
 
   if (status) {
@@ -114,6 +180,10 @@ export async function getReports(status?: ReportStatus, type?: ReportType) {
     where.opinionId = { not: null };
   } else if (type === "topic") {
     where.topicId = { not: null };
+  } else if (type === "post") {
+    where.postId = { not: null };
+  } else if (type === "post_comment") {
+    where.postCommentId = { not: null };
   }
 
   return prisma.report.findMany({

@@ -63,6 +63,7 @@ enum NotificationType {
   BATTLE_YOUR_TURN
   BATTLE_ENDED
   BATTLE_COUNTER_PROPOSAL
+  POST_COMMENT_REPLY
 }
 
 enum BattleStatus {
@@ -163,6 +164,9 @@ model User {
   wonBattles            Battle[]        @relation("WonBattles")
   battleMessages        BattleMessage[]
   battleComments        BattleComment[]
+  posts                 Post[]
+  postComments          PostComment[]
+  postCommentReactions  PostCommentReaction[]
 
   @@index([isBlacklisted])
 }
@@ -310,21 +314,27 @@ model Reaction {
 }
 
 model Report {
-  id        String       @id @default(cuid())
-  opinionId String?
-  topicId   String?
-  userId    String
-  reason    String       @db.Text
-  status    ReportStatus @default(PENDING)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id            String       @id @default(cuid())
+  opinionId     String?
+  topicId       String?
+  postId        String?
+  postCommentId String?
+  userId        String
+  reason        String       @db.Text
+  status        ReportStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
-  opinion Opinion? @relation(fields: [opinionId], references: [id], onDelete: Cascade)
-  topic   Topic?   @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opinion     Opinion?     @relation(fields: [opinionId], references: [id], onDelete: Cascade)
+  topic       Topic?       @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  post        Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postComment PostComment? @relation(fields: [postCommentId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([opinionId])
   @@index([topicId])
+  @@index([postId])
+  @@index([postCommentId])
   @@index([userId])
   @@index([status])
 }
@@ -355,20 +365,26 @@ model Notification {
   isRead Boolean          @default(false)
 
   // 관련 리소스
-  opinionId String? // 원본 의견
-  replyId   String? // 새 답글
-  topicId   String? // 토론
-  actorId   String? // 답글 작성자
-  battleId  String? // 맞짱 배틀
+  opinionId        String? // 원본 의견
+  replyId          String? // 새 답글
+  topicId          String? // 토론
+  actorId          String? // 답글 작성자
+  battleId         String? // 맞짱 배틀
+  postId           String? // 자유글
+  postCommentId    String? // 자유글 댓글
+  postCommentReplyId String? // 자유글 답글
 
   createdAt DateTime @default(now())
 
-  user    User     @relation("ReceivedNotifications", fields: [userId], references: [id], onDelete: Cascade)
-  actor   User?    @relation("SentNotifications", fields: [actorId], references: [id], onDelete: SetNull)
-  opinion Opinion? @relation("NotifiedOpinion", fields: [opinionId], references: [id], onDelete: Cascade)
-  reply   Opinion? @relation("NotifyingReply", fields: [replyId], references: [id], onDelete: Cascade)
-  topic   Topic?   @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  battle  Battle?  @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  user             User         @relation("ReceivedNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  actor            User?        @relation("SentNotifications", fields: [actorId], references: [id], onDelete: SetNull)
+  opinion          Opinion?     @relation("NotifiedOpinion", fields: [opinionId], references: [id], onDelete: Cascade)
+  reply            Opinion?     @relation("NotifyingReply", fields: [replyId], references: [id], onDelete: Cascade)
+  topic            Topic?       @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  battle           Battle?      @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  post             Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postComment      PostComment? @relation("NotifiedPostComment", fields: [postCommentId], references: [id], onDelete: Cascade)
+  postCommentReply PostComment? @relation("NotifyingPostCommentReply", fields: [postCommentReplyId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
   @@index([userId, createdAt])
@@ -548,4 +564,82 @@ model LlmSettings {
   updatedAt DateTime @updatedAt
 
   @@map("llm_settings")
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  title       String
+  body        String    @db.Text
+  category    Category
+  authorId    String
+  imageUrl    String?
+  images      Json?     // string[] - 최대 5개 이미지 URL
+  videoUrls   Json?     // string[] - YouTube/Vimeo URLs
+  isHidden    Boolean   @default(false)
+  hiddenAt    DateTime?
+  isAnonymous Boolean   @default(false)
+  viewCount   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments      PostComment[]
+  reports       Report[]
+  notifications Notification[]
+
+  @@index([authorId])
+  @@index([category])
+  @@index([createdAt])
+  @@index([isHidden])
+  @@index([isHidden, createdAt])
+}
+
+model PostComment {
+  id          String   @id @default(cuid())
+  postId      String
+  userId      String?
+  visitorId   String?
+  ipAddress   String?
+  body        String   @db.Text
+  isBlinded   Boolean  @default(false)
+  isAnonymous Boolean  @default(false)
+  parentId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  post      Post                 @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    PostComment?         @relation("PostCommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   PostComment[]        @relation("PostCommentReplies")
+  reactions PostCommentReaction[]
+  reports   Report[]
+  notificationsAsOriginal Notification[] @relation("NotifiedPostComment")
+  notificationsAsReply    Notification[] @relation("NotifyingPostCommentReply")
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([visitorId])
+  @@index([postId, createdAt])
+  @@index([isBlinded])
+}
+
+model PostCommentReaction {
+  id            String       @id @default(cuid())
+  postCommentId String
+  userId        String?
+  visitorId     String?
+  ipAddress     String?
+  type          ReactionType
+  createdAt     DateTime     @default(now())
+
+  postComment PostComment @relation(fields: [postCommentId], references: [id], onDelete: Cascade)
+  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postCommentId, userId], name: "post_comment_reaction_user")
+  @@unique([postCommentId, visitorId, ipAddress], name: "post_comment_reaction_visitor")
+  @@index([postCommentId])
+  @@index([userId])
+  @@index([visitorId])
+  @@index([postCommentId, type])
 }

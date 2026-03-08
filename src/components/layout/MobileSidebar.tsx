@@ -9,6 +9,7 @@ import { useTheme } from "next-themes";
 import {
   Home,
   PlusCircle,
+  FileText,
   Bell,
   User,
   Settings,
@@ -33,6 +34,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: "/", icon: Home, label: "홈" },
   { href: "/topics/new", icon: PlusCircle, label: "토론 만들기", requiresAuth: true },
+  { href: "/posts/new", icon: FileText, label: "자유글 작성", requiresAuth: true },
   { href: "/notifications", icon: Bell, label: "알림", requiresAuth: true },
   { href: "/profile", icon: User, label: "프로필" },
 ];

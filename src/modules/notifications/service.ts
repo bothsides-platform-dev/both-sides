@@ -40,6 +40,42 @@ export async function createReplyNotification({
   return notification;
 }
 
+export async function createPostCommentReplyNotification({
+  userId,
+  actorId,
+  postCommentId,
+  postCommentReplyId,
+  postId,
+}: {
+  userId: string;
+  actorId: string;
+  postCommentId: string;
+  postCommentReplyId: string;
+  postId: string;
+}) {
+  if (userId === actorId) {
+    return null;
+  }
+
+  const notification = await prisma.notification.create({
+    data: {
+      userId,
+      actorId,
+      postCommentId,
+      postCommentReplyId,
+      postId,
+      type: "POST_COMMENT_REPLY",
+    },
+  });
+
+  broadcast(`user:${userId}`, {
+    type: "notification:new",
+    data: { id: notification.id, type: "POST_COMMENT_REPLY" },
+  });
+
+  return notification;
+}
+
 export async function getNotifications(userId: string, input: GetNotificationsInput) {
   const { page, limit } = input;
   const skip = (page - 1) * limit;
@@ -73,6 +109,24 @@ export async function getNotifications(userId: string, input: GetNotificationsIn
         battle: {
           select: {
             id: true,
+          },
+        },
+        post: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        postComment: {
+          select: {
+            id: true,
+            body: true,
+          },
+        },
+        postCommentReply: {
+          select: {
+            id: true,
+            body: true,
           },
         },
       },

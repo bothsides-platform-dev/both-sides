@@ -31,6 +31,18 @@ interface NotificationItemProps {
       title: string;
     } | null;
     battleId: string | null;
+    post: {
+      id: string;
+      title: string;
+    } | null;
+    postComment: {
+      id: string;
+      body: string;
+    } | null;
+    postCommentReply: {
+      id: string;
+      body: string;
+    } | null;
   };
   onRead: (id: string) => void;
 }
@@ -47,14 +59,16 @@ const BATTLE_NOTIFICATION_MESSAGES: Record<string, (actorName: string) => string
 
 export function NotificationItem({ notification, onRead }: NotificationItemProps) {
   const actorName = notification.actor?.nickname || notification.actor?.name || "알 수 없는 사용자";
-  const topicTitle = notification.topic?.title || "삭제된 토론";
-  const replyPreview = notification.reply?.body
-    ? notification.reply.body.length > 50
-      ? notification.reply.body.slice(0, 50) + "..."
-      : notification.reply.body
+  const topicTitle = notification.post?.title || notification.topic?.title || "삭제된 게시글";
+  const replyBody = notification.postCommentReply?.body || notification.reply?.body;
+  const replyPreview = replyBody
+    ? replyBody.length > 50
+      ? replyBody.slice(0, 50) + "..."
+      : replyBody
     : "";
 
   const isBattleNotification = notification.type.startsWith("BATTLE_");
+  const isPostCommentReply = notification.type === "POST_COMMENT_REPLY";
 
   const handleClick = () => {
     if (!notification.isRead) {
@@ -66,6 +80,8 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
   let href = "#";
   if (isBattleNotification && notification.battleId) {
     href = `/battles/${notification.battleId}`;
+  } else if (isPostCommentReply && notification.post) {
+    href = `/posts/${notification.post.id}`;
   } else if (notification.topic) {
     href = notification.reply
       ? `/topics/${notification.topic.id}?highlightReply=${notification.reply.id}`
@@ -76,6 +92,14 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
     if (isBattleNotification) {
       const msgFn = BATTLE_NOTIFICATION_MESSAGES[notification.type];
       return msgFn ? msgFn(actorName) : "새 알림이 있습니다.";
+    }
+    if (isPostCommentReply) {
+      return (
+        <>
+          <span className="font-semibold">{actorName}</span>
+          님이 회원님의 댓글에 답글을 남겼습니다
+        </>
+      );
     }
     return (
       <>

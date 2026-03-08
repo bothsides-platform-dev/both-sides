@@ -26,6 +26,18 @@ interface Notification {
     title: string;
   } | null;
   battleId: string | null;
+  post: {
+    id: string;
+    title: string;
+  } | null;
+  postComment: {
+    id: string;
+    body: string;
+  } | null;
+  postCommentReply: {
+    id: string;
+    body: string;
+  } | null;
 }
 
 interface NotificationListProps {
