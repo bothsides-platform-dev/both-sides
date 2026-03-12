@@ -177,6 +177,10 @@ export const MAX_PAGE_SIZE = 100;
 // 토픽 이미지 설정
 export const TOPIC_MAX_IMAGES = 5;
 
+// 자유글 설정
+export const POST_MAX_VIDEOS = 5;
+export const POST_BODY_MAX_LENGTH = 50000;
+
 // 업로드 설정
 export const UPLOAD_MAX_SIZE = 5 * 1024 * 1024; // 5MB
 export const UPLOAD_MIME_TYPES: Record<string, string[]> = {

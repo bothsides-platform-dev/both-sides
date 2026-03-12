@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import {
   Home,
   PlusCircle,
+  FileText,
   User,
   Moon,
   Sun,
@@ -32,6 +33,7 @@ import {
 const NAV_ITEMS = [
   { href: "/", icon: Home, label: "홈" },
   { href: "/topics/new", icon: PlusCircle, label: "토론 만들기" },
+  { href: "/posts/new", icon: FileText, label: "자유글 작성" },
   { href: "/profile", icon: User, label: "프로필" },
 ] as const;
 
@@ -80,7 +82,7 @@ export function DesktopSidebar() {
           {NAV_ITEMS.map((item) => {
             const currentCategorySlug = pathname === "/explore" ? searchParams.get("category") : null;
             let href: string;
-            if (!session?.user && (item.href === "/profile" || item.href === "/topics/new")) {
+            if (!session?.user && (item.href === "/profile" || item.href === "/topics/new" || item.href === "/posts/new")) {
               href = `/auth/signin?callbackUrl=${encodeURIComponent(item.href)}`;
             } else if (item.href === "/topics/new" && currentCategorySlug) {
               href = `/topics/new?category=${currentCategorySlug}`;

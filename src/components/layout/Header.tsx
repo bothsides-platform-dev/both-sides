@@ -6,9 +6,15 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { UserMenu } from "./UserMenu";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { PlusCircle, Menu, Info } from "lucide-react";
+import { PlusCircle, Menu, Info, MessageSquare, FileText } from "lucide-react";
 import { MobileSidebar } from "./MobileSidebar";
 import logo from "@/app/logo.png";
 
@@ -61,14 +67,30 @@ export function Header() {
         <nav className="flex items-center gap-2 sm:gap-3">
           {session?.user && !isAdmin && (
             <>
-              {/* Create button: Icon on mobile, full button on desktop */}
-              <Button asChild variant="outline" size="sm" className="lg:inline-flex">
-                <Link href="/topics/new" className="flex items-center">
-                  <PlusCircle className="h-5 w-5 lg:mr-2 lg:h-4 lg:w-4" />
-                  <span className="hidden lg:inline">토론 만들기</span>
-                  <span className="sr-only lg:hidden">토론 만들기</span>
-                </Link>
-              </Button>
+              {/* Create dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="lg:inline-flex">
+                    <PlusCircle className="h-5 w-5 lg:mr-2 lg:h-4 lg:w-4" />
+                    <span className="hidden lg:inline">글쓰기</span>
+                    <span className="sr-only lg:hidden">글쓰기</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/topics/new" className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      토론 만들기
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/posts/new" className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      자유글 작성
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               {/* Notification bell: Always visible */}
               <NotificationBell />
             </>

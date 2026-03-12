@@ -34,6 +34,7 @@ function validateCsrf(request: NextRequest): boolean {
 // --- Body Size 제한 ---
 const MAX_BODY_SIZES: Record<string, number> = {
   "/api/upload": UPLOAD_MAX_SIZE,
+  "/api/posts": 200 * 1024, // 200KB for rich HTML
   "/api/": 100 * 1024, // 100KB 기본
 };
 
@@ -127,6 +128,22 @@ const battleCommentLimiter = redis
     })
   : null;
 
+const postCommentLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(2, "10 s"),
+      prefix: "ratelimit:post:comment",
+    })
+  : null;
+
+const postCommentReactionLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(3, "2 s"),
+      prefix: "ratelimit:post:comment:reaction",
+    })
+  : null;
+
 const RATE_LIMITED_ROUTES: Array<{
   pattern: RegExp;
   limiter: Ratelimit | null;
@@ -175,6 +192,31 @@ const RATE_LIMITED_ROUTES: Array<{
   {
     pattern: /^\/api\/battles\/[^/]+\/comments$/,
     limiter: battleCommentLimiter,
+    methods: ["POST"],
+  },
+  {
+    pattern: /^\/api\/posts\/[^/]+\/comments$/,
+    limiter: postCommentLimiter,
+    methods: ["POST"],
+  },
+  {
+    pattern: /^\/api\/post-comments\/[^/]+\/replies$/,
+    limiter: postCommentLimiter,
+    methods: ["POST"],
+  },
+  {
+    pattern: /^\/api\/post-comments\/[^/]+\/reactions$/,
+    limiter: postCommentReactionLimiter,
+    methods: ["POST"],
+  },
+  {
+    pattern: /^\/api\/posts\/[^/]+\/reports$/,
+    limiter: reportLimiter,
+    methods: ["POST"],
+  },
+  {
+    pattern: /^\/api\/post-comments\/[^/]+\/reports$/,
+    limiter: reportLimiter,
     methods: ["POST"],
   },
 ];

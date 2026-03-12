@@ -38,3 +38,15 @@ export const REACTION_SELECT = {
   userId: true,
   type: true,
 } as const satisfies Prisma.ReactionSelectScalar;
+
+/** Post relation counts */
+export const POST_COUNT_SELECT = {
+  comments: true,
+} as const;
+
+/** PostCommentReaction fields for inline display */
+export const POST_COMMENT_REACTION_SELECT = {
+  id: true,
+  userId: true,
+  type: true,
+} as const satisfies Prisma.PostCommentReactionSelectScalar;
