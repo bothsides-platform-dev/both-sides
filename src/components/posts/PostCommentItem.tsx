@@ -12,47 +12,7 @@ import { PostChallengeButton } from "@/components/battle/PostChallengeButton";
 import Image from "next/image";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
-
-interface PostCommentBattle {
-  id: string;
-  status: string;
-  battleTitle: string | null;
-  customOptionA: string | null;
-  customOptionB: string | null;
-  challengerSide: string;
-  challengedSide: string;
-  challengerHp: number | null;
-  challengedHp: number | null;
-  durationSeconds: number | null;
-  endReason: string | null;
-  winnerId: string | null;
-  challenger: { id: string; nickname: string | null; name: string | null; image: string | null; selectedBadgeId: string | null };
-  challenged: { id: string; nickname: string | null; name: string | null; image: string | null; selectedBadgeId: string | null };
-  winner?: { nickname: string | null; name: string | null } | null;
-}
-
-interface PostCommentData {
-  id: string;
-  postId: string;
-  userId: string | null;
-  visitorId: string | null;
-  body: string;
-  isBlinded: boolean;
-  isAnonymous: boolean;
-  parentId: string | null;
-  battleId?: string | null;
-  battle?: PostCommentBattle | null;
-  createdAt: string;
-  user: {
-    id: string;
-    nickname: string | null;
-    name: string | null;
-    image: string | null;
-    selectedBadgeId: string | null;
-  } | null;
-  reactionSummary: { likes: number; dislikes: number };
-  _count: { reactions: number; replies: number };
-}
+import type { PostCommentData } from "@/types/post-comments";
 
 interface PostCommentItemProps {
   comment: PostCommentData;
@@ -207,7 +167,11 @@ export function PostCommentItem({ comment, postId, onMutate, depth = 0 }: PostCo
             commentId={comment.id}
             commentUserId={comment.userId}
             commentUserName={comment.isAnonymous ? "익명" : (comment.user?.nickname || comment.user?.name || "익명")}
-            onSuccess={onMutate}
+            onSuccess={() => {
+              setShowReplies(true);
+              mutateReplies();
+              onMutate();
+            }}
           />
         )}
 

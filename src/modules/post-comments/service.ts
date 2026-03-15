@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NotFoundError } from "@/lib/errors";
-import { AUTHOR_SELECT, AUTHOR_SELECT_PUBLIC, POST_COMMENT_REACTION_SELECT } from "@/lib/prisma-selects";
+import { AUTHOR_SELECT_PUBLIC, POST_COMMENT_REACTION_SELECT } from "@/lib/prisma-selects";
 import type { CreatePostCommentInput, GetPostCommentsInput } from "./schema";
 import { createPostCommentReplyNotification } from "@/modules/notifications/service";
 
@@ -37,7 +37,7 @@ export async function createPostComment(
       parentId: input.parentId || null,
     },
     include: {
-      user: { select: AUTHOR_SELECT },
+      user: { select: AUTHOR_SELECT_PUBLIC },
       _count: { select: { reactions: true, replies: true } },
     },
   });
@@ -92,7 +92,7 @@ export async function getPostComments(postId: string, input: GetPostCommentsInpu
         battleId: true,
         createdAt: true,
         updatedAt: true,
-        user: { select: AUTHOR_SELECT },
+        user: { select: AUTHOR_SELECT_PUBLIC },
         reactions: { select: POST_COMMENT_REACTION_SELECT },
         battle: {
           select: {
