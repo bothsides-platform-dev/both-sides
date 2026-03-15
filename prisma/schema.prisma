@@ -18,6 +18,12 @@ enum Side {
   B
 }
 
+enum TopicType {
+  BINARY   // 기존 A vs B (기본값)
+  MULTIPLE // 다중 선택
+  NUMERIC  // 숫자 입력
+}
+
 enum Category {
   DAILY
   POLITICS
@@ -177,6 +183,7 @@ model Topic {
   description    String?   @db.Text
   optionA        String
   optionB        String
+  topicType      TopicType @default(BINARY)
   category       Category
   authorId       String
   imageUrl       String?
@@ -190,6 +197,11 @@ model Topic {
   isAnonymous    Boolean   @default(false)
   viewCount      Int       @default(0)
   scheduledAt    DateTime? // 예약 발행 시각 (null이면 즉시 공개)
+
+  // NUMERIC 전용 필드
+  numericUnit    String?   // 단위 (예: "원", "만원", "세", "개")
+  numericMin     Int?      // 최소값 (선택)
+  numericMax     Int?      // 최대값 (선택)
 
   // SEO 전용 필드
   metaTitle       String? @db.VarChar(60) // 검색 결과 제목
@@ -209,6 +221,7 @@ model Topic {
   groundsSummaries GroundsSummary[]
   opinionGrounds   OpinionGround[]
   battles          Battle[]
+  options          TopicOption[]
 
   @@index([authorId])
   @@index([category])
@@ -233,19 +246,36 @@ model TopicView {
   @@index([topicId])
 }
 
-model Vote {
-  id          String   @id @default(cuid())
-  topicId     String
-  userId      String?
-  visitorId   String?
-  ipAddress   String?
-  fingerprint String?
-  side        Side
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model TopicOption {
+  id           String   @id @default(cuid())
+  topicId      String
+  label        String   @db.VarChar(30)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
 
-  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user  User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic  Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  votes  Vote[]
+
+  @@unique([topicId, displayOrder])
+  @@index([topicId])
+}
+
+model Vote {
+  id           String   @id @default(cuid())
+  topicId      String
+  userId       String?
+  visitorId    String?
+  ipAddress    String?
+  fingerprint  String?
+  side         Side?        // BINARY일 때만 사용 (optional로 변경)
+  optionId     String?      // MULTIPLE일 때: TopicOption 참조
+  numericValue Int?         // NUMERIC일 때: 사용자 입력값
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  topic  Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user   User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  option TopicOption? @relation(fields: [optionId], references: [id])
 
   @@unique([topicId, userId], name: "vote_topic_user")
   @@unique([topicId, visitorId, ipAddress], name: "vote_topic_visitor")
@@ -254,21 +284,24 @@ model Vote {
   @@index([visitorId])
   @@index([fingerprint])
   @@index([topicId, visitorId, ipAddress]) // Guest 투표 조회 시 full scan 방지
+  @@index([optionId])
 }
 
 model Opinion {
-  id          String   @id @default(cuid())
-  topicId     String
-  userId      String?
-  visitorId   String?
-  ipAddress   String?
-  side        Side
-  body        String   @db.Text
-  isBlinded   Boolean  @default(false)
-  isAnonymous Boolean  @default(false)
-  parentId    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  topicId      String
+  userId       String?
+  visitorId    String?
+  ipAddress    String?
+  side         Side?        // BINARY일 때만 사용 (optional로 변경)
+  optionId     String?      // MULTIPLE: 어떤 옵션에 투표했는지
+  numericValue Int?         // NUMERIC: 어떤 숫자를 입력했는지
+  body         String   @db.Text
+  isBlinded    Boolean  @default(false)
+  isAnonymous  Boolean  @default(false)
+  parentId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   topic                   Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
   user                    User?          @relation(fields: [userId], references: [id], onDelete: Cascade)

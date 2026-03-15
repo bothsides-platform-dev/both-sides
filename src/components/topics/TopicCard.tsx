@@ -10,7 +10,13 @@ import { AvatarWithSkin } from "@/components/ui/AvatarWithSkin";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { Eye, MessageSquare, Users, User, Ban } from "lucide-react";
 import { ShareButton } from "@/components/ui/ShareButton";
-import type { Category } from "@prisma/client";
+import type { Category, TopicType } from "@prisma/client";
+
+interface TopicOption {
+  id: string;
+  label: string;
+  displayOrder: number;
+}
 
 export interface TopicCardProps {
   topic: {
@@ -18,7 +24,10 @@ export interface TopicCardProps {
     title: string;
     optionA: string;
     optionB: string;
+    topicType?: TopicType;
     category: Category;
+    numericUnit?: string | null;
+    options?: TopicOption[];
     createdAt: string | Date;
     imageUrl?: string | null;
     viewCount: number;
@@ -42,7 +51,12 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
   const authorName = topic.isAnonymous
     ? "익명"
     : (topic.author.nickname || topic.author.name || "익명");
-  const shareDescription = `${topic.optionA} vs ${topic.optionB}`;
+  const topicType = topic.topicType ?? "BINARY";
+  const shareDescription = topicType === "MULTIPLE" && topic.options
+    ? `${topic.options.length}개 선택지`
+    : topicType === "NUMERIC"
+    ? `숫자 입력 · ${topic.numericUnit || ""}`
+    : `${topic.optionA} vs ${topic.optionB}`;
 
   return (
     <div className="relative group h-full">
@@ -71,11 +85,19 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
               <div className="absolute inset-0 bg-gradient-to-br from-sideA/20 via-transparent to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-tl from-sideB/20 via-transparent to-transparent" />
 
-              {/* 중앙 VS 배지 */}
+              {/* 중앙 배지 */}
               <div className="relative z-10 flex items-center gap-2 rounded-full bg-white/90 dark:bg-background/90 px-4 py-2 shadow-sm">
-                <span className="text-lg font-bold text-sideA">A</span>
-                <span className="text-sm font-medium text-muted-foreground">vs</span>
-                <span className="text-lg font-bold text-sideB">B</span>
+                {topicType === "MULTIPLE" ? (
+                  <span className="text-sm font-bold text-foreground">{topic.options?.length || 0}개 선택지</span>
+                ) : topicType === "NUMERIC" ? (
+                  <span className="text-sm font-bold text-foreground">숫자 입력</span>
+                ) : (
+                  <>
+                    <span className="text-lg font-bold text-sideA">A</span>
+                    <span className="text-sm font-medium text-muted-foreground">vs</span>
+                    <span className="text-lg font-bold text-sideB">B</span>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -93,19 +115,39 @@ export const TopicCard = memo(function TopicCard({ topic }: TopicCardProps) {
           </div>
         </CardHeader>
         <CardContent className="pb-3">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1 rounded-lg bg-sideA/10 p-3 text-center">
-              <span className="text-sm font-medium text-sideA">
-                A. {topic.optionA}
-              </span>
+          {topicType === "MULTIPLE" && topic.options ? (
+            <div className="flex flex-wrap gap-1.5">
+              {topic.options.map((opt) => (
+                <span
+                  key={opt.id}
+                  className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground"
+                >
+                  {opt.label}
+                </span>
+              ))}
             </div>
-            <span className="text-lg font-bold text-muted-foreground">VS</span>
-            <div className="flex-1 rounded-lg bg-sideB/10 p-3 text-center">
-              <span className="text-sm font-medium text-sideB">
-                B. {topic.optionB}
-              </span>
+          ) : topicType === "NUMERIC" ? (
+            <div className="flex items-center justify-center gap-2 rounded-lg bg-muted/50 p-3">
+              <span className="text-sm text-muted-foreground">숫자 입력</span>
+              {topic.numericUnit && (
+                <span className="text-sm font-medium">· {topic.numericUnit}</span>
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1 rounded-lg bg-sideA/10 p-3 text-center">
+                <span className="text-sm font-medium text-sideA">
+                  A. {topic.optionA}
+                </span>
+              </div>
+              <span className="text-lg font-bold text-muted-foreground">VS</span>
+              <div className="flex-1 rounded-lg bg-sideB/10 p-3 text-center">
+                <span className="text-sm font-medium text-sideB">
+                  B. {topic.optionB}
+                </span>
+              </div>
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex items-center justify-between pt-0">
           {topic.isAnonymous ? (

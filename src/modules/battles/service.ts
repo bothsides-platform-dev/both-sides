@@ -112,13 +112,13 @@ export async function createChallenge(challengerId: string, input: CreateChallen
       where: { id: challengedOpinionId },
       select: { side: true },
     });
-    if (opinion) challengedSide = opinion.side;
+    if (opinion?.side) challengedSide = opinion.side;
   } else {
     const vote = await prisma.vote.findFirst({
       where: { topicId, userId: challengedId },
       select: { side: true },
     });
-    if (vote) challengedSide = vote.side;
+    if (vote?.side) challengedSide = vote.side;
   }
 
   const challengerSide: "A" | "B" = challengedSide === "A" ? "B" : "A";

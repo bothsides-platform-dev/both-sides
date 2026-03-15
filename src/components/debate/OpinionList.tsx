@@ -4,7 +4,7 @@ import { memo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OpinionThread } from "./OpinionThread";
 import type { Opinion } from "./types";
-import type { ReactionType, Side } from "@prisma/client";
+import type { ReactionType, Side, TopicType } from "@prisma/client";
 
 interface OpinionListProps {
   opinions: Opinion[];
@@ -19,6 +19,8 @@ interface OpinionListProps {
   userVoteSide?: Side;
   highlightReplyId?: string;
   expandedAncestorIds?: string[];
+  topicType?: TopicType;
+  numericUnit?: string | null;
 }
 
 export const OpinionList = memo(function OpinionList({
@@ -33,6 +35,8 @@ export const OpinionList = memo(function OpinionList({
   userVoteSide,
   highlightReplyId,
   expandedAncestorIds,
+  topicType,
+  numericUnit,
 }: OpinionListProps) {
   if (isLoading) {
     return (

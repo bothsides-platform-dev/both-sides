@@ -15,15 +15,27 @@ export async function GET(
     const { id: topicId } = await params;
     const includeMyVote = request.nextUrl.searchParams.get("includeMyVote") === "true";
 
-    const [stats, myVote] = await Promise.all([
+    const [stats, myVoteRecord] = await Promise.all([
       getVoteStats(topicId),
       includeMyVote ? resolveCurrentUserVote(request, topicId) : null,
     ]);
 
+    // Build myVote response based on stats type
+    let myVote: unknown = null;
+    if (myVoteRecord) {
+      if (stats.type === "MULTIPLE") {
+        myVote = myVoteRecord.optionId;
+      } else if (stats.type === "NUMERIC") {
+        myVote = myVoteRecord.numericValue;
+      } else {
+        myVote = myVoteRecord.side;
+      }
+    }
+
     return Response.json({
       data: {
         stats,
-        myVote: myVote?.side ?? null,
+        myVote,
       },
     });
   } catch (error) {

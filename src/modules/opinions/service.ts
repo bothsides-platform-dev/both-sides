@@ -61,7 +61,9 @@ export async function createOpinion(
       userId: author.type === "user" ? author.userId : null,
       visitorId: author.type === "guest" ? author.visitorId : null,
       ipAddress: author.type === "guest" ? author.ipAddress : null,
-      side: vote.side,
+      side: vote.side ?? null,
+      optionId: vote.optionId ?? null,
+      numericValue: vote.numericValue ?? null,
       body: input.body,
       isAnonymous: author.type === "guest" ? true : (input.isAnonymous ?? false),
       parentId: input.parentId || null,
@@ -93,16 +95,17 @@ export async function createOpinion(
     data: { opinionId: opinion.id },
   });
 
-  // 의견 생성 후 자동 LLM 작업 트리거
-  // Auto-trigger LLM tasks after opinion creation
-  autoTriggerLlmTasks({
-    topicId: actualTopicId,
-    opinionId: opinion.id,
-    side: vote.side,
-  }).catch(err => {
-    // Fire-and-forget: log but don't throw
-    console.error("[LLM] Auto-trigger pipeline failed:", err);
-  });
+  // 의견 생성 후 자동 LLM 작업 트리거 (BINARY only — LLM grounds require A/B sides)
+  if (vote.side) {
+    autoTriggerLlmTasks({
+      topicId: actualTopicId,
+      opinionId: opinion.id,
+      side: vote.side,
+    }).catch(err => {
+      // Fire-and-forget: log but don't throw
+      console.error("[LLM] Auto-trigger pipeline failed:", err);
+    });
+  }
 
   return opinion;
 }
@@ -139,6 +142,8 @@ export async function getOpinions(topicId: string, input: GetOpinionsInput) {
         userId: true,
         visitorId: true,
         side: true,
+        optionId: true,
+        numericValue: true,
         body: true,
         isBlinded: true,
         isAnonymous: true,

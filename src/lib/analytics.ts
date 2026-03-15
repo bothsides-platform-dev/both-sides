@@ -100,7 +100,7 @@ function trackEvent(
 /**
  * Track when a user votes on a topic
  */
-export function trackVote(topicId: string, side: "A" | "B"): void {
+export function trackVote(topicId: string, side: string): void {
   trackEvent("vote", {
     topic_id: topicId,
     vote_side: side,

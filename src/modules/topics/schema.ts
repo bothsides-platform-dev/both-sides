@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TOPIC_MAX_IMAGES } from "@/lib/constants";
 
 const categoryEnum = z.enum(["DAILY", "POLITICS", "SOCIAL", "RELATIONSHIP", "HISTORY", "GAME", "TECH", "SPORTS", "HUMOR"]);
+const topicTypeEnum = z.enum(["BINARY", "MULTIPLE", "NUMERIC"]);
 
 const referenceLinkSchema = z.object({
   url: z.string().url("올바른 URL 형식이 아닙니다.").max(2000, "URL은 2000자 이하여야 합니다.")
@@ -14,11 +15,14 @@ const imageUrlItem = z.string().refine(
   { message: "올바른 URL 형식이 아닙니다. (http/https 또는 내부 경로만 허용)" }
 );
 
-export const createTopicSchema = z.object({
+const multipleOptionSchema = z.object({
+  label: z.string().min(1, "옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다."),
+});
+
+const baseCreateTopicSchema = z.object({
   title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(100, "제목은 100자 이하여야 합니다."),
   description: z.string().max(1000, "설명은 1000자 이하여야 합니다.").optional(),
-  optionA: z.string().min(1, "A 옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다."),
-  optionB: z.string().min(1, "B 옵션을 입력해주세요.").max(30, "옵션은 30자 이하여야 합니다."),
+  topicType: topicTypeEnum.default("BINARY"),
   category: categoryEnum,
   imageUrl: imageUrlItem.optional(),
   images: z.array(imageUrlItem).max(TOPIC_MAX_IMAGES).optional(),
@@ -26,6 +30,40 @@ export const createTopicSchema = z.object({
   referenceLinks: z.array(referenceLinkSchema).optional().default([]),
   isAnonymous: z.boolean().default(false),
   scheduledAt: z.string().datetime().optional().nullable(),
+  // BINARY fields
+  optionA: z.string().max(30, "옵션은 30자 이하여야 합니다.").optional(),
+  optionB: z.string().max(30, "옵션은 30자 이하여야 합니다.").optional(),
+  // MULTIPLE fields
+  options: z.array(multipleOptionSchema).optional(),
+  // NUMERIC fields
+  numericUnit: z.string().max(10, "단위는 10자 이하여야 합니다.").optional(),
+  numericMin: z.number().int().optional(),
+  numericMax: z.number().int().optional(),
+});
+
+export const createTopicSchema = baseCreateTopicSchema.superRefine((data, ctx) => {
+  if (data.topicType === "BINARY") {
+    if (!data.optionA || data.optionA.length < 1) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "A 옵션을 입력해주세요.", path: ["optionA"] });
+    }
+    if (!data.optionB || data.optionB.length < 1) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "B 옵션을 입력해주세요.", path: ["optionB"] });
+    }
+  } else if (data.topicType === "MULTIPLE") {
+    if (!data.options || data.options.length < 3) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "다중 선택은 최소 3개 옵션이 필요합니다.", path: ["options"] });
+    }
+    if (data.options && data.options.length > 6) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "다중 선택은 최대 6개 옵션까지 가능합니다.", path: ["options"] });
+    }
+  } else if (data.topicType === "NUMERIC") {
+    if (!data.numericUnit || data.numericUnit.length < 1) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "단위를 입력해주세요.", path: ["numericUnit"] });
+    }
+    if (data.numericMin != null && data.numericMax != null && data.numericMin >= data.numericMax) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "최소값은 최대값보다 작아야 합니다.", path: ["numericMin"] });
+    }
+  }
 });
 
 export const getTopicsSchema = z.object({
@@ -77,7 +115,7 @@ export const getTopicsAdminSchema = z.object({
   search: z.string().optional(),
 });
 
-export type CreateTopicInput = z.infer<typeof createTopicSchema>;
+export type CreateTopicInput = z.infer<typeof baseCreateTopicSchema>;
 export type GetTopicsInput = z.infer<typeof getTopicsSchema>;
 export type UpdateFeaturedInput = z.infer<typeof updateFeaturedSchema>;
 export type UpdateTopicInput = z.infer<typeof updateTopicSchema>;

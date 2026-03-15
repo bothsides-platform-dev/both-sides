@@ -283,7 +283,7 @@ export const OpinionItem = memo(function OpinionItem({
               <ThumbsUp className="h-4 w-4 md:h-3 md:w-3" />
               <span className="font-medium">{opinion.reactionSummary.likes}</span>
             </button>
-            {opinion.user?.id && session?.user && (
+            {opinion.user?.id && session?.user && opinion.side && (
               <BattleChallengeButton
                 opinionId={opinion.id}
                 opinionUserId={opinion.user.id}

@@ -2,7 +2,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
-import { VoteSection } from "@/components/debate/VoteSection";
+import { VoteSectionRouter } from "@/components/debate/VoteSectionRouter";
 import { OpinionSection } from "@/components/debate/OpinionSection";
 import { TopicShareButton } from "@/components/topics/TopicShareButton";
 import { TopicAuthorSection } from "@/components/topics/TopicAuthorSection";
@@ -42,6 +42,10 @@ const getTopic = cache(async (id: string) => {
           isBlacklisted: true,
           selectedBadgeId: true,
         },
+      },
+      options: {
+        orderBy: { displayOrder: "asc" },
+        select: { id: true, label: true, displayOrder: true },
       },
     },
   });
@@ -236,11 +240,16 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
       </div>
 
       {/* Vote Section */}
-      <VoteSection
+      <VoteSectionRouter
         topicId={topic.id}
+        topicType={topic.topicType}
         optionA={topic.optionA}
         optionB={topic.optionB}
         deadline={topic.deadline}
+        options={topic.options}
+        numericUnit={topic.numericUnit}
+        numericMin={topic.numericMin}
+        numericMax={topic.numericMax}
       />
 
       {/* Reference Links */}
@@ -250,8 +259,10 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         />
       )}
 
-      {/* AI Grounds Analysis */}
-      <GroundsSection topicId={topic.id} optionA={topic.optionA} optionB={topic.optionB} />
+      {/* AI Grounds Analysis (BINARY only) */}
+      {topic.topicType === "BINARY" && (
+        <GroundsSection topicId={topic.id} optionA={topic.optionA} optionB={topic.optionB} />
+      )}
 
       <TopicSSEWrapper topicId={topic.id}>
         {/* Active Battles */}
@@ -260,8 +271,11 @@ export default async function TopicDetailPage({ params, searchParams }: TopicDet
         {/* Opinions Section */}
         <OpinionSection
           topicId={topic.id}
+          topicType={topic.topicType}
           optionA={topic.optionA}
           optionB={topic.optionB}
+          options={topic.options}
+          numericUnit={topic.numericUnit}
           highlightReplyId={highlightReply}
         />
       </TopicSSEWrapper>
