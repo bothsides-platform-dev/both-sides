@@ -58,14 +58,14 @@ function TrendingKeyword({ rank, query, onOpenChange }: TrendingKeywordProps) {
             이 주제로 토론 만들기
           </Link>
           <a
-            href={`https://www.google.com/search?q=${encodeURIComponent(query)}`}
+            href={`https://namu.wiki/w/${encodeURIComponent(query)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors"
             onClick={() => handleOpenChange(false)}
           >
             <Search className="h-4 w-4 text-muted-foreground" />
-            Google에서 검색
+            나무위키에서 보기
             <span className="sr-only">(새 창에서 열림)</span>
           </a>
         </div>
