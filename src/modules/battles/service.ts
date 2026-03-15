@@ -16,6 +16,7 @@ import { broadcastToBattle } from "./sse";
 import { broadcast } from "@/lib/sse";
 import type {
   CreateChallengeInput,
+  CreatePostChallengeInput,
   GetBattlesInput,
   BattleCommentInput,
   GetBattlesAdminInput,
@@ -23,6 +24,22 @@ import type {
   ForceEndBattleInput,
 } from "./schema";
 import type { BattleStats } from "./types";
+
+// ── Helper ──
+
+export function getBattleTopicInfo(battle: {
+  topic?: { title: string; optionA: string; optionB: string } | null;
+  battleTitle?: string | null;
+  customOptionA?: string | null;
+  customOptionB?: string | null;
+}) {
+  if (battle.topic) return battle.topic;
+  return {
+    title: battle.battleTitle!,
+    optionA: battle.customOptionA!,
+    optionB: battle.customOptionB!,
+  };
+}
 
 const BATTLE_INCLUDE = {
   challenger: { select: AUTHOR_SELECT_PUBLIC },
@@ -142,6 +159,124 @@ export async function createChallenge(challengerId: string, input: CreateChallen
   return battle;
 }
 
+// ── Post-Based Challenge ──
+
+export async function createPostChallenge(challengerId: string, input: CreatePostChallengeInput) {
+  const {
+    postId,
+    challengedId,
+    sourceCommentId,
+    battleTitle,
+    customOptionA,
+    customOptionB,
+    challengerSide,
+    challengeMessage,
+    durationSeconds,
+  } = input;
+
+  // Self-challenge guard
+  if (challengerId === challengedId) {
+    throw new ConflictError("자기 자신에게 맞짱을 신청할 수 없습니다.");
+  }
+
+  // Check max active battles for both users
+  const [challengerActive, challengedActive] = await Promise.all([
+    prisma.battle.count({
+      where: {
+        OR: [{ challengerId }, { challengedId: challengerId }],
+        status: { in: ["PENDING", "SETUP", "ACTIVE"] },
+      },
+    }),
+    prisma.battle.count({
+      where: {
+        OR: [{ challengerId: challengedId }, { challengedId: challengedId }],
+        status: { in: ["PENDING", "SETUP", "ACTIVE"] },
+      },
+    }),
+  ]);
+  if (challengerActive >= MAX_ACTIVE_BATTLES_PER_USER) {
+    throw new ConflictError("이미 진행 중인 맞짱이 있습니다.");
+  }
+  if (challengedActive >= MAX_ACTIVE_BATTLES_PER_USER) {
+    throw new ConflictError("상대방이 이미 진행 중인 맞짱이 있습니다.");
+  }
+
+  // Verify post exists
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: { id: true },
+  });
+  if (!post) throw new NotFoundError("게시글을 찾을 수 없습니다.");
+
+  // Verify source comment exists and belongs to the challenged user
+  const sourceComment = await prisma.postComment.findUnique({
+    where: { id: sourceCommentId },
+    select: { id: true, userId: true, postId: true },
+  });
+  if (!sourceComment) throw new NotFoundError("댓글을 찾을 수 없습니다.");
+  if (sourceComment.userId !== challengedId) {
+    throw new ConflictError("해당 댓글 작성자에게만 맞짱을 신청할 수 있습니다.");
+  }
+  if (sourceComment.postId !== postId) {
+    throw new ConflictError("댓글이 해당 게시글에 속하지 않습니다.");
+  }
+
+  const challengedSide: "A" | "B" = challengerSide === "A" ? "B" : "A";
+
+  // Create battle and challenge comment in transaction
+  const [battle, _challengeComment] = await prisma.$transaction(async (tx) => {
+    const newBattle = await tx.battle.create({
+      data: {
+        topicId: null,
+        postId,
+        sourceCommentId,
+        battleTitle,
+        customOptionA,
+        customOptionB,
+        challengerId,
+        challengedId,
+        challengerSide,
+        challengedSide,
+        challengeMessage,
+        durationSeconds,
+        durationProposedBy: challengerId,
+        status: "PENDING",
+      },
+      include: BATTLE_INCLUDE,
+    });
+
+    // Create a PostComment that renders as challenge block
+    const comment = await tx.postComment.create({
+      data: {
+        postId,
+        userId: challengerId,
+        body: `⚔️ 맞짱 도전: ${battleTitle}`,
+        battleId: newBattle.id,
+      },
+    });
+
+    return [newBattle, comment] as const;
+  });
+
+  // Create notification
+  await prisma.notification.create({
+    data: {
+      userId: challengedId,
+      actorId: challengerId,
+      type: "BATTLE_CHALLENGE",
+      postId,
+      battleId: battle.id,
+    },
+  });
+
+  broadcast(`user:${challengedId}`, {
+    type: "notification:new",
+    data: { type: "BATTLE_CHALLENGE" },
+  });
+
+  return battle;
+}
+
 export async function respondToChallenge(
   battleId: string,
   userId: string,
@@ -183,7 +318,8 @@ export async function respondToChallenge(
         userId: otherUserId,
         actorId: userId,
         type: "BATTLE_DECLINED",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     });
@@ -212,7 +348,8 @@ export async function respondToChallenge(
         userId: otherUserId,
         actorId: userId,
         type: "BATTLE_COUNTER_PROPOSAL",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     });
@@ -257,7 +394,8 @@ export async function respondToChallenge(
   });
 
   // Generate opening message
-  const openingMessage = await generateOpeningMessage(updated).catch(
+  const openingTopicInfo = getBattleTopicInfo(updated);
+  const openingMessage = await generateOpeningMessage({ ...updated, topic: openingTopicInfo }).catch(
     () => "⚔️ 맞짱이 시작됩니다! 양측 모두 근거를 제시해주세요."
   );
 
@@ -285,7 +423,8 @@ export async function respondToChallenge(
       data: {
         userId: battle.challengerId,
         type: "BATTLE_STARTED",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     }),
@@ -293,7 +432,8 @@ export async function respondToChallenge(
       data: {
         userId: battle.challengedId,
         type: "BATTLE_STARTED",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     }),
@@ -311,10 +451,12 @@ export async function respondToChallenge(
   broadcastToBattle(battleId, { type: "battle:state", data: updated });
   broadcastToBattle(battleId, { type: "battle:message", data: turnPrompt });
 
-  broadcast(`topic:${battle.topicId}`, {
-    type: "battle:active",
-    data: { battleId },
-  });
+  if (battle.topicId) {
+    broadcast(`topic:${battle.topicId}`, {
+      type: "battle:active",
+      data: { battleId },
+    });
+  }
 
   return updated;
 }
@@ -356,7 +498,8 @@ export async function setupBattle(
   });
 
   // Generate opening message
-  const openingMessage = await generateOpeningMessage(updated).catch(
+  const setupTopicInfo = getBattleTopicInfo(updated);
+  const openingMessage = await generateOpeningMessage({ ...updated, topic: setupTopicInfo }).catch(
     () => "⚔️ 맞짱이 시작됩니다! 양측 모두 근거를 제시해주세요."
   );
 
@@ -384,7 +527,8 @@ export async function setupBattle(
       data: {
         userId: battle.challengerId,
         type: "BATTLE_STARTED",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     }),
@@ -392,7 +536,8 @@ export async function setupBattle(
       data: {
         userId: battle.challengedId,
         type: "BATTLE_STARTED",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     }),
@@ -412,10 +557,12 @@ export async function setupBattle(
   broadcastToBattle(battleId, { type: "battle:message", data: turnPrompt });
 
   // Notify topic SSE channel about active battle
-  broadcast(`topic:${battle.topicId}`, {
-    type: "battle:active",
-    data: { battleId },
-  });
+  if (battle.topicId) {
+    broadcast(`topic:${battle.topicId}`, {
+      type: "battle:active",
+      data: { battleId },
+    });
+  }
 
   return updated;
 }
@@ -478,9 +625,10 @@ export async function submitGround(
   const turnNumber = getCurrentTurnNumber(registry);
 
   // Evaluate with LLM host
+  const topicInfo = getBattleTopicInfo(battle);
   const evaluation = await evaluateGround(
     {
-      topic: battle.topic,
+      topic: topicInfo,
       challengerSide: battle.challengerSide,
       challengedSide: battle.challengedSide,
       groundsRegistry: registry,
@@ -673,7 +821,8 @@ export async function submitGround(
       data: {
         userId: opponentId,
         type: "BATTLE_YOUR_TURN",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     });
@@ -717,9 +866,11 @@ async function endBattle(
   });
 
   // Generate victory message
-  const victoryMsg = await generateVictoryMessage(battle, winnerId).catch(
-    () => "🏆 맞짱이 종료되었습니다!"
-  );
+  const battleTopicInfo = getBattleTopicInfo(battle);
+  const victoryMsg = await generateVictoryMessage(
+    { ...battle, topic: battleTopicInfo },
+    winnerId
+  ).catch(() => "🏆 맞짱이 종료되었습니다!");
 
   await prisma.battleMessage.create({
     data: {
@@ -735,7 +886,8 @@ async function endBattle(
       data: {
         userId: battle.challengerId,
         type: "BATTLE_ENDED",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     }),
@@ -743,7 +895,8 @@ async function endBattle(
       data: {
         userId: battle.challengedId,
         type: "BATTLE_ENDED",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     }),
@@ -761,10 +914,12 @@ async function endBattle(
   broadcastToBattle(battleId, { type: "battle:end", data: battle });
 
   // Notify topic SSE channel about battle end
-  broadcast(`topic:${battle.topicId}`, {
-    type: "battle:active",
-    data: { battleId },
-  });
+  if (battle.topicId) {
+    broadcast(`topic:${battle.topicId}`, {
+      type: "battle:active",
+      data: { battleId },
+    });
+  }
 
   return battle;
 }
@@ -960,6 +1115,7 @@ export async function getBattlesForAdmin(input: GetBattlesAdminInput) {
   if (search) {
     where.OR = [
       { topic: { title: { contains: search, mode: "insensitive" } } },
+      { battleTitle: { contains: search, mode: "insensitive" } },
       { challenger: { nickname: { contains: search, mode: "insensitive" } } },
       { challenger: { name: { contains: search, mode: "insensitive" } } },
       { challenged: { nickname: { contains: search, mode: "insensitive" } } },
@@ -1067,7 +1223,8 @@ export async function forceEndBattle(battleId: string, input: ForceEndBattleInpu
       data: {
         userId: battle.challengerId,
         type: "BATTLE_ENDED",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     }),
@@ -1075,7 +1232,8 @@ export async function forceEndBattle(battleId: string, input: ForceEndBattleInpu
       data: {
         userId: battle.challengedId,
         type: "BATTLE_ENDED",
-        topicId: battle.topicId,
+        topicId: battle.topicId ?? undefined,
+        postId: battle.postId ?? undefined,
         battleId: battle.id,
       },
     }),
@@ -1093,10 +1251,12 @@ export async function forceEndBattle(battleId: string, input: ForceEndBattleInpu
   broadcastToBattle(battleId, { type: "battle:end", data: updated });
 
   // Notify topic SSE channel about battle end
-  broadcast(`topic:${battle.topicId}`, {
-    type: "battle:active",
-    data: { battleId },
-  });
+  if (battle.topicId) {
+    broadcast(`topic:${battle.topicId}`, {
+      type: "battle:active",
+      data: { battleId },
+    });
+  }
 
   return updated;
 }

@@ -453,7 +453,7 @@ model OpinionGround {
 
 model Battle {
   id                  String       @id @default(cuid())
-  topicId             String
+  topicId             String?
   challengerId        String
   challengedId        String
   challengerSide      Side
@@ -476,12 +476,22 @@ model Battle {
   endedAt             DateTime?
   lastActivityAt      DateTime     @default(now())
 
-  topic             Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  // Post-based battle fields
+  postId              String?
+  sourceCommentId     String?
+  battleTitle         String?
+  customOptionA       String?
+  customOptionB       String?
+
+  topic             Topic?         @relation(fields: [topicId], references: [id], onDelete: Cascade)
   challenger        User           @relation("ChallengerBattles", fields: [challengerId], references: [id], onDelete: Cascade)
   challenged        User           @relation("ChallengedBattles", fields: [challengedId], references: [id], onDelete: Cascade)
   winner            User?          @relation("WonBattles", fields: [winnerId], references: [id], onDelete: SetNull)
   challengerOpinion Opinion?       @relation("ChallengerOpinion", fields: [challengerOpinionId], references: [id], onDelete: SetNull)
   challengedOpinion Opinion?       @relation("ChallengedOpinion", fields: [challengedOpinionId], references: [id], onDelete: SetNull)
+  post              Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  sourceComment     PostComment?   @relation("BattleSourceComment", fields: [sourceCommentId], references: [id], onDelete: SetNull)
+  challengeComment  PostComment?   @relation("BattleChallengeComment")
   groundsRegistry   Json?          @default("{\"A\":[],\"B\":[]}")
   isHidden          Boolean        @default(false)
   hiddenAt          DateTime?
@@ -498,6 +508,7 @@ model Battle {
   @@index([topicId, status])
   @@index([lastActivityAt])
   @@index([isHidden])
+  @@index([postId])
 }
 
 model BattleMessage {
@@ -586,6 +597,7 @@ model Post {
   comments      PostComment[]
   reports       Report[]
   notifications Notification[]
+  battles       Battle[]
 
   @@index([authorId])
   @@index([category])
@@ -604,6 +616,7 @@ model PostComment {
   isBlinded   Boolean  @default(false)
   isAnonymous Boolean  @default(false)
   parentId    String?
+  battleId    String?  @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -613,6 +626,8 @@ model PostComment {
   replies   PostComment[]        @relation("PostCommentReplies")
   reactions PostCommentReaction[]
   reports   Report[]
+  battle    Battle?              @relation("BattleChallengeComment", fields: [battleId], references: [id], onDelete: SetNull)
+  sourcedBattles Battle[]        @relation("BattleSourceComment")
   notificationsAsOriginal Notification[] @relation("NotifiedPostComment")
   notificationsAsReply    Notification[] @relation("NotifyingPostCommentReply")
 
