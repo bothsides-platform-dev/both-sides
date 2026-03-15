@@ -252,6 +252,7 @@ export async function createPostChallenge(challengerId: string, input: CreatePos
         userId: challengerId,
         body: `⚔️ 맞짱 도전: ${battleTitle}`,
         battleId: newBattle.id,
+        parentId: sourceCommentId,
       },
     });
 
