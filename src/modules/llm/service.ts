@@ -110,7 +110,7 @@ export async function triggerGroundsSummary(topicId: string, options?: { force?:
       const result = await llmCore.summarizeOpinions({
         topic: topicInput,
         targetSide: side,
-        opinions: opinions.map((o) => ({ side: o.side, body: o.body })),
+        opinions: opinions.filter((o) => o.side != null).map((o) => ({ side: o.side!, body: o.body })),
       });
 
       const sideResult = side === "A" ? result.sideA : result.sideB;
@@ -253,7 +253,7 @@ export async function triggerOpinionClassification(
         optionB: topic.optionB,
       },
       opinionSummary,
-      opinion: { side: opinion.side, body: opinion.body },
+      opinion: { side: opinion.side!, body: opinion.body },
     });
 
     // Find matching ground ID

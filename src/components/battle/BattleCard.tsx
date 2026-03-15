@@ -22,11 +22,14 @@ interface BattleCardProps {
     };
     challengerSide: string;
     challengedSide: string;
-    topic: {
+    topic?: {
       title?: string;
       optionA: string;
       optionB: string;
-    };
+    } | null;
+    battleTitle?: string | null;
+    customOptionA?: string | null;
+    customOptionB?: string | null;
     winner?: { nickname: string | null; name: string | null } | null;
     endReason?: string | null;
   };
@@ -45,6 +48,11 @@ export function BattleCard({ battle, showTopicTitle }: BattleCardProps) {
   const challengerName = battle.challenger.nickname || battle.challenger.name || "도전자";
   const challengedName = battle.challenged.nickname || battle.challenged.name || "상대";
   const isActive = battle.status === "ACTIVE";
+  const topicInfo = battle.topic ?? {
+    title: battle.battleTitle ?? "",
+    optionA: battle.customOptionA ?? "A",
+    optionB: battle.customOptionB ?? "B",
+  };
 
   return (
     <Link href={`/battles/${battle.id}`}>
@@ -66,22 +74,22 @@ export function BattleCard({ battle, showTopicTitle }: BattleCardProps) {
           </div>
         </div>
 
-        {showTopicTitle && battle.topic.title && (
-          <p className="text-xs text-muted-foreground truncate mb-1">{battle.topic.title}</p>
+        {showTopicTitle && topicInfo.title && (
+          <p className="text-xs text-muted-foreground truncate mb-1">{topicInfo.title}</p>
         )}
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div className="text-sm font-medium truncate text-right">
             {challengerName}
             <span className="text-xs text-muted-foreground ml-1">
-              ({battle.challengerSide === "A" ? battle.topic.optionA : battle.topic.optionB})
+              ({battle.challengerSide === "A" ? topicInfo.optionA : topicInfo.optionB})
             </span>
           </div>
           <span className="text-xs font-bold text-muted-foreground">VS</span>
           <div className="text-sm font-medium truncate">
             {challengedName}
             <span className="text-xs text-muted-foreground ml-1">
-              ({battle.challengedSide === "A" ? battle.topic.optionA : battle.topic.optionB})
+              ({battle.challengedSide === "A" ? topicInfo.optionA : topicInfo.optionB})
             </span>
           </div>
         </div>

@@ -22,12 +22,21 @@ import { OpinionColumn } from "./OpinionColumn";
 import { OpinionList } from "./OpinionList";
 import { trackOpinionCreate } from "@/lib/analytics";
 import type { Opinion } from "./types";
-import type { Side, ReactionType } from "@prisma/client";
+import type { Side, ReactionType, TopicType } from "@prisma/client";
+
+interface TopicOption {
+  id: string;
+  label: string;
+  displayOrder: number;
+}
 
 interface OpinionSectionProps {
   topicId: string;
+  topicType?: TopicType;
   optionA: string;
   optionB: string;
+  options?: TopicOption[];
+  numericUnit?: string | null;
   highlightReplyId?: string;
 }
 
@@ -38,7 +47,7 @@ interface AncestorData {
   topicId: string;
 }
 
-export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: OpinionSectionProps) {
+export function OpinionSection({ topicId, topicType = "BINARY", optionA, optionB, options, numericUnit, highlightReplyId }: OpinionSectionProps) {
   const { data: session } = useSession();
   const [sort, setSort] = useState<"latest" | "hot">("latest");
   const [newOpinion, setNewOpinion] = useState("");
@@ -61,12 +70,18 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
   const [sideBHeight, setSideBHeight] = useState<number>(0);
 
   // Use combined vote-info endpoint (fetch for both logged-in and guest users)
-  const { data: voteInfoData } = useSWR<{ data: { myVote: Side | null } }>(
+  const { data: voteInfoData } = useSWR<{ data: { myVote: Side | string | number | null } }>(
     `/api/topics/${topicId}/vote-info?includeMyVote=true`,
     fetcher
   );
 
-  const myVote = voteInfoData?.data?.myVote ?? undefined;
+  const rawMyVote = voteInfoData?.data?.myVote ?? undefined;
+  // For BINARY topics, myVote is Side; for others it's optionId or numericValue
+  const myVote = topicType === "BINARY" ? (rawMyVote as Side | undefined) : undefined;
+  const myOptionId = topicType === "MULTIPLE" ? (rawMyVote as string | undefined) : undefined;
+  const myNumericValue = topicType === "NUMERIC" ? (rawMyVote as number | undefined) : undefined;
+  // hasVoted: true if the user has voted in any form
+  const hasVoted = rawMyVote != null;
 
   // State for highlight reply ancestor data
   const [ancestorData, setAncestorData] = useState<AncestorData | null>(null);
@@ -159,7 +174,7 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
     [opinionsData?.data?.opinions]
   );
 
-  // Client-side filtering for A/B sides
+  // Client-side filtering for A/B sides (BINARY) or by optionId (MULTIPLE)
   const opinionsA = useMemo(
     () => opinions.filter((op) => op.side === "A"),
     [opinions]
@@ -168,6 +183,16 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
     () => opinions.filter((op) => op.side === "B"),
     [opinions]
   );
+
+  // For MULTIPLE: group opinions by optionId
+  const opinionsByOption = useMemo(() => {
+    if (topicType !== "MULTIPLE" || !options) return {};
+    const map: Record<string, Opinion[]> = {};
+    for (const opt of options) {
+      map[opt.id] = opinions.filter((op) => op.optionId === opt.id);
+    }
+    return map;
+  }, [opinions, options, topicType]);
 
   const isLoggedIn = !!session?.user;
 
@@ -260,111 +285,229 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-0 space-y-3">
-        {/* PC: 2-column layout */}
-        <div className="hidden md:grid md:grid-cols-2 md:gap-4">
-          <OpinionColumn
-            side="A"
-            sideLabel={optionA}
-            opinions={opinionsA}
-            optionA={optionA}
-            optionB={optionB}
-            isLoading={isLoading}
-            currentUserId={session?.user?.id}
-            onReaction={handleReaction}
-            onReportSuccess={handleReportSuccess}
-            onReplySuccess={handleReplySuccess}
-            userVoteSide={myVote}
-            highlightReplyId={highlightReplyId}
-            expandedAncestorIds={ancestorData?.ancestorIds}
-          />
-          <OpinionColumn
-            side="B"
-            sideLabel={optionB}
-            opinions={opinionsB}
-            optionA={optionA}
-            optionB={optionB}
-            isLoading={isLoading}
-            currentUserId={session?.user?.id}
-            onReaction={handleReaction}
-            onReportSuccess={handleReportSuccess}
-            onReplySuccess={handleReplySuccess}
-            userVoteSide={myVote}
-            highlightReplyId={highlightReplyId}
-            expandedAncestorIds={ancestorData?.ancestorIds}
-          />
-        </div>
-
-        {/* Mobile: Tabs + Swipe */}
-        <div className="md:hidden">
-          <MobileSideTabs
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            optionA={optionA}
-            optionB={optionB}
-            countA={opinionsA.length}
-            countB={opinionsB.length}
-          />
-
-          <div
-            className="overflow-hidden transition-[height] duration-300"
-            style={containerHeight ? { height: containerHeight } : undefined}
-          >
-            <LazyMotion features={domAnimation}>
-            <m.div
-              className="flex"
-              initial={false}
-              animate={{ x: activeTab === "A" ? 0 : "-100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-              {/* Side A opinions */}
-              <div ref={sideARef} className="w-full flex-shrink-0 px-1">
-                <OpinionList
-                  opinions={opinionsA}
-                  optionA={optionA}
-                  optionB={optionB}
-                  isLoading={isLoading}
-                  emptyMessage={`${optionA} 측 의견이 없습니다. 첫 번째 의견을 남겨보세요!`}
-                  currentUserId={session?.user?.id}
-                  onReaction={handleReaction}
-                  onReportSuccess={handleReportSuccess}
-                  onReplySuccess={handleReplySuccess}
-                  userVoteSide={myVote}
-                  highlightReplyId={highlightReplyId}
-                  expandedAncestorIds={ancestorData?.ancestorIds}
-                />
-              </div>
-
-              {/* Side B opinions */}
-              <div ref={sideBRef} className="w-full flex-shrink-0 px-1">
-                <OpinionList
-                  opinions={opinionsB}
-                  optionA={optionA}
-                  optionB={optionB}
-                  isLoading={isLoading}
-                  emptyMessage={`${optionB} 측 의견이 없습니다. 첫 번째 의견을 남겨보세요!`}
-                  currentUserId={session?.user?.id}
-                  onReaction={handleReaction}
-                  onReportSuccess={handleReportSuccess}
-                  onReplySuccess={handleReplySuccess}
-                  userVoteSide={myVote}
-                  highlightReplyId={highlightReplyId}
-                  expandedAncestorIds={ancestorData?.ancestorIds}
-                />
-              </div>
-            </m.div>
-            </LazyMotion>
+        {topicType === "NUMERIC" ? (
+          /* NUMERIC: Single stream, no side split */
+          <div>
+            <OpinionList
+              opinions={opinions}
+              optionA={optionA}
+              optionB={optionB}
+              isLoading={isLoading}
+              emptyMessage="아직 의견이 없습니다. 첫 번째 의견을 남겨보세요!"
+              currentUserId={session?.user?.id}
+              onReaction={handleReaction}
+              onReportSuccess={handleReportSuccess}
+              onReplySuccess={handleReplySuccess}
+              userVoteSide={myVote}
+              highlightReplyId={highlightReplyId}
+              expandedAncestorIds={ancestorData?.ancestorIds}
+              topicType={topicType}
+              numericUnit={numericUnit}
+            />
           </div>
-        </div>
+        ) : topicType === "MULTIPLE" && options ? (
+          /* MULTIPLE: Scrollable tabs for N options */
+          <>
+            {/* PC: columns for each option (max 3 columns) */}
+            <div className="hidden md:grid md:gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(options.length, 3)}, 1fr)` }}>
+              {options.map((opt) => (
+                <OpinionColumn
+                  key={opt.id}
+                  side="A"
+                  sideLabel={opt.label}
+                  opinions={opinionsByOption[opt.id] || []}
+                  optionA={optionA}
+                  optionB={optionB}
+                  isLoading={isLoading}
+                  currentUserId={session?.user?.id}
+                  onReaction={handleReaction}
+                  onReportSuccess={handleReportSuccess}
+                  onReplySuccess={handleReplySuccess}
+                  userVoteSide={myVote}
+                  highlightReplyId={highlightReplyId}
+                  expandedAncestorIds={ancestorData?.ancestorIds}
+                />
+              ))}
+            </div>
+
+            {/* Mobile: Scrollable tabs */}
+            <div className="md:hidden">
+              <MobileSideTabs
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                optionA={optionA}
+                optionB={optionB}
+                countA={opinionsA.length}
+                countB={opinionsB.length}
+                multipleOptions={options}
+                opinionsByOption={opinionsByOption}
+              />
+
+              <div>
+                {options.map((opt) => {
+                  const isActive = activeTab === "A"
+                    ? opt.displayOrder === 0
+                    : activeTab === "B"
+                    ? opt.displayOrder === 1
+                    : false;
+                  // For multiple options, show active option's opinions
+                  // Use displayOrder-based matching with activeTab override
+                  return null; // handled below
+                })}
+                <OpinionList
+                  opinions={
+                    (() => {
+                      // Find the active option by tab
+                      const activeIndex = activeTab === "A" ? 0 : 1;
+                      const activeOpt = options[activeIndex];
+                      return activeOpt ? (opinionsByOption[activeOpt.id] || []) : [];
+                    })()
+                  }
+                  optionA={optionA}
+                  optionB={optionB}
+                  isLoading={isLoading}
+                  emptyMessage="이 선택지에 대한 의견이 없습니다."
+                  currentUserId={session?.user?.id}
+                  onReaction={handleReaction}
+                  onReportSuccess={handleReportSuccess}
+                  onReplySuccess={handleReplySuccess}
+                  userVoteSide={myVote}
+                  highlightReplyId={highlightReplyId}
+                  expandedAncestorIds={ancestorData?.ancestorIds}
+                />
+              </div>
+            </div>
+          </>
+        ) : (
+          /* BINARY: Original 2-column layout */
+          <>
+            {/* PC: 2-column layout */}
+            <div className="hidden md:grid md:grid-cols-2 md:gap-4">
+              <OpinionColumn
+                side="A"
+                sideLabel={optionA}
+                opinions={opinionsA}
+                optionA={optionA}
+                optionB={optionB}
+                isLoading={isLoading}
+                currentUserId={session?.user?.id}
+                onReaction={handleReaction}
+                onReportSuccess={handleReportSuccess}
+                onReplySuccess={handleReplySuccess}
+                userVoteSide={myVote}
+                highlightReplyId={highlightReplyId}
+                expandedAncestorIds={ancestorData?.ancestorIds}
+              />
+              <OpinionColumn
+                side="B"
+                sideLabel={optionB}
+                opinions={opinionsB}
+                optionA={optionA}
+                optionB={optionB}
+                isLoading={isLoading}
+                currentUserId={session?.user?.id}
+                onReaction={handleReaction}
+                onReportSuccess={handleReportSuccess}
+                onReplySuccess={handleReplySuccess}
+                userVoteSide={myVote}
+                highlightReplyId={highlightReplyId}
+                expandedAncestorIds={ancestorData?.ancestorIds}
+              />
+            </div>
+
+            {/* Mobile: Tabs + Swipe */}
+            <div className="md:hidden">
+              <MobileSideTabs
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                optionA={optionA}
+                optionB={optionB}
+                countA={opinionsA.length}
+                countB={opinionsB.length}
+              />
+
+              <div
+                className="overflow-hidden transition-[height] duration-300"
+                style={containerHeight ? { height: containerHeight } : undefined}
+              >
+                <LazyMotion features={domAnimation}>
+                <m.div
+                  className="flex"
+                  initial={false}
+                  animate={{ x: activeTab === "A" ? 0 : "-100%" }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  {/* Side A opinions */}
+                  <div ref={sideARef} className="w-full flex-shrink-0 px-1">
+                    <OpinionList
+                      opinions={opinionsA}
+                      optionA={optionA}
+                      optionB={optionB}
+                      isLoading={isLoading}
+                      emptyMessage={`${optionA} 측 의견이 없습니다. 첫 번째 의견을 남겨보세요!`}
+                      currentUserId={session?.user?.id}
+                      onReaction={handleReaction}
+                      onReportSuccess={handleReportSuccess}
+                      onReplySuccess={handleReplySuccess}
+                      userVoteSide={myVote}
+                      highlightReplyId={highlightReplyId}
+                      expandedAncestorIds={ancestorData?.ancestorIds}
+                    />
+                  </div>
+
+                  {/* Side B opinions */}
+                  <div ref={sideBRef} className="w-full flex-shrink-0 px-1">
+                    <OpinionList
+                      opinions={opinionsB}
+                      optionA={optionA}
+                      optionB={optionB}
+                      isLoading={isLoading}
+                      emptyMessage={`${optionB} 측 의견이 없습니다. 첫 번째 의견을 남겨보세요!`}
+                      currentUserId={session?.user?.id}
+                      onReaction={handleReaction}
+                      onReportSuccess={handleReportSuccess}
+                      onReplySuccess={handleReplySuccess}
+                      userVoteSide={myVote}
+                      highlightReplyId={highlightReplyId}
+                      expandedAncestorIds={ancestorData?.ancestorIds}
+                    />
+                  </div>
+                </m.div>
+                </LazyMotion>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* New Opinion Form - shown for logged-in users and guests who have voted */}
-        {myVote ? (
+        {hasVoted ? (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant={myVote === "A" ? "sideA" : "sideB"} className="text-xs">
-                {myVote === "A" ? optionA : optionB}
-              </Badge>
-              <span className="hidden sm:inline">측으로 의견을 작성합니다</span>
-              <span className="sm:hidden">측</span>
+              {topicType === "BINARY" && myVote && (
+                <>
+                  <Badge variant={myVote === "A" ? "sideA" : "sideB"} className="text-xs">
+                    {myVote === "A" ? optionA : optionB}
+                  </Badge>
+                  <span className="hidden sm:inline">측으로 의견을 작성합니다</span>
+                  <span className="sm:hidden">측</span>
+                </>
+              )}
+              {topicType === "MULTIPLE" && myOptionId && options && (
+                <>
+                  <Badge variant="secondary" className="text-xs">
+                    {options.find((o) => o.id === myOptionId)?.label}
+                  </Badge>
+                  <span className="hidden sm:inline">에 투표한 의견입니다</span>
+                </>
+              )}
+              {topicType === "NUMERIC" && myNumericValue != null && (
+                <>
+                  <Badge variant="secondary" className="text-xs">
+                    {myNumericValue.toLocaleString()}{numericUnit || ""}
+                  </Badge>
+                  <span className="hidden sm:inline">을(를) 입력한 의견입니다</span>
+                </>
+              )}
               {!isLoggedIn && (
                 <span className="text-xs text-muted-foreground/80">(손님)</span>
               )}
@@ -400,7 +543,9 @@ export function OpinionSection({ topicId, optionA, optionB, highlightReplyId }: 
                   disabled={submitState.isSubmitting || !newOpinion.trim()}
                   className={cn(
                     "shrink-0 h-11 w-11",
-                    myVote === "A" ? "bg-sideA hover:bg-sideA/90" : "bg-sideB hover:bg-sideB/90"
+                    topicType === "BINARY"
+                      ? myVote === "A" ? "bg-sideA hover:bg-sideA/90" : "bg-sideB hover:bg-sideB/90"
+                      : "bg-primary hover:bg-primary/90"
                   )}
                   aria-label="의견 등록"
                 >

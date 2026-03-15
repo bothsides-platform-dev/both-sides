@@ -116,6 +116,19 @@ export function BattleClient({ battleId }: BattleClientProps) {
     );
   }
 
+  // Compute topic info from topic or custom fields
+  const topicInfo = battle.topic ?? {
+    title: battle.battleTitle ?? "",
+    optionA: battle.customOptionA ?? "A",
+    optionB: battle.customOptionB ?? "B",
+  };
+  const backLink = battle.topicId
+    ? `/topics/${battle.topicId}`
+    : battle.postId
+      ? `/posts/${battle.postId}`
+      : null;
+  const backLabel = battle.topicId ? "토론으로" : "게시글로";
+
   const isParticipant =
     currentUserId === battle.challengerId || currentUserId === battle.challengedId;
   const isMyTurn = battle.currentTurn === currentUserId;
@@ -183,12 +196,14 @@ export function BattleClient({ battleId }: BattleClientProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link href={`/topics/${battle.topicId}`}>
-            <Button variant="ghost" size="sm" className="gap-1">
-              <ArrowLeft className="h-4 w-4" />
-              토론으로
-            </Button>
-          </Link>
+          {backLink && (
+            <Link href={backLink}>
+              <Button variant="ghost" size="sm" className="gap-1">
+                <ArrowLeft className="h-4 w-4" />
+                {backLabel}
+              </Button>
+            </Link>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {isActive && (
@@ -206,12 +221,13 @@ export function BattleClient({ battleId }: BattleClientProps) {
       </div>
 
       {/* Topic Title */}
-      <Link
-        href={`/topics/${battle.topicId}`}
-        className="text-lg font-bold hover:underline block"
-      >
-        {battle.topic.title}
-      </Link>
+      {backLink ? (
+        <Link href={backLink} className="text-lg font-bold hover:underline block">
+          {topicInfo.title}
+        </Link>
+      ) : (
+        <h1 className="text-lg font-bold">{topicInfo.title}</h1>
+      )}
 
       {/* Pending: Negotiation UI */}
       {isPending && isParticipant && (
@@ -237,7 +253,7 @@ export function BattleClient({ battleId }: BattleClientProps) {
                   ? "bg-sideA/20 text-sideA"
                   : "bg-sideB/20 text-sideB"
               )}>
-                {battle.challengerSide === "A" ? battle.topic.optionA : battle.topic.optionB}
+                {battle.challengerSide === "A" ? topicInfo.optionA : topicInfo.optionB}
               </span>
             </div>
             <div className="text-lg font-bold text-muted-foreground">VS</div>
@@ -249,7 +265,7 @@ export function BattleClient({ battleId }: BattleClientProps) {
                   ? "bg-sideA/20 text-sideA"
                   : "bg-sideB/20 text-sideB"
               )}>
-                {battle.challengedSide === "A" ? battle.topic.optionA : battle.topic.optionB}
+                {battle.challengedSide === "A" ? topicInfo.optionA : topicInfo.optionB}
               </span>
             </div>
           </div>
@@ -360,7 +376,7 @@ export function BattleClient({ battleId }: BattleClientProps) {
               <div className="text-center">
                 <div className="text-sm font-medium truncate">{challengerName}</div>
                 <div className="text-xs text-muted-foreground">
-                  {battle.challengerSide === "A" ? battle.topic.optionA : battle.topic.optionB}
+                  {battle.challengerSide === "A" ? topicInfo.optionA : topicInfo.optionB}
                 </div>
               </div>
               <BattleHpBar
@@ -386,7 +402,7 @@ export function BattleClient({ battleId }: BattleClientProps) {
               <div className="text-center">
                 <div className="text-sm font-medium truncate">{challengedName}</div>
                 <div className="text-xs text-muted-foreground">
-                  {battle.challengedSide === "A" ? battle.topic.optionA : battle.topic.optionB}
+                  {battle.challengedSide === "A" ? topicInfo.optionA : topicInfo.optionB}
                 </div>
               </div>
               <BattleHpBar
@@ -411,8 +427,8 @@ export function BattleClient({ battleId }: BattleClientProps) {
       {(isActive || isCompleted) && (
         <BattleGroundsPanel
           registry={registry}
-          optionA={battle.topic.optionA}
-          optionB={battle.topic.optionB}
+          optionA={topicInfo.optionA}
+          optionB={topicInfo.optionB}
           counteredGroundId={counteredGroundId}
         />
       )}

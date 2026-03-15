@@ -7,9 +7,29 @@ import { formatRelativeTime } from "@/lib/utils";
 import { ThumbsUp, ThumbsDown, MessageSquare, Flag, User, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PostCommentForm } from "./PostCommentForm";
+import { ChallengeBlockComment } from "@/components/battle/ChallengeBlockComment";
+import { PostChallengeButton } from "@/components/battle/PostChallengeButton";
 import Image from "next/image";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
+
+interface PostCommentBattle {
+  id: string;
+  status: string;
+  battleTitle: string | null;
+  customOptionA: string | null;
+  customOptionB: string | null;
+  challengerSide: string;
+  challengedSide: string;
+  challengerHp: number | null;
+  challengedHp: number | null;
+  durationSeconds: number | null;
+  endReason: string | null;
+  winnerId: string | null;
+  challenger: { id: string; nickname: string | null; name: string | null; image: string | null; selectedBadgeId: string | null };
+  challenged: { id: string; nickname: string | null; name: string | null; image: string | null; selectedBadgeId: string | null };
+  winner?: { nickname: string | null; name: string | null } | null;
+}
 
 interface PostCommentData {
   id: string;
@@ -20,6 +40,8 @@ interface PostCommentData {
   isBlinded: boolean;
   isAnonymous: boolean;
   parentId: string | null;
+  battleId?: string | null;
+  battle?: PostCommentBattle | null;
   createdAt: string;
   user: {
     id: string;
@@ -123,8 +145,14 @@ export function PostCommentItem({ comment, postId, onMutate, depth = 0 }: PostCo
         </span>
       </div>
 
-      {/* Body */}
-      <p className="text-sm whitespace-pre-line mb-2">{comment.body}</p>
+      {/* Body — or Challenge Block */}
+      {comment.battleId && comment.battle ? (
+        <div className="mb-2">
+          <ChallengeBlockComment battle={comment.battle} />
+        </div>
+      ) : (
+        <p className="text-sm whitespace-pre-line mb-2">{comment.body}</p>
+      )}
 
       {/* Actions */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -171,6 +199,16 @@ export function PostCommentItem({ comment, postId, onMutate, depth = 0 }: PostCo
             {showReplies ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             답글 {comment._count.replies}개
           </Button>
+        )}
+
+        {session?.user && comment.userId && session.user.id !== comment.userId && !comment.battleId && (
+          <PostChallengeButton
+            postId={postId}
+            commentId={comment.id}
+            commentUserId={comment.userId}
+            commentUserName={comment.isAnonymous ? "익명" : (comment.user?.nickname || comment.user?.name || "익명")}
+            onSuccess={onMutate}
+          />
         )}
 
         {session?.user && (

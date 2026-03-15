@@ -40,7 +40,8 @@ export type GroundEvaluation = {
 
 export type BattleState = {
   id: string;
-  topicId: string;
+  topicId: string | null;
+  postId: string | null;
   status: BattleStatus;
   challenger: BattleParticipant;
   challenged: BattleParticipant;
@@ -59,12 +60,15 @@ export type BattleState = {
   startedAt: string | null;
   endedAt: string | null;
   groundsRegistry: GroundsRegistry | null;
+  battleTitle: string | null;
+  customOptionA: string | null;
+  customOptionB: string | null;
   topic: {
     id: string;
     title: string;
     optionA: string;
     optionB: string;
-  };
+  } | null;
 };
 
 export type BattleMessageData = {

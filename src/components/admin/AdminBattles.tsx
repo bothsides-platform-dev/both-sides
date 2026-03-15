@@ -48,7 +48,9 @@ interface Battle {
     title: string;
     optionA: string;
     optionB: string;
-  };
+  } | null;
+  postId: string | null;
+  battleTitle: string | null;
   challenger: {
     id: string;
     nickname?: string | null;
@@ -320,15 +322,26 @@ export function AdminBattles() {
                         )}
                       </div>
 
-                      {/* Topic link */}
-                      <Link
-                        href={`/topics/${battle.topic.id}`}
-                        className="font-medium hover:underline flex items-center gap-1 text-sm"
-                        target="_blank"
-                      >
-                        {battle.topic.title}
-                        <ExternalLink className="h-3 w-3" />
-                      </Link>
+                      {/* Topic/Post link */}
+                      {battle.topic ? (
+                        <Link
+                          href={`/topics/${battle.topic.id}`}
+                          className="font-medium hover:underline flex items-center gap-1 text-sm"
+                          target="_blank"
+                        >
+                          {battle.topic.title}
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      ) : (
+                        <div className="flex items-center gap-1 text-sm">
+                          <span className="font-medium">{battle.battleTitle || "맞짱"}</span>
+                          {battle.postId && (
+                            <Link href={`/posts/${battle.postId}`} target="_blank">
+                              <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                            </Link>
+                          )}
+                        </div>
+                      )}
 
                       {/* Participants */}
                       <div className="text-sm">

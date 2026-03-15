@@ -26,20 +26,47 @@ import type {
 } from "./schema";
 
 export async function createTopic(authorId: string, input: CreateTopicInput) {
-  const { deadline, images, scheduledAt, ...rest } = input;
+  const { deadline, images, scheduledAt, topicType = "BINARY", options: multipleOptions, numericUnit, numericMin, numericMax, ...rest } = input;
   const imageUrl = images?.[0] ?? rest.imageUrl;
+
+  // For MULTIPLE: store first two option labels as optionA/optionB for backward compatibility
+  let optionA = rest.optionA || "";
+  let optionB = rest.optionB || "";
+  if (topicType === "MULTIPLE" && multipleOptions && multipleOptions.length >= 2) {
+    optionA = multipleOptions[0].label;
+    optionB = multipleOptions[1].label;
+  } else if (topicType === "NUMERIC") {
+    optionA = numericUnit || "숫자";
+    optionB = "입력";
+  }
+
   return prisma.topic.create({
     data: {
       ...rest,
+      optionA,
+      optionB,
+      topicType,
       imageUrl,
       images: images ? (images as Prisma.InputJsonValue) : undefined,
       deadline: deadline ? new Date(deadline) : null,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       authorId,
+      // NUMERIC fields
+      ...(topicType === "NUMERIC" && { numericUnit, numericMin, numericMax }),
+      // MULTIPLE: create TopicOption records
+      ...(topicType === "MULTIPLE" && multipleOptions && {
+        options: {
+          create: multipleOptions.map((opt, index) => ({
+            label: opt.label,
+            displayOrder: index,
+          })),
+        },
+      }),
     },
     include: {
       author: { select: AUTHOR_SELECT },
       _count: { select: TOPIC_COUNT_SELECT },
+      options: topicType === "MULTIPLE" ? { orderBy: { displayOrder: "asc" as const } } : false,
     },
   });
 }
@@ -79,6 +106,7 @@ export async function getTopics(input: GetTopicsInput) {
         description: true,
         optionA: true,
         optionB: true,
+        topicType: true,
         category: true,
         authorId: true,
         imageUrl: true,
@@ -90,10 +118,12 @@ export async function getTopics(input: GetTopicsInput) {
         hiddenAt: true,
         isAnonymous: true,
         viewCount: true,
+        numericUnit: true,
         createdAt: true,
         updatedAt: true,
         author: { select: AUTHOR_SELECT },
         _count: { select: TOPIC_COUNT_SELECT },
+        options: { orderBy: { displayOrder: "asc" as const }, select: { id: true, label: true, displayOrder: true } },
       },
     }),
     prisma.topic.count({ where }),
@@ -129,6 +159,7 @@ export async function getFeaturedTopics(limit: number = 2) {
       description: true,
       optionA: true,
       optionB: true,
+      topicType: true,
       category: true,
       authorId: true,
       imageUrl: true,
@@ -140,10 +171,12 @@ export async function getFeaturedTopics(limit: number = 2) {
       hiddenAt: true,
       isAnonymous: true,
       viewCount: true,
+      numericUnit: true,
       createdAt: true,
       updatedAt: true,
       author: { select: AUTHOR_SELECT_PUBLIC },
       _count: { select: TOPIC_COUNT_SELECT },
+      options: { orderBy: { displayOrder: "asc" as const }, select: { id: true, label: true, displayOrder: true } },
     },
   });
 }
@@ -177,6 +210,7 @@ export async function getRecommendedTopics(limit: number = 6) {
       description: true,
       optionA: true,
       optionB: true,
+      topicType: true,
       category: true,
       authorId: true,
       imageUrl: true,
@@ -188,10 +222,12 @@ export async function getRecommendedTopics(limit: number = 6) {
       hiddenAt: true,
       isAnonymous: true,
       viewCount: true,
+      numericUnit: true,
       createdAt: true,
       updatedAt: true,
       author: { select: AUTHOR_SELECT_PUBLIC },
       _count: { select: TOPIC_COUNT_SELECT },
+      options: { orderBy: { displayOrder: "asc" as const }, select: { id: true, label: true, displayOrder: true } },
     },
   });
 }
@@ -216,6 +252,7 @@ export async function getTopic(id: string) {
     include: {
       author: { select: AUTHOR_SELECT },
       _count: { select: TOPIC_COUNT_SELECT },
+      options: { orderBy: { displayOrder: "asc" } },
     },
   });
 

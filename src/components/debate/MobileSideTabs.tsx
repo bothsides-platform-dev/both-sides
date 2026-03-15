@@ -4,6 +4,13 @@ import { memo } from "react";
 import { LazyMotion, domAnimation, m } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { Side } from "@prisma/client";
+import type { Opinion } from "./types";
+
+interface TopicOption {
+  id: string;
+  label: string;
+  displayOrder: number;
+}
 
 interface MobileSideTabsProps {
   activeTab: Side;
@@ -12,6 +19,9 @@ interface MobileSideTabsProps {
   optionB: string;
   countA: number;
   countB: number;
+  // MULTIPLE support
+  multipleOptions?: TopicOption[];
+  opinionsByOption?: Record<string, Opinion[]>;
 }
 
 export const MobileSideTabs = memo(function MobileSideTabs({
@@ -21,7 +31,46 @@ export const MobileSideTabs = memo(function MobileSideTabs({
   optionB,
   countA,
   countB,
+  multipleOptions,
+  opinionsByOption,
 }: MobileSideTabsProps) {
+  // For MULTIPLE topics with many options, use scrollable tabs
+  if (multipleOptions && multipleOptions.length > 0) {
+    return (
+      <div className="relative border-b border-border/50 mb-2 overflow-x-auto scrollbar-thin" role="tablist" aria-label="의견 탭">
+        <div className="flex min-w-max">
+          {multipleOptions.map((opt, index) => {
+            // Map first option to "A" tab, second to "B" tab for activeTab compat
+            const tabValue = index === 0 ? "A" : "B";
+            const isActive = activeTab === tabValue && index < 2;
+            const count = opinionsByOption?.[opt.id]?.length ?? 0;
+
+            return (
+              <button
+                key={opt.id}
+                onClick={() => onTabChange(index === 0 ? "A" : "B")}
+                className={cn(
+                  "flex-shrink-0 min-h-[44px] px-4 py-3 text-sm font-medium transition-colors relative",
+                  isActive ? "text-foreground" : "text-muted-foreground/80"
+                )}
+                role="tab"
+                aria-selected={isActive}
+              >
+                <span className="flex items-center gap-2">
+                  {opt.label}
+                  <span className="text-xs tabular-nums text-muted-foreground/70">
+                    {count}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Default BINARY tabs
   return (
     <div className="relative flex border-b border-border/50 mb-2" role="tablist" aria-label="의견 탭">
       {/* Tab buttons */}

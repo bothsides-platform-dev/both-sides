@@ -52,6 +52,10 @@ const config: Config = {
           DEFAULT: "hsl(var(--side-b))",
           foreground: "hsl(var(--side-b-foreground))",
         },
+        sideC: "hsl(var(--side-c))",
+        sideD: "hsl(var(--side-d))",
+        sideE: "hsl(var(--side-e))",
+        sideF: "hsl(var(--side-f))",
         disabled: {
           DEFAULT: "hsl(var(--disabled))",
           subtle: "hsl(var(--disabled-subtle))",

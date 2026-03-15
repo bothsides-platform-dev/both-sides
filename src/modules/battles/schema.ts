@@ -14,6 +14,22 @@ export const createChallengeSchema = z.object({
 });
 export type CreateChallengeInput = z.infer<typeof createChallengeSchema>;
 
+export const createPostChallengeSchema = z.object({
+  postId: z.string().cuid("유효하지 않은 게시글 ID입니다."),
+  challengedId: z.string().cuid("유효하지 않은 사용자 ID입니다."),
+  sourceCommentId: z.string().cuid("유효하지 않은 댓글 ID입니다."),
+  battleTitle: z.string().min(2, "맞짱 주제는 최소 2자 이상이어야 합니다.").max(100, "맞짱 주제는 100자 이내여야 합니다."),
+  customOptionA: z.string().min(1, "선택지를 입력해주세요.").max(30, "선택지는 30자 이내여야 합니다."),
+  customOptionB: z.string().min(1, "선택지를 입력해주세요.").max(30, "선택지는 30자 이내여야 합니다."),
+  challengerSide: z.enum(["A", "B"]),
+  challengeMessage: z.string().max(500, "도발 메시지는 500자 이내여야 합니다.").optional(),
+  durationSeconds: z.number().refine(
+    (v) => (DURATION_OPTIONS as readonly number[]).includes(v),
+    "유효하지 않은 배틀 시간입니다."
+  ),
+});
+export type CreatePostChallengeInput = z.infer<typeof createPostChallengeSchema>;
+
 export const respondChallengeSchema = z.object({
   action: z.enum(["accept", "decline", "counter"]),
   counterDuration: z.number().optional(),

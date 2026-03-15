@@ -22,10 +22,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const challengerName = battle.challenger.nickname || battle.challenger.name || "도전자";
   const challengedName = battle.challenged.nickname || battle.challenged.name || "상대";
+  const battleTitleText = battle.topic?.title ?? battle.battleTitle ?? "맞짱";
 
   return {
     title: `${challengerName} vs ${challengedName} - 맞짱 | BothSides`,
-    description: `${battle.topic.title} - 맞짱 배틀`,
+    description: `${battleTitleText} - 맞짱 배틀`,
   };
 }
 

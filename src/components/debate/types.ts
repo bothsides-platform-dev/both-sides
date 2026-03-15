@@ -3,7 +3,9 @@ import type { Side, ReactionType } from "@prisma/client";
 export interface Opinion {
   id: string;
   topicId?: string;
-  side: Side;
+  side: Side | null;
+  optionId?: string | null;
+  numericValue?: number | null;
   body: string;
   isBlinded: boolean;
   isAnonymous?: boolean;
