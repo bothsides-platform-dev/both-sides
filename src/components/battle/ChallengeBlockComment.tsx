@@ -42,22 +42,25 @@ export function ChallengeBlockComment({ battle }: ChallengeBlockCommentProps) {
   const statusInfo = STATUS_CONFIG[battle.status] ?? STATUS_CONFIG.PENDING;
   const isActive = battle.status === "ACTIVE";
   const isCompleted = ["COMPLETED", "RESIGNED"].includes(battle.status);
+  const isInactive = ["DECLINED", "EXPIRED", "ABANDONED"].includes(battle.status);
 
   return (
     <Link href={`/battles/${battle.id}`} className="block">
       <div
         className={cn(
-          "border-2 rounded-xl p-4 transition-all hover:shadow-md cursor-pointer",
-          isActive
-            ? "border-orange-300 bg-gradient-to-br from-orange-50/80 to-red-50/50 dark:from-orange-950/20 dark:to-red-950/10 dark:border-orange-700"
-            : "border-orange-200/60 bg-gradient-to-br from-orange-50/40 to-amber-50/30 dark:from-orange-950/10 dark:to-amber-950/5 dark:border-orange-800/40"
+          "border-2 rounded-xl p-4 transition-all cursor-pointer",
+          isInactive
+            ? "border-gray-200 bg-gray-50/60 dark:border-gray-700 dark:bg-gray-900/40 opacity-70 hover:opacity-90"
+            : isActive
+              ? "border-orange-300 bg-gradient-to-br from-orange-50/80 to-red-50/50 dark:from-orange-950/20 dark:to-red-950/10 dark:border-orange-700 hover:shadow-md"
+              : "border-orange-200/60 bg-gradient-to-br from-orange-50/40 to-amber-50/30 dark:from-orange-950/10 dark:to-amber-950/5 dark:border-orange-800/40 hover:shadow-md"
         )}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Swords className="h-4 w-4 text-orange-500" />
-            <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
+            <Swords className={cn("h-4 w-4", isInactive ? "text-gray-400" : "text-orange-500")} />
+            <span className={cn("text-sm font-bold", isInactive ? "text-gray-400 dark:text-gray-500" : "text-orange-600 dark:text-orange-400")}>
               맞짱 도전
             </span>
           </div>
@@ -69,7 +72,7 @@ export function ChallengeBlockComment({ battle }: ChallengeBlockCommentProps) {
 
         {/* Battle Title */}
         {battle.battleTitle && (
-          <p className="text-sm font-semibold mb-3 text-foreground">
+          <p className={cn("text-sm font-semibold mb-3", isInactive ? "text-gray-400 line-through" : "text-foreground")}>
             {battle.battleTitle}
           </p>
         )}
@@ -77,15 +80,21 @@ export function ChallengeBlockComment({ battle }: ChallengeBlockCommentProps) {
         {/* Sides */}
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 mb-2">
           <div className="text-center space-y-0.5">
-            <div className="text-xs text-muted-foreground truncate">{challengerName}</div>
-            <span className="inline-block text-xs font-bold px-2 py-0.5 rounded bg-sideA/15 text-sideA">
+            <div className={cn("text-xs truncate", isInactive ? "text-gray-400" : "text-muted-foreground")}>{challengerName}</div>
+            <span className={cn(
+              "inline-block text-xs font-bold px-2 py-0.5 rounded",
+              isInactive ? "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500" : "bg-sideA/15 text-sideA"
+            )}>
               {battle.customOptionA}
             </span>
           </div>
-          <div className="text-sm font-bold text-muted-foreground">VS</div>
+          <div className={cn("text-sm font-bold", isInactive ? "text-gray-300 dark:text-gray-600" : "text-muted-foreground")}>VS</div>
           <div className="text-center space-y-0.5">
-            <div className="text-xs text-muted-foreground truncate">{challengedName}</div>
-            <span className="inline-block text-xs font-bold px-2 py-0.5 rounded bg-sideB/15 text-sideB">
+            <div className={cn("text-xs truncate", isInactive ? "text-gray-400" : "text-muted-foreground")}>{challengedName}</div>
+            <span className={cn(
+              "inline-block text-xs font-bold px-2 py-0.5 rounded",
+              isInactive ? "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500" : "bg-sideB/15 text-sideB"
+            )}>
               {battle.customOptionB}
             </span>
           </div>
