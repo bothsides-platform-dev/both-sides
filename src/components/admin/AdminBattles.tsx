@@ -122,6 +122,7 @@ function revalidateBattles() {
 
 export function AdminBattles() {
   const [status, setStatus] = useState<"all" | "active" | "completed" | "hidden">("all");
+  const [source, setSource] = useState<"all" | "topic" | "post">("all");
   const [searchInput, setSearchInput] = useState("");
   const [submittedSearch, setSubmittedSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -138,6 +139,7 @@ export function AdminBattles() {
   const queryParams = new URLSearchParams({
     page: String(page),
     status,
+    ...(source !== "all" && { source }),
     ...(submittedSearch && { search: submittedSearch }),
   });
 
@@ -255,20 +257,36 @@ export function AdminBattles() {
 
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <Tabs
-              value={status}
-              onValueChange={(v) => {
-                setStatus(v as "all" | "active" | "completed" | "hidden");
-                setPage(1);
-              }}
-            >
-              <TabsList>
-                <TabsTrigger value="all">전체</TabsTrigger>
-                <TabsTrigger value="active">진행중</TabsTrigger>
-                <TabsTrigger value="completed">완료</TabsTrigger>
-                <TabsTrigger value="hidden">숨김</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex items-center gap-3">
+              <Tabs
+                value={status}
+                onValueChange={(v) => {
+                  setStatus(v as "all" | "active" | "completed" | "hidden");
+                  setPage(1);
+                }}
+              >
+                <TabsList>
+                  <TabsTrigger value="all">전체</TabsTrigger>
+                  <TabsTrigger value="active">진행중</TabsTrigger>
+                  <TabsTrigger value="completed">완료</TabsTrigger>
+                  <TabsTrigger value="hidden">숨김</TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              <Tabs
+                value={source}
+                onValueChange={(v) => {
+                  setSource(v as "all" | "topic" | "post");
+                  setPage(1);
+                }}
+              >
+                <TabsList>
+                  <TabsTrigger value="all">전체</TabsTrigger>
+                  <TabsTrigger value="topic">토론</TabsTrigger>
+                  <TabsTrigger value="post">게시글</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
 
             <form onSubmit={handleSearch} className="flex gap-2">
               <Input

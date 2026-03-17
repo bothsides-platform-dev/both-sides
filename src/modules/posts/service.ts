@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { NotFoundError } from "@/lib/errors";
 import { AUTHOR_SELECT, POST_COUNT_SELECT } from "@/lib/prisma-selects";
-import type { CreatePostInput, GetPostsInput } from "./schema";
+import type { CreatePostInput, GetPostsInput, GetPostsAdminInput } from "./schema";
 
 export async function createPost(authorId: string, input: CreatePostInput) {
   const { images, videoUrls, ...rest } = input;
@@ -114,4 +114,71 @@ export async function updatePostHidden(id: string, isHidden: boolean) {
 
 export async function deletePost(id: string) {
   return prisma.post.delete({ where: { id } });
+}
+
+// ── Admin Functions ──
+
+export async function getPostsForAdmin(input: GetPostsAdminInput) {
+  const { page, limit, status, category, search } = input;
+  const skip = (page - 1) * limit;
+
+  const where: Record<string, unknown> = {};
+
+  if (status === "visible") {
+    where.isHidden = false;
+  } else if (status === "hidden") {
+    where.isHidden = true;
+  }
+
+  if (category) where.category = category;
+
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: "insensitive" } },
+      { author: { nickname: { contains: search, mode: "insensitive" } } },
+      { author: { name: { contains: search, mode: "insensitive" } } },
+    ];
+  }
+
+  const [posts, total] = await Promise.all([
+    prisma.post.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        authorId: true,
+        isHidden: true,
+        isAnonymous: true,
+        viewCount: true,
+        createdAt: true,
+        author: { select: AUTHOR_SELECT },
+        _count: { select: { comments: true, reports: true } },
+      },
+    }),
+    prisma.post.count({ where }),
+  ]);
+
+  return {
+    posts,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+export async function getPostAdminStats() {
+  const [total, visible, hidden] = await Promise.all([
+    prisma.post.count(),
+    prisma.post.count({ where: { isHidden: false } }),
+    prisma.post.count({ where: { isHidden: true } }),
+  ]);
+
+  return { total, visible, hidden };
 }

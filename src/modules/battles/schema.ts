@@ -76,6 +76,7 @@ export const getBattlesAdminSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
   status: z.enum(["all", "active", "completed", "hidden"]).default("all"),
+  source: z.enum(["all", "topic", "post"]).default("all"),
   search: z.string().optional(),
 });
 export type GetBattlesAdminInput = z.infer<typeof getBattlesAdminSchema>;

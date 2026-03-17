@@ -53,6 +53,12 @@ const BATTLE_INCLUDE = {
       optionB: true,
     },
   },
+  post: {
+    select: {
+      id: true,
+      title: true,
+    },
+  },
 } as const;
 
 const MESSAGE_INCLUDE = {
@@ -1100,7 +1106,7 @@ export async function getUserBattleStats(userId: string): Promise<BattleStats> {
 // ── Admin Functions ──
 
 export async function getBattlesForAdmin(input: GetBattlesAdminInput) {
-  const { page, limit, status, search } = input;
+  const { page, limit, status, source, search } = input;
   const skip = (page - 1) * limit;
 
   const where: Record<string, unknown> = {};
@@ -1111,6 +1117,13 @@ export async function getBattlesForAdmin(input: GetBattlesAdminInput) {
     where.status = { in: ["COMPLETED", "RESIGNED", "ABANDONED", "DECLINED", "EXPIRED"] };
   } else if (status === "hidden") {
     where.isHidden = true;
+  }
+
+  if (source === "topic") {
+    where.topicId = { not: null };
+  } else if (source === "post") {
+    where.postId = { not: null };
+    where.topicId = null;
   }
 
   if (search) {

@@ -31,5 +31,18 @@ export const getPostsSchema = z.object({
   sort: z.enum(["latest", "popular"]).default("latest"),
 });
 
+export const getPostsAdminSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(["all", "visible", "hidden"]).default("all"),
+  category: categoryEnum.optional(),
+  search: z.string().optional(),
+});
+
+export const updatePostHiddenSchema = z.object({
+  isHidden: z.boolean(),
+});
+
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type GetPostsInput = z.infer<typeof getPostsSchema>;
+export type GetPostsAdminInput = z.infer<typeof getPostsAdminSchema>;

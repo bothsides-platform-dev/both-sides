@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { NotFoundError } from "@/lib/errors";
 import { AUTHOR_SELECT_PUBLIC, POST_COMMENT_REACTION_SELECT } from "@/lib/prisma-selects";
-import type { CreatePostCommentInput, GetPostCommentsInput } from "./schema";
+import type { CreatePostCommentInput, GetPostCommentsInput, GetPostCommentsAdminInput } from "./schema";
 import { createPostCommentReplyNotification } from "@/modules/notifications/service";
 
 export type PostCommentAuthor =
@@ -141,4 +141,112 @@ export async function getPostComments(postId: string, input: GetPostCommentsInpu
       totalPages: Math.ceil(total / limit),
     },
   };
+}
+
+// ── Admin Functions ──
+
+export async function getPostCommentsForAdmin(
+  postId: string,
+  input: GetPostCommentsAdminInput
+) {
+  const { page, limit, status } = input;
+  const skip = (page - 1) * limit;
+
+  const where: Record<string, unknown> = { postId };
+
+  if (status === "visible") {
+    where.isBlinded = false;
+  } else if (status === "blinded") {
+    where.isBlinded = true;
+  }
+
+  const [comments, total] = await Promise.all([
+    prisma.postComment.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        postId: true,
+        userId: true,
+        visitorId: true,
+        body: true,
+        isBlinded: true,
+        isAnonymous: true,
+        parentId: true,
+        battleId: true,
+        createdAt: true,
+        user: { select: AUTHOR_SELECT_PUBLIC },
+        battle: {
+          select: {
+            id: true,
+            status: true,
+            battleTitle: true,
+            customOptionA: true,
+            customOptionB: true,
+            challengerSide: true,
+            challengedSide: true,
+            challengerHp: true,
+            challengedHp: true,
+            durationSeconds: true,
+            endReason: true,
+            winnerId: true,
+            challenger: { select: AUTHOR_SELECT_PUBLIC },
+            challenged: { select: AUTHOR_SELECT_PUBLIC },
+            winner: { select: AUTHOR_SELECT_PUBLIC },
+          },
+        },
+        reactions: { select: POST_COMMENT_REACTION_SELECT },
+        _count: { select: { reactions: true, replies: true, reports: true } },
+      },
+    }),
+    prisma.postComment.count({ where }),
+  ]);
+
+  const processedComments = comments.map((comment) => {
+    let likes = 0;
+    let dislikes = 0;
+    for (const r of comment.reactions) {
+      if (r.type === "LIKE") likes++;
+      else if (r.type === "DISLIKE") dislikes++;
+    }
+    return {
+      ...comment,
+      reactionSummary: { likes, dislikes },
+    };
+  });
+
+  return {
+    comments: processedComments,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+export async function blindPostComment(id: string, isBlinded: boolean) {
+  const comment = await prisma.postComment.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!comment) throw new NotFoundError("댓글을 찾을 수 없습니다.");
+
+  return prisma.postComment.update({
+    where: { id },
+    data: { isBlinded },
+  });
+}
+
+export async function deletePostComment(id: string) {
+  const comment = await prisma.postComment.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!comment) throw new NotFoundError("댓글을 찾을 수 없습니다.");
+
+  return prisma.postComment.delete({ where: { id } });
 }
