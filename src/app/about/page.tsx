@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
 import { CATEGORY_META, CATEGORY_TO_SLUG } from "@/lib/constants";
+
+export const dynamic = 'force-dynamic';
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
