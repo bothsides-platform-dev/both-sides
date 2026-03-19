@@ -4,55 +4,16 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { formatRelativeTime } from "@/lib/utils";
-import { ThumbsUp, ThumbsDown, MessageSquare, Flag, User, ChevronDown, ChevronUp } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, Flag, User, ChevronDown, ChevronUp, Swords } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PostCommentForm } from "./PostCommentForm";
 import { ChallengeBlockComment } from "@/components/battle/ChallengeBlockComment";
+import { InlineChallengeActions } from "@/components/battle/InlineChallengeActions";
 import { PostChallengeButton } from "@/components/battle/PostChallengeButton";
 import Image from "next/image";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
-
-interface PostCommentBattle {
-  id: string;
-  status: string;
-  battleTitle: string | null;
-  customOptionA: string | null;
-  customOptionB: string | null;
-  challengerSide: string;
-  challengedSide: string;
-  challengerHp: number | null;
-  challengedHp: number | null;
-  durationSeconds: number | null;
-  endReason: string | null;
-  winnerId: string | null;
-  challenger: { id: string; nickname: string | null; name: string | null; image: string | null; selectedBadgeId: string | null };
-  challenged: { id: string; nickname: string | null; name: string | null; image: string | null; selectedBadgeId: string | null };
-  winner?: { nickname: string | null; name: string | null } | null;
-}
-
-interface PostCommentData {
-  id: string;
-  postId: string;
-  userId: string | null;
-  visitorId: string | null;
-  body: string;
-  isBlinded: boolean;
-  isAnonymous: boolean;
-  parentId: string | null;
-  battleId?: string | null;
-  battle?: PostCommentBattle | null;
-  createdAt: string;
-  user: {
-    id: string;
-    nickname: string | null;
-    name: string | null;
-    image: string | null;
-    selectedBadgeId: string | null;
-  } | null;
-  reactionSummary: { likes: number; dislikes: number };
-  _count: { reactions: number; replies: number };
-}
+import type { PostCommentData } from "@/types/post-comments";
 
 interface PostCommentItemProps {
   comment: PostCommentData;
@@ -114,6 +75,53 @@ export function PostCommentItem({ comment, postId, onMutate, depth = 0 }: PostCo
     }
   };
 
+  // Challenge comments: render as dedicated block (no regular comment frame)
+  if (comment.battleId) {
+    return (
+      <div className={cn("py-3", depth > 0 && "ml-6 border-l-2 border-muted pl-4")}>
+        {comment.battle ? (
+          <>
+            <ChallengeBlockComment battle={comment.battle} />
+            <InlineChallengeActions battle={comment.battle} onMutate={onMutate} />
+          </>
+        ) : (
+          <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center text-sm text-muted-foreground">
+            <Swords className="h-4 w-4 mx-auto mb-1 opacity-50" />
+            삭제된 맞짱 도전입니다.
+          </div>
+        )}
+
+        {/* Replies toggle for challenge comments */}
+        {comment._count.replies > 0 && (
+          <div className="mt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs"
+              onClick={() => setShowReplies(!showReplies)}
+            >
+              {showReplies ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              답글 {comment._count.replies}개
+            </Button>
+          </div>
+        )}
+
+        {showReplies && replies.map((reply) => (
+          <PostCommentItem
+            key={reply.id}
+            comment={reply}
+            postId={postId}
+            onMutate={() => {
+              mutateReplies();
+              onMutate();
+            }}
+            depth={depth + 1}
+          />
+        ))}
+      </div>
+    );
+  }
+
   if (comment.isBlinded) {
     return (
       <div className={cn("py-3", depth > 0 && "ml-6 border-l-2 border-muted pl-4")}>
@@ -145,14 +153,8 @@ export function PostCommentItem({ comment, postId, onMutate, depth = 0 }: PostCo
         </span>
       </div>
 
-      {/* Body — or Challenge Block */}
-      {comment.battleId && comment.battle ? (
-        <div className="mb-2">
-          <ChallengeBlockComment battle={comment.battle} />
-        </div>
-      ) : (
-        <p className="text-sm whitespace-pre-line mb-2">{comment.body}</p>
-      )}
+      {/* Body */}
+      <p className="text-sm whitespace-pre-line mb-2">{comment.body}</p>
 
       {/* Actions */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -201,13 +203,17 @@ export function PostCommentItem({ comment, postId, onMutate, depth = 0 }: PostCo
           </Button>
         )}
 
-        {session?.user && comment.userId && session.user.id !== comment.userId && !comment.battleId && (
+        {session?.user && comment.userId && session.user.id !== comment.userId && (
           <PostChallengeButton
             postId={postId}
             commentId={comment.id}
             commentUserId={comment.userId}
             commentUserName={comment.isAnonymous ? "익명" : (comment.user?.nickname || comment.user?.name || "익명")}
-            onSuccess={onMutate}
+            onSuccess={() => {
+              setShowReplies(true);
+              mutateReplies();
+              onMutate();
+            }}
           />
         )}
 

@@ -53,6 +53,12 @@ const BATTLE_INCLUDE = {
       optionB: true,
     },
   },
+  post: {
+    select: {
+      id: true,
+      title: true,
+    },
+  },
 } as const;
 
 const MESSAGE_INCLUDE = {
@@ -224,7 +230,7 @@ export async function createPostChallenge(challengerId: string, input: CreatePos
   const challengedSide: "A" | "B" = challengerSide === "A" ? "B" : "A";
 
   // Create battle and challenge comment in transaction
-  const [battle, _challengeComment] = await prisma.$transaction(async (tx) => {
+  const battle = await prisma.$transaction(async (tx) => {
     const newBattle = await tx.battle.create({
       data: {
         topicId: null,
@@ -246,7 +252,7 @@ export async function createPostChallenge(challengerId: string, input: CreatePos
     });
 
     // Create a PostComment that renders as challenge block
-    const comment = await tx.postComment.create({
+    await tx.postComment.create({
       data: {
         postId,
         userId: challengerId,
@@ -256,7 +262,7 @@ export async function createPostChallenge(challengerId: string, input: CreatePos
       },
     });
 
-    return [newBattle, comment] as const;
+    return newBattle;
   });
 
   // Create notification
@@ -1100,7 +1106,7 @@ export async function getUserBattleStats(userId: string): Promise<BattleStats> {
 // ── Admin Functions ──
 
 export async function getBattlesForAdmin(input: GetBattlesAdminInput) {
-  const { page, limit, status, search } = input;
+  const { page, limit, status, source, search } = input;
   const skip = (page - 1) * limit;
 
   const where: Record<string, unknown> = {};
@@ -1111,6 +1117,13 @@ export async function getBattlesForAdmin(input: GetBattlesAdminInput) {
     where.status = { in: ["COMPLETED", "RESIGNED", "ABANDONED", "DECLINED", "EXPIRED"] };
   } else if (status === "hidden") {
     where.isHidden = true;
+  }
+
+  if (source === "topic") {
+    where.topicId = { not: null };
+  } else if (source === "post") {
+    where.postId = { not: null };
+    where.topicId = null;
   }
 
   if (search) {

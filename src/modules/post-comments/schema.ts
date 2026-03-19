@@ -13,5 +13,17 @@ export const getPostCommentsSchema = z.object({
   parentId: z.string().optional().nullable(),
 });
 
+// Admin schemas
+export const getPostCommentsAdminSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(["all", "visible", "blinded"]).default("all"),
+});
+
+export const blindPostCommentSchema = z.object({
+  isBlinded: z.boolean(),
+});
+
 export type CreatePostCommentInput = z.infer<typeof createPostCommentSchema>;
 export type GetPostCommentsInput = z.infer<typeof getPostCommentsSchema>;
+export type GetPostCommentsAdminInput = z.infer<typeof getPostCommentsAdminSchema>;

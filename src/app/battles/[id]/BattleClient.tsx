@@ -127,7 +127,11 @@ export function BattleClient({ battleId }: BattleClientProps) {
     : battle.postId
       ? `/posts/${battle.postId}`
       : null;
-  const backLabel = battle.topicId ? "토론으로" : "게시글로";
+  const backLabel = battle.topicId
+    ? "토론으로"
+    : battle.post?.title
+      ? battle.post.title
+      : "게시글로";
 
   const isParticipant =
     currentUserId === battle.challengerId || currentUserId === battle.challengedId;

@@ -9,30 +9,10 @@ import { MessageSquare } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { PostCommentForm } from "./PostCommentForm";
 import { PostCommentItem } from "./PostCommentItem";
+import type { PostCommentData } from "@/types/post-comments";
 
 interface PostCommentSectionProps {
   postId: string;
-}
-
-interface PostCommentData {
-  id: string;
-  postId: string;
-  userId: string | null;
-  visitorId: string | null;
-  body: string;
-  isBlinded: boolean;
-  isAnonymous: boolean;
-  parentId: string | null;
-  createdAt: string;
-  user: {
-    id: string;
-    nickname: string | null;
-    name: string | null;
-    image: string | null;
-    selectedBadgeId: string | null;
-  } | null;
-  reactionSummary: { likes: number; dislikes: number };
-  _count: { reactions: number; replies: number };
 }
 
 interface CommentsResponse {
