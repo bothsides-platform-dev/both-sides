@@ -135,6 +135,12 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "v6eobm9gc5");
           `}
         </Script>
+        {/* Google AdSense */}
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5411614205287310"
+          strategy="lazyOnload"
+          crossOrigin="anonymous"
+        />
         <Suspense fallback={null}>
           <ThemeProvider
             attribute="class"
