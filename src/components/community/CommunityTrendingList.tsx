@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import useSWR from "swr";
 import { ExternalLink, Eye, MessageSquare, ThumbsUp, TrendingUp } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelativeTime } from "@/lib/utils";
-import type { CommunityTrendingPost, SiteName } from "@/types/community-trending";
+import type { CommunityTrendingPost } from "@/types/community-trending";
 import { SITE_META } from "@/types/community-trending";
 
 interface CommunityTrendingResponse {
@@ -120,8 +119,6 @@ function LoadingSkeleton() {
 }
 
 export function CommunityTrendingList() {
-  const [selectedSite, setSelectedSite] = useState<SiteName | undefined>(undefined);
-
   const { data, error, isLoading } = useSWR<CommunityTrendingResponse>(
     "/api/community-trending",
     fetcher,
@@ -132,43 +129,9 @@ export function CommunityTrendingList() {
   );
 
   const posts = data?.data?.posts ?? [];
-  const filteredPosts = selectedSite
-    ? posts.filter((post) => post.sourceSite === selectedSite)
-    : posts;
 
   return (
     <div className="space-y-4">
-      {/* Site filter chips */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
-        <button
-          onClick={() => setSelectedSite(undefined)}
-          className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-            selectedSite === undefined
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-muted-foreground hover:bg-muted/80"
-          }`}
-        >
-          전체
-        </button>
-        {(Object.keys(SITE_META) as SiteName[]).map((site) => {
-          const meta = SITE_META[site];
-          const count = posts.filter((p) => p.sourceSite === site).length;
-          return (
-            <button
-              key={site}
-              onClick={() => setSelectedSite(site)}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                selectedSite === site
-                  ? `${meta.bgColor} ${meta.color}`
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              {meta.displayName} {count > 0 && `(${count})`}
-            </button>
-          );
-        })}
-      </div>
-
       {/* Posts list */}
       <div className="divide-y rounded-lg border bg-card">
         {isLoading ? (
@@ -177,17 +140,13 @@ export function CommunityTrendingList() {
           <div className="py-12 text-center text-muted-foreground">
             커뮤니티 인기글을 불러오는데 실패했습니다.
           </div>
-        ) : filteredPosts.length === 0 ? (
+        ) : posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
             <TrendingUp className="h-8 w-8" />
-            <p>
-              {selectedSite
-                ? `${SITE_META[selectedSite].displayName}의 인기글이 없습니다.`
-                : "아직 인기글이 없습니다."}
-            </p>
+            <p>아직 인기글이 없습니다.</p>
           </div>
         ) : (
-          filteredPosts.map((post) => <TrendingItem key={post.id} post={post} />)
+          posts.map((post) => <TrendingItem key={post.id} post={post} />)
         )}
       </div>
 
