@@ -8,23 +8,35 @@ import { FeedListItem, type FeedItem } from "@/components/feed/FeedListItem";
 import { CommunityTrendingList } from "@/components/community/CommunityTrendingList";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CategoryChips } from "@/components/ui/CategoryChips";
-import { MessageSquare, ArrowRight } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
+import { MessageSquare } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Skeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
 import type { Category } from "@prisma/client";
 
 type ContentType = "all" | "debate" | "post" | "trending";
+
+const ITEMS_PER_PAGE = 10;
 
 export function CommunitySection() {
   const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(undefined);
   const [sort, setSort] = useState<"latest" | "popular">("latest");
   const [contentType, setContentType] = useState<ContentType>("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const params = new URLSearchParams();
   if (selectedCategory) params.set("category", selectedCategory);
   params.set("sort", sort);
-  params.set("limit", "10");
+  params.set("limit", String(ITEMS_PER_PAGE));
+  params.set("page", String(currentPage));
 
   // Build API URL based on content type
   let apiUrl: string | null = null;
@@ -46,27 +58,85 @@ export function CommunitySection() {
 
   // Normalize data based on content type
   let items: FeedItem[] = [];
+  let totalCount = 0;
   if (data?.data && contentType !== "trending") {
     if (contentType === "all") {
       items = (data.data.items ?? []) as FeedItem[];
+      totalCount = data.data.pagination?.total ?? 0;
     } else if (contentType === "debate") {
       items = ((data.data.topics ?? []) as TopicListItemProps["topic"][]).map((t) => ({
         type: "topic" as const,
         data: t,
       }));
+      totalCount = data.data.pagination?.total ?? 0;
     } else {
       items = ((data.data.posts ?? []) as PostListItemProps["post"][]).map((p) => ({
         type: "post" as const,
         data: p,
       }));
+      totalCount = data.data.pagination?.total ?? 0;
     }
   }
+
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  // Reset to page 1 when filters change
+  const handleCategoryChange = (category: Category | undefined) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (newSort: "latest" | "popular") => {
+    setSort(newSort);
+    setCurrentPage(1);
+  };
+
+  const handleContentTypeChange = (newType: ContentType) => {
+    setContentType(newType);
+    setCurrentPage(1);
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | "ellipsis")[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible + 2) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+
+      if (currentPage <= 3) {
+        for (let i = 2; i <= Math.min(maxVisible, totalPages - 1); i++) {
+          pages.push(i);
+        }
+        pages.push("ellipsis");
+      } else if (currentPage >= totalPages - 2) {
+        pages.push("ellipsis");
+        for (let i = totalPages - (maxVisible - 1); i < totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push("ellipsis");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push("ellipsis");
+      }
+
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
 
   return (
     <section className="space-y-4">
       {/* Content Type Tabs */}
       <div className="flex items-center gap-4">
-        <Tabs value={contentType} onValueChange={(v) => setContentType(v as ContentType)} className="shrink-0">
+        <Tabs value={contentType} onValueChange={(v) => handleContentTypeChange(v as ContentType)} className="shrink-0">
           <TabsList>
             <TabsTrigger value="all">전체</TabsTrigger>
             <TabsTrigger value="debate">토론</TabsTrigger>
@@ -84,12 +154,12 @@ export function CommunitySection() {
           <div className="flex items-center gap-4">
             <CategoryChips
               value={selectedCategory}
-              onChange={setSelectedCategory}
+              onChange={handleCategoryChange}
               size="sm"
               className="min-w-0 flex-1"
             />
 
-            <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "popular")} className="ml-auto shrink-0">
+            <Tabs value={sort} onValueChange={(v) => handleSortChange(v as "latest" | "popular")} className="ml-auto shrink-0">
               <TabsList>
                 <TabsTrigger value="latest">최신순</TabsTrigger>
                 <TabsTrigger value="popular">인기순</TabsTrigger>
@@ -127,15 +197,43 @@ export function CommunitySection() {
             )}
           </div>
 
-          <div className="flex justify-center">
-            <Link
-              href="/explore"
-              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              더 보기
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+          {/* Pagination */}
+          {!isLoading && !error && totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  />
+                </PaginationItem>
+
+                {getPageNumbers().map((page, index) =>
+                  page === "ellipsis" ? (
+                    <PaginationItem key={`ellipsis-${index}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
         </>
       )}
     </section>

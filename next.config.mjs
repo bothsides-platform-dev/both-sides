@@ -12,6 +12,38 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
+      {
+        protocol: 'https',
+        hostname: '*.dcinside.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.fmkorea.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.ppomppu.co.kr',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.ruliweb.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.theqoo.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.instiz.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.naver.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.kakaocdn.net',
+      },
     ],
   },
   experimental: {
@@ -29,7 +61,7 @@ const nextConfig = {
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://developers.kakao.com https://t1.kakaocdn.net https://*.clarity.ms https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://lh3.googleusercontent.com https://*.kakaocdn.net https://www.googletagmanager.com; connect-src 'self' https://kapi.kakao.com https://*.clarity.ms https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; frame-ancestors 'none';",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://developers.kakao.com https://t1.kakaocdn.net https://*.clarity.ms https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://lh3.googleusercontent.com https://*.kakaocdn.net https://www.googletagmanager.com https://*.dcinside.com https://*.fmkorea.com https://*.ppomppu.co.kr https://*.ruliweb.com https://*.theqoo.net https://*.instiz.net https://*.naver.com; connect-src 'self' https://kapi.kakao.com https://*.clarity.ms https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; frame-ancestors 'none';",
           },
         ],
       },

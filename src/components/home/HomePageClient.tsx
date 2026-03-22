@@ -3,8 +3,6 @@
 import { TrendingTicker } from "@/components/TrendingTicker";
 import { FeaturedSection } from "@/components/topics/FeaturedSection";
 import { CommunitySection } from "@/components/topics/CommunitySection";
-import { TopicBubbleMap } from "@/components/explore/TopicBubbleMap";
-import { HomeBattleSection } from "@/components/battle/HomeBattleSection";
 
 export function HomePageClient() {
   return (
@@ -15,12 +13,6 @@ export function HomePageClient() {
       </div>
 
       <div className="space-y-6 md:space-y-10 mt-6 max-w-5xl mx-auto">
-        {/* Bubble Map */}
-        <TopicBubbleMap />
-
-        {/* Battle Section */}
-        <HomeBattleSection />
-
         {/* Section 1: Featured Topics */}
         <FeaturedSection />
 
