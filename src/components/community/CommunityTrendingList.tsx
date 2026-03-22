@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import useSWR from "swr";
+import Image from "next/image";
 import { ExternalLink, Eye, MessageSquare, ThumbsUp, TrendingUp } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,14 +32,30 @@ interface TrendingItemProps {
 function TrendingItem({ post }: TrendingItemProps) {
   const siteMeta = SITE_META[post.sourceSite];
   const preview = stripHtml(post.content, 150);
+  const [imageError, setImageError] = useState(false);
+  const thumbnailUrl = post.imageUrls?.[0];
+  const showThumbnail = thumbnailUrl && !imageError;
 
   return (
     <a
       href={post.sourceUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset group"
+      className="flex items-center gap-4 rounded-lg px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset group"
     >
+      {showThumbnail && (
+        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+          <Image
+            src={thumbnailUrl}
+            alt={post.title}
+            fill
+            sizes="64px"
+            className="object-cover"
+            onError={() => setImageError(true)}
+          />
+        </div>
+      )}
+      
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
