@@ -135,12 +135,21 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "v6eobm9gc5");
           `}
         </Script>
-        {/* Google AdSense */}
+        {/* Google AdSense - Auto Ads */}
         <Script
+          id="adsense-script"
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5411614205287310"
           strategy="lazyOnload"
           crossOrigin="anonymous"
         />
+        <Script id="adsense-auto-ads" strategy="lazyOnload">
+          {`
+            (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-5411614205287310",
+              enable_page_level_ads: true
+            });
+          `}
+        </Script>
         <Suspense fallback={null}>
           <ThemeProvider
             attribute="class"
