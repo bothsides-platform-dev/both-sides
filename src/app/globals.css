@@ -163,13 +163,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ticker-content {
-    animation: none;
-  }
-
-  *,
-  *::before,
-  *::after {
+  /* Exclude .ticker-content: it's a gentle horizontal marquee that already
+     supports pause-on-hover and pause-on-popover. Many Windows touch laptops
+     ship with the OS "Show animations" toggle off, which would otherwise
+     freeze the trending ticker entirely. */
+  *:not(.ticker-content),
+  *:not(.ticker-content)::before,
+  *:not(.ticker-content)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
