@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import useSWR from "swr";
 import Image from "next/image";
 import { ExternalLink, Eye, MessageSquare, ThumbsUp, TrendingUp } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelativeTime } from "@/lib/utils";
+import { InFeedAd } from "@/components/ads/InFeedAd";
 import type { CommunityTrendingPost } from "@/types/community-trending";
 import { SITE_META } from "@/types/community-trending";
 
@@ -164,7 +165,15 @@ export function CommunityTrendingList() {
             <p>아직 인기글이 없습니다.</p>
           </div>
         ) : (
-          posts.map((post) => <TrendingItem key={post.id} post={post} />)
+          posts.map((post, index) => {
+            const midpoint = Math.floor(posts.length / 2) - 1;
+            return (
+              <Fragment key={post.id}>
+                <TrendingItem post={post} />
+                {index === midpoint && posts.length > 3 && <InFeedAd />}
+              </Fragment>
+            );
+          })
         )}
       </div>
 
