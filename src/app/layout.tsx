@@ -97,6 +97,12 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        {/* Google AdSense - Auto Ads (must be a plain script tag in <head>) */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5411614205287310"
+          crossOrigin="anonymous"
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
@@ -133,21 +139,6 @@ export default function RootLayout({
                 t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
                 y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
             })(window, document, "clarity", "script", "v6eobm9gc5");
-          `}
-        </Script>
-        {/* Google AdSense - Auto Ads */}
-        <Script
-          id="adsense-script"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5411614205287310"
-          strategy="lazyOnload"
-          crossOrigin="anonymous"
-        />
-        <Script id="adsense-auto-ads" strategy="lazyOnload">
-          {`
-            (adsbygoogle = window.adsbygoogle || []).push({
-              google_ad_client: "ca-pub-5411614205287310",
-              enable_page_level_ads: true
-            });
           `}
         </Script>
         <Suspense fallback={null}>
