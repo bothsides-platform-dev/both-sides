@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import useSWR from "swr";
 import { TopicListItem, type TopicListItemProps } from "./TopicListItem";
 import { PostListItem, type PostListItemProps } from "@/components/posts/PostListItem";
 import { FeedListItem, type FeedItem } from "@/components/feed/FeedListItem";
 import { CommunityTrendingList } from "@/components/community/CommunityTrendingList";
+import { InFeedAd } from "@/components/ads/InFeedAd";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CategoryChips } from "@/components/ui/CategoryChips";
 import {
@@ -191,9 +192,15 @@ export function CommunitySection() {
                 <p className="text-sm">첫 번째 게시글을 작성해보세요!</p>
               </div>
             ) : (
-              items.map((item) => (
-                <FeedListItem key={`${item.type}-${item.data.id}`} item={item} />
-              ))
+              items.map((item, index) => {
+                const midpoint = Math.floor(items.length / 2) - 1;
+                return (
+                  <Fragment key={`${item.type}-${item.data.id}`}>
+                    <FeedListItem item={item} />
+                    {index === midpoint && items.length > 3 && <InFeedAd />}
+                  </Fragment>
+                );
+              })
             )}
           </div>
 
