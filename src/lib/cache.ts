@@ -86,6 +86,6 @@ export const CACHE_KEYS = {
 
 // 기본 TTL 상수 (밀리초)
 export const CACHE_TTL = {
-  TRENDS: 3 * 60 * 60 * 1000, // 3시간 (하루 8회, 월 ~240회)
+  TRENDS: 30 * 60 * 1000, // 30분 (나무위키 인기 검색어는 자주 갱신됨)
   VOTE_STATS: 60 * 1000, // 60초 (투표 시 invalidateVoteStatsCache()로 즉시 갱신)
 } as const;

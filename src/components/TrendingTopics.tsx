@@ -4,15 +4,12 @@ import useSWR from "swr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetcher } from "@/lib/fetcher";
 import { formatRelativeTime } from "@/lib/utils";
-import { Loader2, TrendingUp, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import type { TrendsApiResponse, TrendItem } from "@/modules/trends/types";
 
 function TrendItemRow({ trend }: { trend: TrendItem }) {
-  const [showArticles, setShowArticles] = useState(false);
-  const hasArticles = trend.articles && trend.articles.length > 0;
-
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(trend.query)}`;
+  const namuUrl = `https://namu.wiki/w/${encodeURIComponent(trend.query)}`;
 
   return (
     <div className="border-b last:border-b-0">
@@ -21,7 +18,7 @@ function TrendItemRow({ trend }: { trend: TrendItem }) {
           {trend.rank}
         </span>
         <a
-          href={searchUrl}
+          href={namuUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex-1 text-sm font-medium hover:text-primary hover:underline truncate"
@@ -30,47 +27,7 @@ function TrendItemRow({ trend }: { trend: TrendItem }) {
           {trend.query}
           <span className="sr-only">(새 창에서 열림)</span>
         </a>
-        {trend.traffic && (
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {trend.traffic}
-          </span>
-        )}
-        {hasArticles && (
-          <button
-            onClick={() => setShowArticles(!showArticles)}
-            className="p-1 text-muted-foreground hover:text-foreground"
-            aria-label={showArticles ? "기사 숨기기" : "기사 보기"}
-          >
-            {showArticles ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </button>
-        )}
       </div>
-      {showArticles && hasArticles && (
-        <div className="pl-9 pr-2 pb-2 space-y-1.5">
-          {trend.articles!.map((article, idx) => (
-            <a
-              key={idx}
-              href={article.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-start gap-2 text-xs text-muted-foreground hover:text-foreground group"
-            >
-              <ExternalLink className="h-3 w-3 mt-0.5 flex-shrink-0" />
-              <span className="group-hover:underline line-clamp-2">
-                {article.title}
-                {article.source && (
-                  <span className="text-muted-foreground/80"> - {article.source}</span>
-                )}
-                <span className="sr-only">(새 창에서 열림)</span>
-              </span>
-            </a>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
